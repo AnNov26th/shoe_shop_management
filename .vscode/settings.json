@@ -1,0 +1,12 @@
+{
+  "java.project.sourcePaths": ["src/main/java", "src/test/java"],
+  "java.project.outputPath": "target/classes",
+  "java.project.referencedLibraries": ["lib/**/*.jar"],
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.debug.settings.hotCodeReplace": "auto",
+  "editor.formatOnSave": true,
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java",
+    "editor.formatOnSave": true
+  }
+}
