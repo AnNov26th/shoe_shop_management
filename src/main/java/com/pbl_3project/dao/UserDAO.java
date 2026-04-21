@@ -321,4 +321,181 @@ public class UserDAO {
         }
         return userId;
     }
+
+    public java.util.Map<String, String> getCustomerProfile(int customerId) throws SQLException {
+        java.util.Map<String, String> profile = new java.util.HashMap<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT u.email, u.password_hash, u.phone, cp.full_name, cp.dob, cp.shoe_size_preference, ab.full_address " +
+                         "FROM [User] u " +
+                         "LEFT JOIN Customer_Profile cp ON u.id = cp.user_id " +
+                         "LEFT JOIN Address_Book ab ON u.id = ab.user_id AND ab.is_default = 1 " +
+                         "WHERE u.id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, customerId);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                profile.put("email", rs.getString("email"));
+                profile.put("password", rs.getString("password_hash")); // In a real app, don't return hash, but here we might just display it or empty
+                profile.put("phone", rs.getString("phone"));
+                
+                String fullName = rs.getString("full_name");
+                if (fullName != null && !fullName.trim().isEmpty()) {
+                    int lastSpace = fullName.lastIndexOf(" ");
+                    if (lastSpace != -1) {
+                        profile.put("firstName", fullName.substring(0, lastSpace));
+                        profile.put("lastName", fullName.substring(lastSpace + 1));
+                    } else {
+                        profile.put("firstName", "");
+                        profile.put("lastName", fullName);
+                    }
+                } else {
+                    profile.put("firstName", "");
+                    profile.put("lastName", "");
+                }
+
+                java.sql.Date dob = rs.getDate("dob");
+                profile.put("dob", dob != null ? dob.toString() : "");
+
+                java.math.BigDecimal shoeSize = rs.getBigDecimal("shoe_size_preference");
+                profile.put("shoeSize", shoeSize != null ? shoeSize.toString() : "");
+
+                profile.put("address", rs.getString("full_address"));
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return profile;
+    }
+
+    public boolean updateCustomerProfile(int customerId, java.util.Map<String, String> profile) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmtUser = null;
+        PreparedStatement pstmtProfile = null;
+        PreparedStatement pstmtProfileCheck = null;
+        PreparedStatement pstmtAddress = null;
+        PreparedStatement pstmtAddressCheck = null;
+        ResultSet rs = null;
+        boolean success = false;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Update User table
+            String sqlUser;
+            if (profile.get("password") != null && !profile.get("password").isEmpty()) {
+                sqlUser = "UPDATE [User] SET email = ?, phone = ?, password_hash = ? WHERE id = ?";
+                pstmtUser = conn.prepareStatement(sqlUser);
+                pstmtUser.setString(1, profile.get("email"));
+                pstmtUser.setString(2, profile.get("phone"));
+                pstmtUser.setString(3, profile.get("password"));
+                pstmtUser.setInt(4, customerId);
+            } else {
+                sqlUser = "UPDATE [User] SET email = ?, phone = ? WHERE id = ?";
+                pstmtUser = conn.prepareStatement(sqlUser);
+                pstmtUser.setString(1, profile.get("email"));
+                pstmtUser.setString(2, profile.get("phone"));
+                pstmtUser.setInt(3, customerId);
+            }
+            pstmtUser.executeUpdate();
+
+            // 2. Update Customer_Profile
+            String fullName = (profile.get("firstName") + " " + profile.get("lastName")).trim();
+            
+            pstmtProfileCheck = conn.prepareStatement("SELECT user_id FROM Customer_Profile WHERE user_id = ?");
+            pstmtProfileCheck.setInt(1, customerId);
+            rs = pstmtProfileCheck.executeQuery();
+            
+            if (rs.next()) {
+                // Update
+                String sqlProfile = "UPDATE Customer_Profile SET full_name = ?, dob = ?, shoe_size_preference = ? WHERE user_id = ?";
+                pstmtProfile = conn.prepareStatement(sqlProfile);
+                pstmtProfile.setNString(1, fullName);
+                if (profile.get("dob") != null && !profile.get("dob").isEmpty()) {
+                    pstmtProfile.setDate(2, java.sql.Date.valueOf(profile.get("dob")));
+                } else {
+                    pstmtProfile.setNull(2, java.sql.Types.DATE);
+                }
+                if (profile.get("shoeSize") != null && !profile.get("shoeSize").isEmpty()) {
+                    pstmtProfile.setBigDecimal(3, new java.math.BigDecimal(profile.get("shoeSize")));
+                } else {
+                    pstmtProfile.setNull(3, java.sql.Types.DECIMAL);
+                }
+                pstmtProfile.setInt(4, customerId);
+                pstmtProfile.executeUpdate();
+            } else {
+                // Insert
+                String sqlProfile = "INSERT INTO Customer_Profile (user_id, full_name, dob, shoe_size_preference) VALUES (?, ?, ?, ?)";
+                pstmtProfile = conn.prepareStatement(sqlProfile);
+                pstmtProfile.setInt(1, customerId);
+                pstmtProfile.setNString(2, fullName);
+                if (profile.get("dob") != null && !profile.get("dob").isEmpty()) {
+                    pstmtProfile.setDate(3, java.sql.Date.valueOf(profile.get("dob")));
+                } else {
+                    pstmtProfile.setNull(3, java.sql.Types.DATE);
+                }
+                if (profile.get("shoeSize") != null && !profile.get("shoeSize").isEmpty()) {
+                    pstmtProfile.setBigDecimal(4, new java.math.BigDecimal(profile.get("shoeSize")));
+                } else {
+                    pstmtProfile.setNull(4, java.sql.Types.DECIMAL);
+                }
+                pstmtProfile.executeUpdate();
+            }
+            if (rs != null) { rs.close(); rs = null; }
+
+            // 3. Update Address_Book
+            if (profile.get("address") != null && !profile.get("address").isEmpty()) {
+                pstmtAddressCheck = conn.prepareStatement("SELECT id FROM Address_Book WHERE user_id = ? AND is_default = 1");
+                pstmtAddressCheck.setInt(1, customerId);
+                rs = pstmtAddressCheck.executeQuery();
+                
+                if (rs.next()) {
+                    // Update
+                    int addressId = rs.getInt("id");
+                    String sqlAddress = "UPDATE Address_Book SET full_address = ?, receiver_name = ?, phone = ? WHERE id = ?";
+                    pstmtAddress = conn.prepareStatement(sqlAddress);
+                    pstmtAddress.setNString(1, profile.get("address"));
+                    pstmtAddress.setNString(2, fullName);
+                    pstmtAddress.setString(3, profile.get("phone"));
+                    pstmtAddress.setInt(4, addressId);
+                    pstmtAddress.executeUpdate();
+                } else {
+                    // Insert
+                    String sqlAddress = "INSERT INTO Address_Book (user_id, full_address, receiver_name, phone, is_default) VALUES (?, ?, ?, ?, 1)";
+                    pstmtAddress = conn.prepareStatement(sqlAddress);
+                    pstmtAddress.setInt(1, customerId);
+                    pstmtAddress.setNString(2, profile.get("address"));
+                    pstmtAddress.setNString(3, fullName);
+                    pstmtAddress.setString(4, profile.get("phone"));
+                    pstmtAddress.executeUpdate();
+                }
+            }
+
+            conn.commit();
+            success = true;
+        } catch (Exception e) {
+            if (conn != null) conn.rollback();
+            throw new SQLException(e);
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmtUser != null) pstmtUser.close();
+            if (pstmtProfile != null) pstmtProfile.close();
+            if (pstmtProfileCheck != null) pstmtProfileCheck.close();
+            if (pstmtAddress != null) pstmtAddress.close();
+            if (pstmtAddressCheck != null) pstmtAddressCheck.close();
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                DatabaseConnection.closeConnection(conn);
+            }
+        }
+        return success;
+    }
 }

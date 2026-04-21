@@ -1,23 +1,9 @@
 package com.pbl_3project.gui;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import java.awt.*;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import com.pbl_3project.bus.CartBUS;
 import com.pbl_3project.dto.CartItem;
@@ -29,9 +15,15 @@ public class CustomerForm extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainContentPanel;
     private CartBUS cartBUS;
-    private int customerId; // LƯU ID CỦA KHÁCH HÀNG THẬT
+    private int customerId; // Lưu ID chuẩn của khách hàng
 
-    // ĐÃ SỬA: Nhận ID thật từ lúc đăng nhập
+    // --- BẢNG MÀU UI/UX HIỆN ĐẠI ---
+    private static final Color BG_CONTENT = new Color(248, 250, 252);
+    private static final Color NAV_BG = Color.WHITE;
+    private static final Color BORDER_COLOR = new Color(226, 232, 240);
+    private static final Color NAV_TEXT = new Color(15, 23, 42);
+
+    // ĐÃ FIX: Nhận ID từ LoginForm truyền sang
     public CustomerForm(int customerId) {
         this.customerId = customerId;
         this.cartBUS = new CartBUS();
@@ -47,18 +39,28 @@ public class CustomerForm extends JFrame {
     }
 
     private void initComponents() {
+        // --- 1. NAVBAR (THANH ĐIỀU HƯỚNG TRÊN CÙNG) ---
         JPanel topHeaderWrapper = new JPanel();
         topHeaderWrapper.setLayout(new BoxLayout(topHeaderWrapper, BoxLayout.Y_AXIS));
+
         topHeaderWrapper.add(new TimeDisplayPanel());
 
         JPanel topNavbar = new JPanel(new BorderLayout());
-        topNavbar.setBackground(Color.WHITE);
+        topNavbar.setBackground(NAV_BG);
         topNavbar.setPreferredSize(new Dimension(getWidth(), 70));
         topNavbar.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+                BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
                 new EmptyBorder(10, 20, 10, 20)));
 
-        JButton btnLogo = new JButton("  T&T SHOES");
+        // Logo
+        JButton btnLogo = new JButton("  T&T SHOES") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                super.paintComponent(g);
+            }
+        };
         btnLogo.setFont(new Font("Segoe UI", Font.BOLD, 24));
         btnLogo.setForeground(new Color(56, 189, 248));
         try {
@@ -71,71 +73,175 @@ public class CustomerForm extends JFrame {
         btnLogo.setCursor(new Cursor(Cursor.HAND_CURSOR));
         topNavbar.add(btnLogo, BorderLayout.WEST);
 
+        // Thanh Tìm Kiếm
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-        searchPanel.setBackground(Color.WHITE);
+        searchPanel.setBackground(NAV_BG);
+
         JTextField txtSearch = new JTextField(25);
         txtSearch.setPreferredSize(new Dimension(300, 40));
-        searchPanel.add(txtSearch);
+        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtSearch.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(BORDER_COLOR, 1, true),
+                new EmptyBorder(0, 15, 0, 15)));
 
-        JButton btnSearch = new JButton("Tìm kiếm");
-        btnSearch.setBackground(new Color(51, 65, 85));
+        JButton btnSearch = new JButton("Tìm kiếm") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isRollover()) {
+                    g2.setColor(new Color(15, 23, 42));
+                } else {
+                    g2.setColor(new Color(51, 65, 85));
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         btnSearch.setForeground(Color.WHITE);
+        btnSearch.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnSearch.setContentAreaFilled(false);
+        btnSearch.setBorderPainted(false);
+        btnSearch.setFocusPainted(false);
+        btnSearch.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnSearch.setPreferredSize(new Dimension(100, 40));
+
+        searchPanel.add(txtSearch);
         searchPanel.add(btnSearch);
         topNavbar.add(searchPanel, BorderLayout.CENTER);
 
+        // Các Nút Công Cụ (Phải)
         JPanel rightMenu = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-        rightMenu.setBackground(Color.WHITE);
+        rightMenu.setBackground(NAV_BG);
 
-        JButton btnCart = new JButton("Giỏ hàng (0)");
-        btnCart.setForeground(new Color(10, 18, 40));
-        btnCart.setBackground(new Color(56, 189, 248));
-        btnCart.setOpaque(true);
-        JButton btnOrders = new JButton("Đơn hàng");
-        JButton btnProfile = new JButton("Tài khoản");
-        JButton btnLogout = new JButton("Đăng xuất");
+        JButton btnCart = createNavButton("Giỏ hàng (0)", true);
+        JButton btnOrders = createNavButton("Đơn hàng", false);
+        JButton btnProfile = createNavButton("Tài khoản", false);
+        JButton btnLogout = createNavButton("Đăng xuất", false);
 
         rightMenu.add(btnCart);
+        rightMenu.add(makeDivider());
         rightMenu.add(btnOrders);
+        rightMenu.add(makeDivider());
         rightMenu.add(btnProfile);
+        rightMenu.add(makeDivider());
         rightMenu.add(btnLogout);
         topNavbar.add(rightMenu, BorderLayout.EAST);
+
         topHeaderWrapper.add(topNavbar);
         add(topHeaderWrapper, BorderLayout.NORTH);
 
+        // --- 2. CALLBACK CẬP NHẬT GIỎ HÀNG ---
         Runnable updateCartBadge = () -> {
             int totalItems = 0;
-            for (CartItem item : cartBUS.getCartItems())
+            for (CartItem item : cartBUS.getCartItems()) {
                 totalItems += item.getQuantity();
+            }
             btnCart.setText("Giỏ hàng (" + totalItems + ")");
+            try {
+                btnCart.setIcon(IconUtils.loadSmallIcon(IconUtils.IconType.TROLLEY));
+            } catch (Exception ignored) {
+            }
         };
 
+        // --- 3. KHUNG NỘI DUNG CHÍNH ---
         cardLayout = new CardLayout();
         mainContentPanel = new JPanel(cardLayout);
-        mainContentPanel.setBackground(new Color(248, 250, 252));
+        mainContentPanel.setBackground(BG_CONTENT);
 
-        // CHUYỀN ID CHO CÁC FORM CON
+        // ĐÃ FIX: TRUYỀN ID CHUẨN XÁC VÀO CÁC PANEL CON ĐỂ KHÔNG BỊ LỖI KHI LƯU
         CustomerShopPanel shopPanel = new CustomerShopPanel(this.customerId, cartBUS, updateCartBadge);
-        CustomerCartPanel cartPanel = new CustomerCartPanel(customerId, cartBUS, updateCartBadge); // Dùng CartPanel cũ
-                                                                                                   // có sãn
-        // autoId cũng k sao, nhưng thêm
-        // giỏ phải chuẩn
+        CustomerCartPanel cartPanel = new CustomerCartPanel(this.customerId, cartBUS, updateCartBadge);
+        CustomerProfilePanel profilePanel = new CustomerProfilePanel(this.customerId);
 
         mainContentPanel.add(shopPanel, "Shop");
-        mainContentPanel.add(new JPanel(), "Profile");
-        mainContentPanel.add(new JPanel(), "Orders");
+        mainContentPanel.add(profilePanel, "Profile");
+        mainContentPanel.add(createDummyPanel("Lịch sử mua hàng"), "Orders");
         mainContentPanel.add(cartPanel, "Cart");
 
         add(mainContentPanel, BorderLayout.CENTER);
-        updateCartBadge.run();
 
+        updateCartBadge.run(); // Cập nhật icon giỏ hàng lần đầu
+
+        // --- 4. GẮN SỰ KIỆN CHUYỂN TRANG CHO CÁC NÚT BẤM ---
         btnLogo.addActionListener(e -> cardLayout.show(mainContentPanel, "Shop"));
+        btnProfile.addActionListener(e -> cardLayout.show(mainContentPanel, "Profile"));
+        btnOrders.addActionListener(e -> cardLayout.show(mainContentPanel, "Orders"));
+
         btnCart.addActionListener(e -> {
             cartPanel.refreshCartGUI();
             cardLayout.show(mainContentPanel, "Cart");
         });
+
         btnLogout.addActionListener(e -> {
-            this.dispose();
-            /* new LoginForm().setVisible(true); */ });
+            int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn đăng xuất?", "Xác nhận",
+                    JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                this.dispose();
+                new LoginForm().setVisible(true);
+            }
+        });
+    }
+
+    // --- HÀM HỖ TRỢ VẼ GIAO DIỆN ---
+
+    private JButton createNavButton(String text, boolean isAccent) {
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (isAccent) {
+                    GradientPaint gp = new GradientPaint(0, 0, new Color(56, 189, 248),
+                            getWidth(), 0, new Color(99, 210, 255));
+                    g2.setPaint(gp);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                } else if (getModel().isRollover()) {
+                    g2.setColor(new Color(241, 245, 249));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                }
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setForeground(isAccent ? new Color(10, 18, 40) : NAV_TEXT);
+
+        try {
+            if (text.contains("Tài khoản")) {
+                btn.setIcon(IconUtils.loadSmallIcon(IconUtils.IconType.USER));
+            } else if (text.contains("Đơn hàng")) {
+                btn.setIcon(IconUtils.loadSmallIcon(IconUtils.IconType.TAG));
+            } else if (text.contains("Đăng xuất")) {
+                btn.setIcon(IconUtils.loadSmallIcon(IconUtils.IconType.LOGOUT));
+            }
+        } catch (Exception ignored) {
+        }
+
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(new EmptyBorder(8, 14, 8, 14));
+        return btn;
+    }
+
+    private JLabel makeDivider() {
+        JLabel div = new JLabel("|");
+        div.setForeground(new Color(203, 213, 225));
+        div.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        return div;
+    }
+
+    private JPanel createDummyPanel(String title) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBackground(BG_CONTENT);
+        JLabel lbl = new JLabel(title, SwingConstants.CENTER);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lbl.setForeground(NAV_TEXT);
+        p.add(lbl, BorderLayout.CENTER);
+        return p;
     }
 
     public static void main(String[] args) {
@@ -144,7 +250,7 @@ public class CustomerForm extends JFrame {
         } catch (Exception e) {
         }
 
-        // TỰ ĐỘNG MÓC 1 KHÁCH HÀNG ĐỂ TRÁNH CRASH DATABASE KHI TEST
+        // Tự động tìm 1 Khách hàng mẫu để test nhanh giao diện
         int validCustomerId = -1;
         try (java.sql.Connection conn = com.pbl_3project.util.DatabaseConnection.getConnection();
                 java.sql.Statement stmt = conn.createStatement();

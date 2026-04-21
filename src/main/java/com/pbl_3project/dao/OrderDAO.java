@@ -31,7 +31,8 @@ public class OrderDAO {
             // ==========================================
             // Tạm thời lưu số điện thoại khách vào cột customer_phone (Hoặc bro có thể sửa
             // thành cột khác tùy DB)
-            String sqlOrder = "INSERT INTO [Order] (customer_phone, total_amount, created_at) VALUES (?, ?, GETDATE())";
+            String sqlOrder = "INSERT INTO [Order] (customer_id, customer_phone, total_amount, created_at, status) " +
+                    "VALUES (?, ?, ?, GETDATE(), N'Chưa thanh toán')";
 
             // Statement.RETURN_GENERATED_KEYS giúp lấy lại ID của hóa đơn vừa tự động tăng
             pstmtOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
