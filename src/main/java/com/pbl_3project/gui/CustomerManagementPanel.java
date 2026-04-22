@@ -39,7 +39,7 @@ public class CustomerManagementPanel extends JPanel {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
         JLabel lblTitle = new JLabel("👥 QUẢN LÝ KHÁCH HÀNG", SwingConstants.LEFT);
-        lblTitle.setFont(new Font("Cambria", Font.BOLD, 24));
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitle.setForeground(new Color(41, 53, 65));
         topPanel.add(lblTitle, BorderLayout.NORTH);
 
@@ -50,26 +50,26 @@ public class CustomerManagementPanel extends JPanel {
         searchPanel.add(new JLabel("TÌM KIẾM: "));
 
         txtSearch = new JTextField(25);
-        txtSearch.setFont(new Font("Arial", Font.PLAIN, 12));
+        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
         JButton btnSearch = new JButton("[Tìm]");
         btnSearch.setBackground(new Color(59, 190, 210));
         btnSearch.setForeground(Color.BLACK);
-        btnSearch.setFont(new Font("Arial", Font.BOLD, 11));
+        btnSearch.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnSearch.setFocusPainted(false);
         btnSearch.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
 
         JButton btnRefresh = new JButton("[Tải lại]");
         btnRefresh.setBackground(new Color(100, 150, 100));
         btnRefresh.setForeground(Color.BLACK);
-        btnRefresh.setFont(new Font("Arial", Font.BOLD, 11));
+        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnRefresh.setFocusPainted(false);
         btnRefresh.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
 
         JButton btnBan = new JButton("[Khóa TK]");
         btnBan.setBackground(new Color(255, 80, 80));
         btnBan.setForeground(Color.BLACK);
-        btnBan.setFont(new Font("Arial", Font.BOLD, 11));
+        btnBan.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnBan.setFocusPainted(false);
         btnBan.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
 
@@ -85,12 +85,13 @@ public class CustomerManagementPanel extends JPanel {
         // --- 3. BẢNG DỮ LIỆU KHÁCH HÀNG ---
         tableCustomers = new JTable();
         tableCustomers.setRowHeight(32);
-        tableCustomers.setFont(new Font("Arial", Font.PLAIN, 12));
-        tableCustomers.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
+        tableCustomers.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tableCustomers.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         tableCustomers.getTableHeader().setBackground(new Color(59, 190, 210));
         tableCustomers.getTableHeader().setForeground(Color.BLACK);
         tableCustomers.setGridColor(new Color(220, 220, 220));
         tableCustomers.setSelectionBackground(new Color(200, 230, 255));
+        tableCustomers.setSelectionForeground(Color.BLACK);
 
         JScrollPane scrollPane = new JScrollPane(tableCustomers);
         scrollPane.setBorder(BorderFactory.createTitledBorder(
@@ -98,7 +99,7 @@ public class CustomerManagementPanel extends JPanel {
                 "📋 Danh sách Khách hàng",
                 TitledBorder.LEFT,
                 TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 13)));
+                new Font("Segoe UI", Font.BOLD, 13)));
         add(scrollPane, BorderLayout.CENTER);
 
         // --- 4. SỰ KIỆN NÚT BẤM ---

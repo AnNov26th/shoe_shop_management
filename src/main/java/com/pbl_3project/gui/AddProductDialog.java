@@ -66,7 +66,7 @@ public class AddProductDialog extends JDialog {
         JButton btnSave = new JButton("LƯU SẢN PHẨM");
         btnSave.setBackground(new Color(59, 190, 210));
         btnSave.setForeground(Color.BLACK);
-        btnSave.setFont(new Font("Arial", Font.BOLD, 14));
+        btnSave.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnSave.setPreferredSize(new Dimension(0, 45));
 
         btnSave.addActionListener(e -> {

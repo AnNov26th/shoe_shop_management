@@ -70,7 +70,7 @@ public class CustomerProfilePanel extends JPanel {
         formPanel.add(createLabel("Họ:"), gbc);
         gbc.gridx = 1;
         formPanel.add(createLabel("Tên:"), gbc);
-        
+
         gbc.gridy = 1;
         gbc.gridx = 0;
         txtFirstName = createTextField();
@@ -85,7 +85,7 @@ public class CustomerProfilePanel extends JPanel {
         formPanel.add(createLabel("Email:"), gbc);
         gbc.gridx = 1;
         formPanel.add(createLabel("Số điện thoại:"), gbc);
-        
+
         gbc.gridy = 3;
         gbc.gridx = 0;
         txtEmail = createTextField();
@@ -100,7 +100,7 @@ public class CustomerProfilePanel extends JPanel {
         formPanel.add(createLabel("Ngày sinh (YYYY-MM-DD):"), gbc);
         gbc.gridx = 1;
         formPanel.add(createLabel("Mật khẩu:"), gbc);
-        
+
         gbc.gridy = 5;
         gbc.gridx = 0;
         txtDob = createTextField();
@@ -114,7 +114,7 @@ public class CustomerProfilePanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridwidth = 2;
         formPanel.add(createLabel("Địa chỉ giao hàng:"), gbc);
-        
+
         gbc.gridy = 7;
         txtAddress = createTextField();
         formPanel.add(txtAddress, gbc);
@@ -214,7 +214,8 @@ public class CustomerProfilePanel extends JPanel {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải thông tin: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Lỗi khi tải thông tin: " + e.getMessage(), "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -243,7 +244,8 @@ public class CustomerProfilePanel extends JPanel {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Lỗi khi lưu thông tin: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Lỗi khi lưu thông tin: " + e.getMessage(), "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 

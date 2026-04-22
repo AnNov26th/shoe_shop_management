@@ -215,6 +215,7 @@ public class EmployeeManagementPanel extends JPanel {
         tableEmployees.setRowHeight(38);
         tableEmployees.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tableEmployees.setSelectionBackground(new Color(239, 246, 255));
+        tableEmployees.setSelectionForeground(TEXT_MAIN);
         tableEmployees.setShowGrid(false);
         tableEmployees.setIntercellSpacing(new Dimension(0, 0));
 

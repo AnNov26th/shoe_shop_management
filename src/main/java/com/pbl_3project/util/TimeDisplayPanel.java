@@ -29,7 +29,7 @@ public class TimeDisplayPanel extends JPanel {
         // Tạo label hiển thị thời gian
         lblTime = new JLabel();
         lblTime.setForeground(Color.WHITE);
-        lblTime.setFont(new Font("Arial", Font.BOLD, 13));
+        lblTime.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblTime.setHorizontalAlignment(SwingConstants.RIGHT);
 
         add(lblTime, BorderLayout.EAST);
@@ -43,7 +43,7 @@ public class TimeDisplayPanel extends JPanel {
 
     private void updateTime() {
         String currentTime = LocalDateTime.now().format(TIME_FORMAT);
-        lblTime.setText("⏰ " + currentTime);
+        lblTime.setText("" + currentTime);
     }
 
     private void startTimer() {

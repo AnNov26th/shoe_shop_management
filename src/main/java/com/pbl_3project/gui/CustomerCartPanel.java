@@ -96,6 +96,7 @@ public class CustomerCartPanel extends JPanel {
         tableCart.setShowGrid(false);
         tableCart.setIntercellSpacing(new Dimension(0, 0));
         tableCart.setSelectionBackground(new Color(239, 246, 255));
+        tableCart.setSelectionForeground(Color.BLACK);
         tableCart.setSelectionForeground(TEXT_H);
 
         JTableHeader th = tableCart.getTableHeader();

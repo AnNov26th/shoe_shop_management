@@ -1,29 +1,12 @@
 package com.pbl_3project.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.pbl_3project.bus.ProductBUS;
@@ -32,10 +15,13 @@ public class InventoryLookupPanel extends JPanel {
     private JPanel productGrid;
     private JTextField txtSearch;
     private ProductBUS productBUS = new ProductBUS();
+    private int currentStaffId;
 
-    public InventoryLookupPanel() {
+    // ĐÃ FIX: Nhận staffId từ Form Nhân viên
+    public InventoryLookupPanel(int staffId) {
+        this.currentStaffId = staffId;
         setLayout(new BorderLayout(10, 10));
-        setBackground(new Color(245, 245, 245));
+        setBackground(Color.WHITE);
         setBorder(new EmptyBorder(20, 20, 20, 20));
 
         initComponents();
@@ -43,39 +29,45 @@ public class InventoryLookupPanel extends JPanel {
     }
 
     private void initComponents() {
-        // --- Thanh tìm kiếm ---
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("TRA CỨU TỒN KHO TRỰC TUYẾN", SwingConstants.LEFT);
-        lblTitle.setFont(new Font("Cambria", Font.BOLD, 22));
+        JLabel lblTitle = new JLabel("📦 TRA CỨU TỒN KHO TRỰC TUYẾN");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setForeground(new Color(15, 23, 42));
+        lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
         topPanel.add(lblTitle, BorderLayout.NORTH);
 
-        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 15));
+        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         searchBar.setOpaque(false);
 
-        txtSearch = new JTextField(30);
-        txtSearch.setPreferredSize(new Dimension(300, 35));
-        JButton btnSearch = new JButton("Kiểm tra kho");
-        btnSearch.setBackground(new Color(59, 190, 210));
-        btnSearch.setForeground(Color.BLACK); // Chữ đen
+        JLabel lblSearch = new JLabel("Từ khóa:");
+        lblSearch.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        searchBar.add(new JLabel("Nhập tên giày hoặc hãng:"));
+        txtSearch = new JTextField(30);
+        txtSearch.setPreferredSize(new Dimension(300, 40));
+        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtSearch.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(new Color(226, 232, 240), 1, true),
+                new EmptyBorder(0, 15, 0, 15)));
+
+        JButton btnSearch = createPillButton("Kiểm tra kho", new Color(59, 190, 210), Color.WHITE);
+
+        searchBar.add(lblSearch);
         searchBar.add(txtSearch);
         searchBar.add(btnSearch);
-
         topPanel.add(searchBar, BorderLayout.CENTER);
         add(topPanel, BorderLayout.NORTH);
 
-        // --- Lưới hiển thị ---
         productGrid = new JPanel(new WrapLayout(FlowLayout.LEFT, 20, 20));
-        productGrid.setBackground(new Color(245, 245, 245));
+        productGrid.setBackground(Color.WHITE);
+
         JScrollPane scrollPane = new JScrollPane(productGrid);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().setBackground(Color.WHITE);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Sự kiện
         btnSearch.addActionListener(e -> loadInventory(txtSearch.getText()));
         txtSearch.addActionListener(e -> loadInventory(txtSearch.getText()));
     }
@@ -102,78 +94,118 @@ public class InventoryLookupPanel extends JPanel {
     }
 
     private JPanel createInventoryCard(int id, String name, double price, String color, int stock) {
-        JPanel card = new JPanel(new BorderLayout(5, 5));
-        card.setPreferredSize(new Dimension(200, 290));
-        card.setBackground(new Color(245, 245, 245));
-        card.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+        JPanel shadow = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0, 0, 0, 10));
+                g2.fillRoundRect(2, 4, getWidth() - 4, getHeight() - 4, 20, 20);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 6, 20, 20);
+                g2.dispose();
+            }
+        };
+        shadow.setOpaque(false);
+        shadow.setBorder(new EmptyBorder(0, 0, 6, 4));
+        shadow.setPreferredSize(new Dimension(200, 300));
 
-        // --- HÌNH ẢNH SẢN PHẨM ---
-        JLabel lblImg = new JLabel("Đang tải...", SwingConstants.CENTER);
-        lblImg.setPreferredSize(new Dimension(180, 160));
+        JPanel card = new JPanel(new BorderLayout());
+        card.setOpaque(false);
 
-        // Tách lấy màu tiếng Anh trong ngoặc (VD: Đỏ (Red) -> Red)
-        String colorEn = "";
-        if (color != null && color.contains("(") && color.contains(")")) {
-            colorEn = color.substring(color.lastIndexOf("(") + 1, color.lastIndexOf(")")).trim();
-        }
+        JPanel imgPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(new Color(248, 250, 252));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        imgPanel.setOpaque(false);
+        imgPanel.setPreferredSize(new Dimension(0, 160));
+
+        JLabel lblImg = new JLabel("", SwingConstants.CENTER);
+        String colorEn = (color != null && color.contains("("))
+                ? color.substring(color.lastIndexOf("(") + 1, color.lastIndexOf(")")).trim()
+                : color;
 
         try {
-            String fileName = name + " - " + colorEn + ".png";
-            String absolutePath = "F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images\\" + fileName;
-            File file = new File(absolutePath);
-
+            File file = new File(
+                    "F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images\\" + name + " - " + colorEn + ".png");
             if (file.exists()) {
                 BufferedImage originalImg = ImageIO.read(file);
-                if (originalImg != null) {
-                    Image scaledImg = originalImg.getScaledInstance(160, 160, Image.SCALE_SMOOTH);
-                    lblImg.setIcon(new ImageIcon(scaledImg));
-                    lblImg.setText(""); // Có ảnh thì xóa chữ
-                } else {
-                    lblImg.setText("Lỗi định dạng");
-                }
+                lblImg.setIcon(new ImageIcon(originalImg.getScaledInstance(140, 140, Image.SCALE_SMOOTH)));
             } else {
-                lblImg.setText("Chưa có ảnh");
+                lblImg.setText("👟");
+                lblImg.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 40));
             }
         } catch (Exception e) {
-            lblImg.setText("Lỗi tải ảnh");
+            lblImg.setText("Lỗi ảnh");
         }
 
-        card.add(lblImg, BorderLayout.NORTH);
+        imgPanel.add(lblImg, BorderLayout.CENTER);
 
-        // --- THÔNG TIN & NÚT BẤM ---
-        JPanel info = new JPanel(new GridLayout(3, 1));
-        info.setBackground(new Color(245, 245, 245));
-        info.setBorder(new EmptyBorder(0, 5, 5, 5));
+        JPanel info = new JPanel();
+        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+        info.setOpaque(false);
+        info.setBorder(new EmptyBorder(10, 12, 12, 12));
 
-        JLabel lblName = new JLabel("<html><center>" + name + "</center></html>", SwingConstants.CENTER);
-        lblName.setFont(new Font("Arial", Font.BOLD, 12));
+        JLabel lblName = new JLabel("<html><div style='text-align:center'>" + name + "</div></html>");
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblName.setAlignmentX(CENTER_ALIGNMENT);
 
-        JLabel lblStock = new JLabel("Tổng tồn: " + stock + " đôi", SwingConstants.CENTER);
-        // Cảnh báo hết hàng bằng màu đỏ
+        JLabel lblStock = new JLabel("Tổng tồn: " + stock + " đôi");
+        lblStock.setAlignmentX(CENTER_ALIGNMENT);
         if (stock <= 10) {
-            lblStock.setForeground(new Color(255, 80, 80));
-            lblStock.setFont(new Font("Arial", Font.BOLD, 13));
+            lblStock.setForeground(new Color(239, 68, 68));
+            lblStock.setFont(new Font("Segoe UI", Font.BOLD, 13));
         } else {
-            lblStock.setForeground(new Color(46, 204, 113));
-            lblStock.setFont(new Font("Arial", Font.ITALIC, 12));
+            lblStock.setForeground(new Color(34, 197, 94));
+            lblStock.setFont(new Font("Segoe UI", Font.BOLD, 12));
         }
 
-        JButton btnDetail = new JButton("Check Size/Màu");
-        btnDetail.setForeground(Color.BLACK);
-        btnDetail.setBackground(new Color(230, 230, 230));
-        btnDetail.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton btnDetail = createPillButton("Chọn Size / Giữ chỗ", new Color(241, 245, 249), new Color(15, 23, 42));
+        btnDetail.setAlignmentX(CENTER_ALIGNMENT);
 
         btnDetail.addActionListener(e -> {
             JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
-            // Dùng lại cái Dialog để tra cứu không cần add giỏ hàng (truyền null)
-            new ProductDetailDialog(parent, id, name, price, null, null).setVisible(true);
+            // ĐÃ FIX: Đủ 8 tham số cho ProductDetailDialog
+            new ProductDetailDialog(parent, id, name, price, "STAFF", currentStaffId, null, null).setVisible(true);
         });
 
         info.add(lblName);
+        info.add(Box.createVerticalStrut(5));
         info.add(lblStock);
+        info.add(Box.createVerticalStrut(10));
         info.add(btnDetail);
 
-        card.add(info, BorderLayout.CENTER);
-        return card;
+        card.add(imgPanel, BorderLayout.CENTER);
+        card.add(info, BorderLayout.SOUTH);
+        shadow.add(card, BorderLayout.CENTER);
+        return shadow;
+    }
+
+    private JButton createPillButton(String text, Color bgColor, Color fgColor) {
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? bgColor.darker() : bgColor);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setForeground(fgColor);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(new EmptyBorder(8, 15, 8, 15));
+        return btn;
     }
 }

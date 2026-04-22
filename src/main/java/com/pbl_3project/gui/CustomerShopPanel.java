@@ -243,11 +243,11 @@ public class CustomerShopPanel extends JPanel {
                 lblImg.setIcon(new ImageIcon(img.getScaledInstance(160, 160, Image.SCALE_SMOOTH)));
             } else {
                 lblImg.setText("👟");
-                lblImg.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 56));
+                lblImg.setFont(new Font("Segoe UI", Font.PLAIN, 56));
             }
         } catch (Exception ignored) {
             lblImg.setText("👟");
-            lblImg.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 56));
+            lblImg.setFont(new Font("Segoe UI", Font.PLAIN, 56));
         }
         imgPanel.add(lblImg, BorderLayout.CENTER);
 

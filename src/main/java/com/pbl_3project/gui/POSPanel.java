@@ -76,20 +76,20 @@ public class POSPanel extends JPanel {
                 "□ DANH SÁCH SẢN PHẨM",
                 javax.swing.border.TitledBorder.LEFT,
                 javax.swing.border.TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 13)));
+                new Font("Segoe UI", Font.BOLD, 13)));
 
         tableProducts = new JTable();
         tableProducts.setRowHeight(32);
-        tableProducts.setFont(new Font("Arial", Font.PLAIN, 12));
+        tableProducts.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         tableProducts.getTableHeader().setBackground(new Color(59, 190, 210));
         tableProducts.getTableHeader().setForeground(Color.BLACK);
-        tableProducts.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        tableProducts.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         leftPanel.add(new JScrollPane(tableProducts), BorderLayout.CENTER);
 
         JButton btnAddToCart = new JButton("[+] THÊM VÀO GIỎ");
         btnAddToCart.setBackground(new Color(52, 152, 219));
         btnAddToCart.setForeground(Color.BLACK);
-        btnAddToCart.setFont(new Font("Arial", Font.BOLD, 12));
+        btnAddToCart.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnAddToCart.setFocusPainted(false);
         btnAddToCart.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         btnAddToCart.addActionListener(e -> handleAddToCart());
@@ -104,7 +104,7 @@ public class POSPanel extends JPanel {
         searchPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         searchPanel.add(new JLabel("� TÌM KIẾM: "));
         txtSearch = new JTextField(15);
-        txtSearch.setFont(new Font("Arial", Font.PLAIN, 12));
+        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         searchPanel.add(txtSearch);
 
         txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -125,7 +125,7 @@ public class POSPanel extends JPanel {
                 "□ GIỎ HÀNG & THANH TOÁN",
                 javax.swing.border.TitledBorder.LEFT,
                 javax.swing.border.TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 13)));
+                new Font("Segoe UI", Font.BOLD, 13)));
 
         String[] cartColumns = { "Tên SP", "Size", " - ", "SL", " + ", "Đơn giá", "Thành tiền" };
         cartModel = new DefaultTableModel(cartColumns, 0) {
@@ -136,10 +136,10 @@ public class POSPanel extends JPanel {
         };
         tableCart = new JTable(cartModel);
         tableCart.setRowHeight(35);
-        tableCart.setFont(new Font("Arial", Font.PLAIN, 12));
+        tableCart.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         tableCart.getTableHeader().setBackground(new Color(59, 190, 210));
         tableCart.getTableHeader().setForeground(Color.BLACK);
-        tableCart.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        tableCart.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
@@ -189,11 +189,11 @@ public class POSPanel extends JPanel {
         totalPanel.setBackground(new Color(245, 245, 245));
 
         JLabel lblTotal = new JLabel("TỔNG TIỀN: ");
-        lblTotal.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblTotal.setForeground(Color.BLACK); // ✅ Chữ đen
 
         lblTotalAmount = new JLabel("0 VNĐ");
-        lblTotalAmount.setFont(new Font("Arial", Font.BOLD, 24));
+        lblTotalAmount.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTotalAmount.setForeground(new Color(255, 80, 80));
 
         totalPanel.add(lblTotal, BorderLayout.WEST);
@@ -202,14 +202,14 @@ public class POSPanel extends JPanel {
         JButton btnCheckout = new JButton("[THANH TOÁN]");
         btnCheckout.setBackground(new Color(46, 204, 113));
         btnCheckout.setForeground(Color.BLACK); // ✅ Chữ trắng
-        btnCheckout.setFont(new Font("Arial", Font.BOLD, 13));
+        btnCheckout.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnCheckout.setFocusPainted(false);
         btnCheckout.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
         JButton btnClear = new JButton("[XÓA GIỎ HÀNG]");
         btnClear.setForeground(Color.BLACK); // ✅ Chữ trắng
         btnClear.setBackground(new Color(255, 80, 80)); // ✅ Nền đỏ
-        btnClear.setFont(new Font("Arial", Font.BOLD, 13));
+        btnClear.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnClear.setFocusPainted(false);
         btnClear.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         btnClear.addActionListener(e -> {
@@ -313,7 +313,7 @@ public class POSPanel extends JPanel {
     class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
-            setFont(new Font("Arial", Font.BOLD, 16));
+            setFont(new Font("Segoe UI", Font.BOLD, 16));
             setBackground(new Color(220, 220, 220));
         }
 

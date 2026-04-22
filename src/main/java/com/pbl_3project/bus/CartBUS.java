@@ -21,7 +21,10 @@ public class CartBUS {
         // KIỂM TRA TRÙNG LẶP: Dùng mã SKU thay vì Tên và Size
         for (CartItem item : cartItems) {
             if (item.getSku().equals(newItem.getSku())) {
-                int newQty = item.getQuantity() + 1; // Mặc định mỗi lần bấm thêm 1 đôi
+                // ĐÃ FIX LỖI 1: Cộng đúng số lượng người dùng vừa chọn, thay vì lúc nào cũng
+                // cộng 1
+                int newQty = item.getQuantity() + newItem.getQuantity();
+
                 if (newQty > item.getStock()) {
                     throw new Exception("Không đủ số lượng tồn kho! (Tối đa: " + item.getStock() + ")");
                 }
@@ -31,8 +34,9 @@ public class CartBUS {
         }
 
         // Nếu là hàng mới tinh (SKU này chưa từng có trong giỏ)
-        if (1 > newItem.getStock()) {
-            throw new Exception("Sản phẩm này đã hết hàng trong kho!");
+        // ĐÃ FIX LỖI 2: Kiểm tra số lượng khách chọn thay vì kiểm tra số 1 cứng
+        if (newItem.getQuantity() > newItem.getStock()) {
+            throw new Exception("Vượt quá số lượng tồn kho trong hệ thống!");
         }
         cartItems.add(newItem);
     }

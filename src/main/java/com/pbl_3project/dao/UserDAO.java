@@ -330,20 +330,22 @@ public class UserDAO {
 
         try {
             conn = DatabaseConnection.getConnection();
-            String sql = "SELECT u.email, u.password_hash, u.phone, cp.full_name, cp.dob, cp.shoe_size_preference, ab.full_address " +
-                         "FROM [User] u " +
-                         "LEFT JOIN Customer_Profile cp ON u.id = cp.user_id " +
-                         "LEFT JOIN Address_Book ab ON u.id = ab.user_id AND ab.is_default = 1 " +
-                         "WHERE u.id = ?";
+            String sql = "SELECT u.email, u.password_hash, u.phone, cp.full_name, cp.dob, cp.shoe_size_preference, ab.full_address "
+                    +
+                    "FROM [User] u " +
+                    "LEFT JOIN Customer_Profile cp ON u.id = cp.user_id " +
+                    "LEFT JOIN Address_Book ab ON u.id = ab.user_id AND ab.is_default = 1 " +
+                    "WHERE u.id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, customerId);
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
                 profile.put("email", rs.getString("email"));
-                profile.put("password", rs.getString("password_hash")); // In a real app, don't return hash, but here we might just display it or empty
+                profile.put("password", rs.getString("password_hash")); // In a real app, don't return hash, but here we
+                                                                        // might just display it or empty
                 profile.put("phone", rs.getString("phone"));
-                
+
                 String fullName = rs.getString("full_name");
                 if (fullName != null && !fullName.trim().isEmpty()) {
                     int lastSpace = fullName.lastIndexOf(" ");
@@ -368,8 +370,10 @@ public class UserDAO {
                 profile.put("address", rs.getString("full_address"));
             }
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
+            if (rs != null)
+                rs.close();
+            if (pstmt != null)
+                pstmt.close();
             DatabaseConnection.closeConnection(conn);
         }
         return profile;
@@ -409,11 +413,11 @@ public class UserDAO {
 
             // 2. Update Customer_Profile
             String fullName = (profile.get("firstName") + " " + profile.get("lastName")).trim();
-            
+
             pstmtProfileCheck = conn.prepareStatement("SELECT user_id FROM Customer_Profile WHERE user_id = ?");
             pstmtProfileCheck.setInt(1, customerId);
             rs = pstmtProfileCheck.executeQuery();
-            
+
             if (rs.next()) {
                 // Update
                 String sqlProfile = "UPDATE Customer_Profile SET full_name = ?, dob = ?, shoe_size_preference = ? WHERE user_id = ?";
@@ -449,14 +453,18 @@ public class UserDAO {
                 }
                 pstmtProfile.executeUpdate();
             }
-            if (rs != null) { rs.close(); rs = null; }
+            if (rs != null) {
+                rs.close();
+                rs = null;
+            }
 
             // 3. Update Address_Book
             if (profile.get("address") != null && !profile.get("address").isEmpty()) {
-                pstmtAddressCheck = conn.prepareStatement("SELECT id FROM Address_Book WHERE user_id = ? AND is_default = 1");
+                pstmtAddressCheck = conn
+                        .prepareStatement("SELECT id FROM Address_Book WHERE user_id = ? AND is_default = 1");
                 pstmtAddressCheck.setInt(1, customerId);
                 rs = pstmtAddressCheck.executeQuery();
-                
+
                 if (rs.next()) {
                     // Update
                     int addressId = rs.getInt("id");
@@ -482,15 +490,22 @@ public class UserDAO {
             conn.commit();
             success = true;
         } catch (Exception e) {
-            if (conn != null) conn.rollback();
+            if (conn != null)
+                conn.rollback();
             throw new SQLException(e);
         } finally {
-            if (rs != null) rs.close();
-            if (pstmtUser != null) pstmtUser.close();
-            if (pstmtProfile != null) pstmtProfile.close();
-            if (pstmtProfileCheck != null) pstmtProfileCheck.close();
-            if (pstmtAddress != null) pstmtAddress.close();
-            if (pstmtAddressCheck != null) pstmtAddressCheck.close();
+            if (rs != null)
+                rs.close();
+            if (pstmtUser != null)
+                pstmtUser.close();
+            if (pstmtProfile != null)
+                pstmtProfile.close();
+            if (pstmtProfileCheck != null)
+                pstmtProfileCheck.close();
+            if (pstmtAddress != null)
+                pstmtAddress.close();
+            if (pstmtAddressCheck != null)
+                pstmtAddressCheck.close();
             if (conn != null) {
                 conn.setAutoCommit(true);
                 DatabaseConnection.closeConnection(conn);
