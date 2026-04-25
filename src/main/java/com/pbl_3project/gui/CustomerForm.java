@@ -154,10 +154,11 @@ public class CustomerForm extends JFrame {
         CustomerShopPanel shopPanel = new CustomerShopPanel(this.customerId, cartBUS, updateCartBadge);
         CustomerCartPanel cartPanel = new CustomerCartPanel(this.customerId, cartBUS, updateCartBadge);
         CustomerProfilePanel profilePanel = new CustomerProfilePanel(this.customerId);
+        CustomerOrderPanel orderPanel = new CustomerOrderPanel(this.customerId);
 
         mainContentPanel.add(shopPanel, "Shop");
         mainContentPanel.add(profilePanel, "Profile");
-        mainContentPanel.add(createDummyPanel("Lịch sử mua hàng"), "Orders");
+        mainContentPanel.add(orderPanel, "Orders");
         mainContentPanel.add(cartPanel, "Cart");
 
         add(mainContentPanel, BorderLayout.CENTER);
@@ -167,7 +168,10 @@ public class CustomerForm extends JFrame {
         // --- 4. GẮN SỰ KIỆN CHUYỂN TRANG CHO CÁC NÚT BẤM ---
         btnLogo.addActionListener(e -> cardLayout.show(mainContentPanel, "Shop"));
         btnProfile.addActionListener(e -> cardLayout.show(mainContentPanel, "Profile"));
-        btnOrders.addActionListener(e -> cardLayout.show(mainContentPanel, "Orders"));
+        btnOrders.addActionListener(e -> {
+            orderPanel.refresh(); // Tải lại đơn hàng mới nhất mỗi lần mở
+            cardLayout.show(mainContentPanel, "Orders");
+        });
 
         btnCart.addActionListener(e -> {
             cartPanel.refreshCartGUI();

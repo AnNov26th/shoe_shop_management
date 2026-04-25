@@ -83,7 +83,7 @@ public class EmployeeForm extends JFrame {
 
         // ĐÃ FIX: TRUYỀN ID CHO POS VÀ INVENTORY
         mainContentPanel.add(new POSPanel(this.currentStaffId), "POS");
-        mainContentPanel.add(createDummyPanel("QUẢN LÝ ĐƠN HÀNG ONLINE", "Chờ xử lý đơn hàng..."), "DonOnline");
+        mainContentPanel.add(new OrderManagementPanel(false), "DonOnline");
         mainContentPanel.add(new InventoryLookupPanel(this.currentStaffId), "TonKho");
         mainContentPanel.add(createDummyPanel("TIẾP NHẬN ĐỔI / TRẢ", "Chờ cập nhật..."), "DoiTra");
 

@@ -85,7 +85,6 @@ public class AdminForm extends JFrame {
         // Tạo các nút menu
         JButton btnThongKe = createMenuButton("Báo cáo & Thống kê");
         JButton btnSanPham = createMenuButton("Quản lý Sản phẩm");
-        JButton btnKhoHang = createMenuButton("Quản lý Kho hàng");
         JButton btnDonHang = createMenuButton("Quản lý Đơn hàng");
         JButton btnKhuyenMai = createMenuButton("Quản lý Khuyến mãi");
         JButton btnNhanVien = createMenuButton("Quản lý Nhân sự");
@@ -97,8 +96,6 @@ public class AdminForm extends JFrame {
         menuPanel.add(btnThongKe);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnSanPham);
-        menuPanel.add(Box.createVerticalStrut(5));
-        menuPanel.add(btnKhoHang);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnDonHang);
         menuPanel.add(Box.createVerticalStrut(5));
@@ -141,6 +138,8 @@ public class AdminForm extends JFrame {
         mainContentPanel.add(new DashboardPanel(), "ThongKe");
         mainContentPanel.add(new EmployeeManagementPanel(), "NhanVien");
         mainContentPanel.add(new CustomerManagementPanel(), "KhachHang");
+        mainContentPanel.add(new OrderManagementPanel(true), "DonHang");
+        mainContentPanel.add(new PromotionManagementPanel(), "KhuyenMai");
 
         // Bọc mainContentPanel vào một vùng đệm (padding) để cách viền JFrame
         JPanel contentWrapper = new JPanel(new BorderLayout());
@@ -161,10 +160,6 @@ public class AdminForm extends JFrame {
         btnSanPham.addActionListener(e -> {
             selectMenuButton(btnSanPham);
             cardLayout.show(mainContentPanel, "SanPham");
-        });
-        btnKhoHang.addActionListener(e -> {
-            selectMenuButton(btnKhoHang);
-            cardLayout.show(mainContentPanel, "KhoHang");
         });
         btnDonHang.addActionListener(e -> {
             selectMenuButton(btnDonHang);

@@ -15,8 +15,8 @@ import com.pbl_3project.util.DatabaseConnection;
 public class DashboardDAO {
 
     // 1. Hàm lấy 3 con số tổng quan (Trả về dạng Map: Key - Value)
-    public Map<String, Integer> getQuickStats() throws SQLException {
-        Map<String, Integer> stats = new HashMap<>();
+    public Map<String, Object> getQuickStats() throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
@@ -39,6 +39,11 @@ public class DashboardDAO {
             rs = stmt.executeQuery("SELECT ISNULL(SUM(stock_quantity), 0) FROM Product_Variant");
             if (rs.next())
                 stats.put("total_stock", rs.getInt(1));
+
+            // Tổng doanh thu (không tính đơn đã hủy)
+            rs = stmt.executeQuery("SELECT ISNULL(SUM(final_amount), 0) FROM [Order] WHERE status != N'Đã hủy'");
+            if (rs.next())
+                stats.put("total_revenue", rs.getDouble(1));
 
         } finally {
             if (rs != null)
@@ -86,6 +91,53 @@ public class DashboardDAO {
             if (pstmt != null)
                 pstmt.close();
             DatabaseConnection.closeConnection(conn);
+        }
+        return model;
+    }
+
+    public DefaultTableModel getMonthlyRevenueStatistics() throws SQLException {
+        String[] cols = { "Tháng/Năm", "Số Đơn Hàng", "Doanh Thu (VNĐ)" };
+        DefaultTableModel model = new DefaultTableModel(cols, 0);
+        String sql = "SELECT FORMAT(created_at, 'MM/yyyy') as month_year, COUNT(id) as order_count, SUM(final_amount) as revenue " +
+                     "FROM [Order] WHERE status != N'Đã hủy' " +
+                     "GROUP BY FORMAT(created_at, 'MM/yyyy') " +
+                     "ORDER BY MIN(created_at) DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getString("month_year"),
+                    rs.getInt("order_count") + " Đơn",
+                    String.format("%,.0f", rs.getDouble("revenue"))
+                });
+            }
+        }
+        return model;
+    }
+
+    public DefaultTableModel getEmployeeRevenueStatistics() throws SQLException {
+        String[] cols = { "Nhân Viên / Nguồn", "Số Đơn Phục Vụ", "Doanh Thu Đóng Góp (VNĐ)" };
+        DefaultTableModel model = new DefaultTableModel(cols, 0);
+        String sql = "SELECT CASE WHEN o.employee_id IS NULL THEN N'Đơn Khách Online' ELSE u.full_name END as seller, " +
+                     "COUNT(o.id) as order_count, SUM(o.final_amount) as revenue " +
+                     "FROM [Order] o " +
+                     "LEFT JOIN [User] u ON o.employee_id = u.id " +
+                     "WHERE o.status != N'Đã hủy' " +
+                     "GROUP BY o.employee_id, u.full_name " +
+                     "ORDER BY revenue DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getString("seller"),
+                    rs.getInt("order_count") + " Đơn",
+                    String.format("%,.0f", rs.getDouble("revenue"))
+                });
+            }
         }
         return model;
     }

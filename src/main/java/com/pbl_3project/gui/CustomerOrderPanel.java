@@ -1,0 +1,448 @@
+package com.pbl_3project.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+
+import com.pbl_3project.bus.OrderBUS;
+
+public class CustomerOrderPanel extends JPanel {
+
+    private static final Color BG = new Color(248, 250, 252);
+    private static final Color WHITE = Color.WHITE;
+    private static final Color ACCENT = new Color(56, 189, 248);
+    private static final Color ACCENT2 = new Color(255, 107, 74);
+    private static final Color BORDER = new Color(226, 232, 240);
+    private static final Color TEXT_H = new Color(15, 23, 42);
+    private static final Color TEXT_S = new Color(100, 116, 139);
+    private static final Color SUCCESS = new Color(34, 197, 94);
+    private static final Color DANGER = new Color(239, 68, 68);
+    private static final Color WARNING = new Color(245, 158, 11);
+    private static final Color HEADER_BG = new Color(241, 245, 249);
+
+    private JTable tableOrders;
+    private DefaultTableModel ordersModel;
+    private JTable tableDetails;
+    private DefaultTableModel detailsModel;
+    private JLabel lblDetailTitle;
+    private JLabel lblStatus;
+    private JButton btnCancel;
+    private JButton btnPay;
+    private JPanel detailHeader;
+
+    private final int customerId;
+    private final OrderBUS orderBUS = new OrderBUS();
+
+    public CustomerOrderPanel(int customerId) {
+        this.customerId = customerId;
+        setLayout(new BorderLayout(0, 0));
+        setBackground(BG);
+        initComponents();
+        loadOrders();
+    }
+
+    public void refresh() {
+        loadOrders();
+    }
+
+    private void initComponents() {
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(WHITE);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER),
+                new EmptyBorder(20, 32, 20, 32)));
+
+        JLabel lblTitle = new JLabel("ĐƠN HÀNG CỦA TÔI");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblTitle.setForeground(TEXT_H);
+
+        JButton btnRefresh = createAccentButton("⟳  Làm mới", ACCENT);
+        btnRefresh.addActionListener(e -> loadOrders());
+
+        header.add(lblTitle, BorderLayout.WEST);
+        header.add(btnRefresh, BorderLayout.EAST);
+        add(header, BorderLayout.NORTH);
+
+        // ĐÃ FIX: Thêm cột ID (ẩn) để xử lý logic nhấp chuột
+        String[] colsOrders = { "ID", "Mã ĐH", "Số điện thoại", "Tổng tiền (VNĐ)", "Ngày đặt", "Trạng thái" };
+        ordersModel = new DefaultTableModel(colsOrders, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+
+        tableOrders = buildStyledTable(ordersModel);
+
+        // Ẩn cột ID khỏi giao diện người dùng
+        tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(0));
+
+        // Căn chỉnh độ rộng các cột còn lại
+        tableOrders.getColumnModel().getColumn(0).setPreferredWidth(100);
+        tableOrders.getColumnModel().getColumn(1).setPreferredWidth(130);
+        tableOrders.getColumnModel().getColumn(2).setPreferredWidth(160);
+        tableOrders.getColumnModel().getColumn(3).setPreferredWidth(160);
+        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(150);
+
+        tableOrders.getColumnModel().getColumn(4).setCellRenderer(new StatusRenderer());
+
+        JScrollPane scrollOrders = buildScrollPane(tableOrders);
+
+        JPanel panelOrders = new JPanel(new BorderLayout());
+        panelOrders.setBackground(WHITE);
+        panelOrders.setBorder(BorderFactory.createCompoundBorder(
+                new EmptyBorder(16, 24, 0, 24),
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(BORDER, 1, true),
+                        new EmptyBorder(0, 0, 0, 0))));
+        panelOrders.add(buildSectionLabel("Danh sách đơn hàng", true), BorderLayout.NORTH);
+        panelOrders.add(scrollOrders, BorderLayout.CENTER);
+
+        String[] colsDetail = { "Tên sản phẩm", "SKU", "Size", "Màu sắc", "SL", "Đơn giá (VNĐ)", "Thành tiền (VNĐ)" };
+        detailsModel = new DefaultTableModel(colsDetail, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+
+        tableDetails = buildStyledTable(detailsModel);
+        tableDetails.getColumnModel().getColumn(0).setPreferredWidth(200);
+        tableDetails.getColumnModel().getColumn(1).setPreferredWidth(120);
+        tableDetails.getColumnModel().getColumn(2).setPreferredWidth(60);
+        tableDetails.getColumnModel().getColumn(3).setPreferredWidth(120);
+        tableDetails.getColumnModel().getColumn(4).setPreferredWidth(50);
+        tableDetails.getColumnModel().getColumn(5).setPreferredWidth(130);
+        tableDetails.getColumnModel().getColumn(6).setPreferredWidth(140);
+
+        JScrollPane scrollDetails = buildScrollPane(tableDetails);
+
+        // --- BẢNG CHI TIẾT ĐƠN ---
+        detailHeader = new JPanel(new BorderLayout());
+        detailHeader.setBackground(HEADER_BG);
+        detailHeader.setBorder(new EmptyBorder(10, 16, 10, 16));
+
+        lblDetailTitle = new JLabel("Chọn một đơn hàng để xem chi tiết");
+        lblDetailTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblDetailTitle.setForeground(TEXT_S);
+
+        JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightHeader.setOpaque(false);
+
+        btnCancel = createAccentButton("Hủy đơn", DANGER);
+        btnPay = createAccentButton("Thanh toán", SUCCESS);
+        lblStatus = new JLabel(""); // Khởi tạo để tránh NullPointerException
+        btnCancel.setVisible(false);
+        btnPay.setVisible(false);
+
+        rightHeader.add(btnCancel);
+        rightHeader.add(btnPay);
+        rightHeader.add(lblStatus);
+
+        detailHeader.add(lblDetailTitle, BorderLayout.WEST);
+        detailHeader.add(rightHeader, BorderLayout.EAST);
+
+        btnCancel.addActionListener(e -> handleCancelOrder());
+        btnPay.addActionListener(e -> handlePayment());
+
+        JPanel panelDetails = new JPanel(new BorderLayout());
+        panelDetails.setBackground(WHITE);
+        panelDetails.setBorder(new EmptyBorder(0, 24, 16, 24));
+        panelDetails.add(buildSectionLabel("Chi tiết đơn hàng", false), BorderLayout.NORTH);
+
+        JPanel detailInner = new JPanel(new BorderLayout());
+        detailInner.setBorder(BorderFactory.createLineBorder(BORDER, 1, true));
+        detailInner.add(detailHeader, BorderLayout.NORTH);
+        detailInner.add(scrollDetails, BorderLayout.CENTER);
+        panelDetails.add(detailInner, BorderLayout.CENTER);
+
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelOrders, panelDetails);
+        split.setDividerLocation(280);
+        split.setDividerSize(8);
+        split.setBorder(null);
+        split.setBackground(BG);
+        split.setOpaque(false);
+
+        add(split, BorderLayout.CENTER);
+
+        // ĐÃ FIX: Lấy dữ liệu ngầm từ cột ID (cột 0) thay vì cột Order_code
+        tableOrders.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int viewRow = tableOrders.getSelectedRow();
+                if (viewRow >= 0) {
+                    // Convert index từ View về Model vì đã ẩn cột ID
+                    int modelRow = tableOrders.convertRowIndexToModel(viewRow);
+
+                    int orderId = Integer.parseInt(ordersModel.getValueAt(modelRow, 0).toString());
+                    String status = ordersModel.getValueAt(modelRow, 5).toString();
+                    loadOrderDetail(orderId, status);
+                }
+            }
+        });
+    }
+
+    private void loadOrders() {
+        try {
+            DefaultTableModel model = orderBUS.getOrdersByCustomer(customerId);
+            ordersModel.setRowCount(0);
+            for (int i = 0; i < model.getRowCount(); i++) {
+                ordersModel.addRow(new Object[] {
+                        model.getValueAt(i, 0), // ID ẩn
+                        model.getValueAt(i, 1), // order_code
+                        model.getValueAt(i, 2), // phone
+                        model.getValueAt(i, 3), // total
+                        model.getValueAt(i, 4), // date
+                        model.getValueAt(i, 5) // status
+                });
+            }
+            detailsModel.setRowCount(0);
+            lblDetailTitle.setText("Chọn một đơn hàng để xem chi tiết");
+            lblDetailTitle.setForeground(TEXT_S);
+            lblStatus.setText("");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Lỗi tải dữ liệu đơn hàng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadOrderDetail(int orderId, String status) {
+        try {
+            DefaultTableModel model = orderBUS.getOrderDetails(orderId);
+            detailsModel.setRowCount(0);
+            for (int i = 0; i < model.getRowCount(); i++) {
+                detailsModel.addRow(new Object[] {
+                        model.getValueAt(i, 0),
+                        model.getValueAt(i, 1),
+                        model.getValueAt(i, 2),
+                        model.getValueAt(i, 3),
+                        model.getValueAt(i, 4),
+                        model.getValueAt(i, 5),
+                        model.getValueAt(i, 6)
+                });
+            }
+            lblDetailTitle.setText("Chi tiết Đơn #" + orderId);
+            lblDetailTitle.setForeground(TEXT_H);
+
+            lblStatus.setText("  " + status + "  ");
+            lblStatus.setOpaque(true);
+            lblStatus.setBorder(new EmptyBorder(4, 10, 4, 10));
+            Color sc = getStatusColor(status);
+            lblStatus.setBackground(sc);
+            lblStatus.setForeground(Color.WHITE);
+            lblStatus.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+            // Hiển thị/ẩn nút hành động dựa trên trạng thái
+            if (status.equals("Chưa thanh toán")) {
+                btnCancel.setVisible(true);
+                btnPay.setVisible(true);
+            } else if (status.equals("Đã thanh toán")) {
+                btnCancel.setVisible(true);
+                btnPay.setVisible(false);
+            } else {
+                btnCancel.setVisible(false);
+                btnPay.setVisible(false);
+            }
+            detailHeader.revalidate();
+            detailHeader.repaint();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Lỗi tải chi tiết: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleCancelOrder() {
+        int row = tableOrders.getSelectedRow();
+        if (row < 0) return;
+        int modelRow = tableOrders.convertRowIndexToModel(row);
+        int orderId = (int) ordersModel.getValueAt(modelRow, 0);
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Bạn có chắc muốn hủy đơn hàng #" + orderId + "?\nSản phẩm sẽ được hoàn lại kho.", 
+            "Xác nhận hủy", JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                if (orderBUS.cancelOrder(orderId)) {
+                    JOptionPane.showMessageDialog(this, "Đã hủy đơn hàng thành công!");
+                    loadOrders();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi hủy: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void handlePayment() {
+        int row = tableOrders.getSelectedRow();
+        if (row < 0) return;
+        int modelRow = tableOrders.convertRowIndexToModel(row);
+        int orderId = (int) ordersModel.getValueAt(modelRow, 0);
+        String totalStr = (String) ordersModel.getValueAt(modelRow, 3);
+        double total = Double.parseDouble(totalStr.replaceAll("[^0-9]", ""));
+
+        String[] options = {"Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Ví điện tử"};
+        String method = (String) JOptionPane.showInputDialog(this, 
+            "Chọn phương thức thanh toán cho đơn #" + orderId + ":",
+            "Thanh toán", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+        if (method != null) {
+            try {
+                if (orderBUS.payOrder(orderId, method, total)) {
+                    JOptionPane.showMessageDialog(this, "✅ Thanh toán thành công (Phương thức: " + method + ")");
+                    loadOrders();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi thanh toán: " + ex.getMessage());
+            }
+        }
+    }
+
+    private JTable buildStyledTable(DefaultTableModel model) {
+        JTable table = new JTable(model) {
+            @Override
+            public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int col) {
+                Component c = super.prepareRenderer(renderer, row, col);
+                if (!isRowSelected(row)) {
+                    c.setBackground(row % 2 == 0 ? WHITE : new Color(248, 250, 252));
+                    c.setForeground(TEXT_H);
+                } else {
+                    c.setBackground(new Color(224, 242, 255));
+                    c.setForeground(TEXT_H);
+                }
+                return c;
+            }
+        };
+        table.setRowHeight(42);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setShowGrid(false);
+        table.setIntercellSpacing(new Dimension(0, 0));
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setSelectionBackground(new Color(224, 242, 255));
+        table.setSelectionForeground(TEXT_H);
+        table.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JTableHeader th = table.getTableHeader();
+        th.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        th.setBackground(HEADER_BG);
+        th.setForeground(TEXT_S);
+        th.setPreferredSize(new Dimension(0, 40));
+        th.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER));
+
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(JLabel.CENTER);
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(center);
+        }
+        return table;
+    }
+
+    private JScrollPane buildScrollPane(JTable table) {
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(null);
+        scroll.getViewport().setBackground(WHITE);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        return scroll;
+    }
+
+    private JPanel buildSectionLabel(String text, boolean isTop) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBackground(isTop ? WHITE : WHITE);
+        p.setBorder(new EmptyBorder(isTop ? 12 : 12, 16, 8, 16));
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lbl.setForeground(TEXT_H);
+        p.add(lbl, BorderLayout.WEST);
+        return p;
+    }
+
+    private JButton createAccentButton(String text, Color color) {
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = getModel().isRollover()
+                        ? new GradientPaint(0, 0, color.darker(), getWidth(), 0, color)
+                        : new GradientPaint(0, 0, color, getWidth(), 0, color.brighter());
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setForeground(Color.WHITE);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(new EmptyBorder(8, 18, 8, 18));
+        return btn;
+    }
+
+    private Color getStatusColor(String status) {
+        if (status == null)
+            return TEXT_S;
+        switch (status.trim()) {
+            case "Đã thanh toán":
+                return SUCCESS;
+            case "Đang giao":
+                return ACCENT;
+            case "Hoàn thành":
+                return new Color(16, 185, 129);
+            case "Đã hủy":
+                return DANGER;
+            case "Chưa thanh toán":
+                return WARNING;
+            default:
+                return TEXT_S;
+        }
+    }
+
+    class StatusRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int col) {
+            JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+            String status = value == null ? "" : value.toString().trim();
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+            if (!isSelected) {
+                Color bg = getStatusColor(status);
+                lbl.setBackground(new Color(bg.getRed(), bg.getGreen(), bg.getBlue(), 40));
+                lbl.setForeground(bg.darker());
+            } else {
+                lbl.setBackground(new Color(224, 242, 255));
+                lbl.setForeground(TEXT_H);
+            }
+            lbl.setOpaque(true);
+            return lbl;
+        }
+    }
+}

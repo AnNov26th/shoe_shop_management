@@ -27,8 +27,8 @@ import com.pbl_3project.dao.DashboardDAO;
 public class DashboardPanel extends JPanel {
 
     private DashboardDAO dashboardDAO;
-    private JLabel lblTotalUsers, lblTotalProducts, lblTotalStock;
-    private JTable tableBrandStats;
+    private JLabel lblTotalUsers, lblTotalProducts, lblTotalStock, lblTotalRevenue;
+    private JTable tableBrandStats, tableMonthlyStats, tableEmployeeStats;
 
     public DashboardPanel() {
         dashboardDAO = new DashboardDAO();
@@ -47,19 +47,24 @@ public class DashboardPanel extends JPanel {
         topCardsPanel.setPreferredSize(new Dimension(0, 150));
         topCardsPanel.setOpaque(false);
 
-        // Tạo 3 thẻ với 3 màu sắc nổi bật
+        // Tạo 4 thẻ với các màu sắc nổi bật
         lblTotalUsers = new JLabel("0", SwingConstants.CENTER);
-        JPanel card1 = createStatCard("Tài Khoản Hệ Thống", lblTotalUsers, new Color(52, 152, 219));
+        JPanel card1 = createStatCard("Tài Khoản", lblTotalUsers, new Color(52, 152, 219));
 
         lblTotalProducts = new JLabel("0", SwingConstants.CENTER);
-        JPanel card2 = createStatCard("Mẫu Giày Kinh Doanh", lblTotalProducts, new Color(155, 89, 182));
+        JPanel card2 = createStatCard("Mẫu Giày", lblTotalProducts, new Color(155, 89, 182));
 
         lblTotalStock = new JLabel("0", SwingConstants.CENTER);
         JPanel card3 = createStatCard("Tổng Tồn Kho", lblTotalStock, new Color(46, 204, 113));
 
+        lblTotalRevenue = new JLabel("0", SwingConstants.CENTER);
+        JPanel card4 = createStatCard("Tổng Doanh Thu", lblTotalRevenue, new Color(230, 126, 34));
+
+        topCardsPanel.setLayout(new GridLayout(1, 4, 20, 0));
         topCardsPanel.add(card1);
         topCardsPanel.add(card2);
         topCardsPanel.add(card3);
+        topCardsPanel.add(card4);
 
         // --- 2. KHU VỰC BẢNG PHÂN TÍCH BÊN DƯỚI ---
         // Sử dụng RoundedPanel cho cả khu vực bảng để đồng bộ độ mượt
@@ -67,27 +72,28 @@ public class DashboardPanel extends JPanel {
         centerPanel.setLayout(new BorderLayout());
         centerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JLabel lblTableTitle = new JLabel("Phân tích tồn kho theo Thương hiệu");
-        lblTableTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        JLabel lblTableTitle = new JLabel("Báo Cáo & Phân Tích Chuyên Sâu");
+        lblTableTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblTableTitle.setForeground(new Color(15, 23, 42));
         lblTableTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
         centerPanel.add(lblTableTitle, BorderLayout.NORTH);
 
-        tableBrandStats = new JTable();
-        tableBrandStats.setRowHeight(40);
-        tableBrandStats.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        tableBrandStats.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        tableBrandStats.getTableHeader().setBackground(new Color(241, 245, 249));
-        tableBrandStats.getTableHeader().setForeground(new Color(15, 23, 42));
-        tableBrandStats.setGridColor(new Color(226, 232, 240));
-        tableBrandStats.setSelectionBackground(new Color(239, 246, 255));
-        tableBrandStats.setSelectionForeground(Color.DARK_GRAY);
-        tableBrandStats.setShowVerticalLines(false);
+        javax.swing.JTabbedPane tabbedPane = new javax.swing.JTabbedPane();
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        JScrollPane scrollPane = new JScrollPane(tableBrandStats);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        // Tab 1: Tồn kho
+        tableBrandStats = createStyledTable();
+        tabbedPane.addTab("📦 Tồn kho theo Thương hiệu", createTableScrollPane(tableBrandStats));
+
+        // Tab 2: Doanh thu theo tháng
+        tableMonthlyStats = createStyledTable();
+        tabbedPane.addTab("📅 Doanh thu theo Tháng", createTableScrollPane(tableMonthlyStats));
+
+        // Tab 3: Doanh thu theo nhân viên
+        tableEmployeeStats = createStyledTable();
+        tabbedPane.addTab("👤 Doanh thu theo Nhân viên", createTableScrollPane(tableEmployeeStats));
+
+        centerPanel.add(tabbedPane, BorderLayout.CENTER);
 
         // --- 3. NÚT LÀM MỚI DỮ LIỆU ---
         JButton btnRefresh = new JButton("Cập nhật số liệu") {
@@ -132,14 +138,14 @@ public class DashboardPanel extends JPanel {
     private JPanel createStatCard(String title, JLabel valueLabel, Color bgColor) {
         // Sử dụng RoundedPanel với độ bo góc (radius) là 25px
         RoundedPanel card = new RoundedPanel(25, bgColor);
-        card.setLayout(new BorderLayout(10, 10));
-        card.setBorder(new EmptyBorder(20, 20, 20, 20));
+        card.setLayout(new BorderLayout(5, 5));
+        card.setBorder(new EmptyBorder(15, 15, 15, 15));
 
         JLabel lblTitle = new JLabel(title, SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblTitle.setForeground(Color.WHITE); // Chữ trắng trên nền màu nhìn sẽ sang hơn
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTitle.setForeground(new Color(255, 255, 255, 230));
 
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
         valueLabel.setForeground(Color.WHITE);
 
         card.add(lblTitle, BorderLayout.NORTH);
@@ -147,15 +153,41 @@ public class DashboardPanel extends JPanel {
         return card;
     }
 
+    private JTable createStyledTable() {
+        JTable table = new JTable();
+        table.setRowHeight(40);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(241, 245, 249));
+        table.getTableHeader().setForeground(new Color(15, 23, 42));
+        table.setGridColor(new Color(226, 232, 240));
+        table.setSelectionBackground(new Color(239, 246, 255));
+        table.setSelectionForeground(Color.DARK_GRAY);
+        table.setShowVerticalLines(false);
+        return table;
+    }
+
+    private JScrollPane createTableScrollPane(JTable table) {
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        return scrollPane;
+    }
+
     // --- HÀM GỌI DB ---
     private void loadData() {
         try {
-            Map<String, Integer> stats = dashboardDAO.getQuickStats();
+            Map<String, Object> stats = dashboardDAO.getQuickStats();
             lblTotalUsers.setText(String.valueOf(stats.getOrDefault("total_users", 0)));
             lblTotalProducts.setText(String.valueOf(stats.getOrDefault("total_products", 0)));
-            lblTotalStock.setText(String.format("%,d", stats.getOrDefault("total_stock", 0)));
+            lblTotalStock.setText(String.format("%,d", (Integer) stats.getOrDefault("total_stock", 0)));
+            
+            double revenue = (Double) stats.getOrDefault("total_revenue", 0.0);
+            lblTotalRevenue.setText(String.format("%,.0f", revenue));
 
             tableBrandStats.setModel(dashboardDAO.getBrandStatistics());
+            tableMonthlyStats.setModel(dashboardDAO.getMonthlyRevenueStatistics());
+            tableEmployeeStats.setModel(dashboardDAO.getEmployeeRevenueStatistics());
 
         } catch (SQLException e) {
             e.printStackTrace();

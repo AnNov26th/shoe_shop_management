@@ -23,6 +23,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -40,7 +41,11 @@ public class CustomerCartPanel extends JPanel {
     private CartBUS cartBUS;
     private Runnable updateCartBadge;
     private boolean isUpdatingTable = false;
-    private int customerId; // LƯU ID CỦA KHÁCH TỪ BÊN NGOÀI
+    private int customerId;
+    private JTextField txtCoupon;
+    private int currentPromoId = -1;
+    private double discountAmount = 0;
+    private com.pbl_3project.bus.DiscountBUS discountBUS = new com.pbl_3project.bus.DiscountBUS();
 
     private static final Color BG = new Color(248, 250, 252);
     private static final Color WHITE = Color.WHITE;
@@ -183,6 +188,46 @@ public class CustomerCartPanel extends JPanel {
         JPanel totalRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         totalRow.setOpaque(false);
 
+        // --- Coupon Section ---
+        JPanel couponPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        couponPanel.setOpaque(false);
+        
+        JLabel lblC = new JLabel("🎟️ Mã giảm giá:");
+        lblC.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblC.setForeground(TEXT_H);
+        
+        txtCoupon = new JTextField(12);
+        txtCoupon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtCoupon.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER, 1, true),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+        
+        JButton btnApply = new JButton("Áp dụng") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(56, 189, 248)); // Blue Accent
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnApply.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnApply.setForeground(WHITE);
+        btnApply.setContentAreaFilled(false);
+        btnApply.setBorderPainted(false);
+        btnApply.setFocusPainted(false);
+        btnApply.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnApply.setPreferredSize(new Dimension(100, 38));
+        btnApply.addActionListener(e -> handleApplyCoupon());
+
+        couponPanel.add(lblC);
+        couponPanel.add(txtCoupon);
+        couponPanel.add(btnApply);
+        footer.add(couponPanel, BorderLayout.WEST);
+
         JLabel lblTxt = new JLabel("TỔNG THANH TOÁN:");
         lblTxt.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblTxt.setForeground(TEXT_S);
@@ -253,24 +298,68 @@ public class CustomerCartPanel extends JPanel {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                // ĐÃ SỬA: SỬ DỤNG TRỰC TIẾP ID ĐÃ TRUYỀN VÀO TỪ LÚC ĐĂNG NHẬP
                 com.pbl_3project.dao.OrderDAO orderDAO = new com.pbl_3project.dao.OrderDAO();
-                boolean success = orderDAO.createOrderOnline(this.customerId, phone, cartBUS.calculateTotalAmount(),
-                        cartBUS.getCartItems());
+                double subtotal = cartBUS.calculateTotalAmount();
+                double finalAmount = subtotal - discountAmount;
+                if (finalAmount < 0) finalAmount = 0;
+
+                boolean success = orderDAO.createOrderOnline(
+                        this.customerId, 
+                        phone, 
+                        subtotal, 
+                        discountAmount, 
+                        finalAmount, 
+                        (currentPromoId > 0 ? currentPromoId : null), 
+                        cartBUS.getCartItems()
+                );
 
                 if (success) {
-                    JOptionPane.showMessageDialog(this,
-                            "🎉 Đặt hàng thành công!\nĐơn hàng của bạn đang chờ xác nhận với trạng thái: Chưa thanh toán.");
-
+                    JOptionPane.showMessageDialog(this, "🎉 Đặt hàng thành công!");
                     new com.pbl_3project.dao.CartDAO().clearCartByUserId(this.customerId);
-
                     cartBUS.clearCart();
+                    currentPromoId = -1;
+                    discountAmount = 0;
                     refreshCartGUI();
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi đặt hàng", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private void handleApplyCoupon() {
+        String code = txtCoupon.getText().trim();
+        if (code.isEmpty()) {
+            currentPromoId = -1;
+            discountAmount = 0;
+            refreshCartGUI();
+            return;
+        }
+
+        try {
+            double total = cartBUS.calculateTotalAmount();
+            Object[] promo = discountBUS.validateCoupon(code, total);
+            
+            currentPromoId = (int) promo[0];
+            String type = (String) promo[1];
+            double val = (double) promo[2];
+            double maxD = (double) promo[4];
+
+            if (type.equalsIgnoreCase("Percentage")) {
+                discountAmount = total * (val / 100.0);
+                if (maxD > 0 && discountAmount > maxD) discountAmount = maxD;
+            } else {
+                discountAmount = val;
+            }
+
+            JOptionPane.showMessageDialog(this, "✅ Đã áp dụng mã giảm giá: -" + String.format("%,.0f", discountAmount) + " VNĐ");
+            refreshCartGUI();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi mã giảm giá", JOptionPane.WARNING_MESSAGE);
+            currentPromoId = -1;
+            discountAmount = 0;
+            refreshCartGUI();
         }
     }
 
@@ -302,7 +391,17 @@ public class CustomerCartPanel extends JPanel {
                     String.format("%,.0f", item.getTotalPrice())
             });
         }
-        lblTotalAmount.setText(String.format("%,.0f VNĐ", cartBUS.calculateTotalAmount()));
+        double total = cartBUS.calculateTotalAmount();
+        double finalTotal = total - discountAmount;
+        if (finalTotal < 0) finalTotal = 0;
+
+        if (discountAmount > 0) {
+            lblTotalAmount.setText("<html><body style='text-align:right'><font size='4' color='gray'><s>" + 
+                String.format("%,.0f", total) + "</s></font><br>" + 
+                String.format("%,.0f VNĐ", finalTotal) + "</body></html>");
+        } else {
+            lblTotalAmount.setText(String.format("%,.0f VNĐ", total));
+        }
         isUpdatingTable = false;
         if (updateCartBadge != null)
             updateCartBadge.run();
