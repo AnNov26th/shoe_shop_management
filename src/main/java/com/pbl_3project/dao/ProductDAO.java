@@ -209,17 +209,16 @@ public class ProductDAO {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
-        String[] columnNames = { "ID", "Tên SP", "Giá Cơ Bản", "Màu Đại Diện", "Tổng Tồn Kho" };
+        String[] columnNames = { "ID", "Tên SP", "Giá Cơ Bản", "Màu Đại Diện", "Tổng Tồn Kho", "Hình Ảnh" };
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         try {
             conn = DatabaseConnection.getConnection();
-            // Dùng GROUP BY để gom nhóm. MAX(pv.color) để lấy 1 màu làm ảnh đại diện
-            String sql = "SELECT p.id, p.name, p.base_price, MAX(pv.color) as sample_color, SUM(pv.stock_quantity) as total_stock "
-                    +
-                    "FROM Product p " +
-                    "JOIN Product_Variant pv ON p.id = pv.product_id " +
-                    "WHERE pv.stock_quantity > 0 ";
+            String sql = "SELECT p.id, p.name, p.base_price, MAX(pv.color) as sample_color, SUM(pv.stock_quantity) as total_stock, MAX(pi.image_url) as image_url "
+                    + "FROM Product p "
+                    + "JOIN Product_Variant pv ON p.id = pv.product_id "
+                    + "LEFT JOIN Product_Image pi ON p.id = pi.product_id AND pi.is_primary = 1 "
+                    + "WHERE pv.stock_quantity > 0 ";
 
             if (genderFilter != null && !genderFilter.equals("Tất cả")) {
                 sql += " AND p.gender = ? ";
@@ -235,14 +234,12 @@ public class ProductDAO {
             while (rs.next()) {
                 tableModel.addRow(new Object[] {
                         rs.getInt("id"), rs.getString("name"), rs.getDouble("base_price"),
-                        rs.getString("sample_color"), rs.getInt("total_stock")
+                        rs.getString("sample_color"), rs.getInt("total_stock"), rs.getString("image_url")
                 });
             }
         } finally {
-            if (rs != null)
-                rs.close();
-            if (pstmt != null)
-                pstmt.close();
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
             DatabaseConnection.closeConnection(conn);
         }
         return tableModel;
@@ -286,16 +283,17 @@ public class ProductDAO {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
-        String[] columnNames = { "ID", "Tên SP", "Giá Cơ Bản", "Màu Đại Diện", "Tổng Tồn Kho", "Giới tính" };
+        String[] columnNames = { "ID", "Tên SP", "Giá Cơ Bản", "Màu Đại Diện", "Tổng Tồn Kho", "Giới tính", "Hình Ảnh" };
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         try {
             conn = DatabaseConnection.getConnection();
             // Dùng LEFT JOIN để lấy cả sản phẩm chưa có Variant nào
             String sql = "SELECT p.id, p.name, p.base_price, MAX(pv.color) as sample_color, " +
-                    "ISNULL(SUM(pv.stock_quantity), 0) as total_stock, p.gender " +
+                    "ISNULL(SUM(pv.stock_quantity), 0) as total_stock, p.gender, MAX(pi.image_url) as image_url " +
                     "FROM Product p " +
                     "LEFT JOIN Product_Variant pv ON p.id = pv.product_id " +
+                    "LEFT JOIN Product_Image pi ON p.id = pi.product_id AND pi.is_primary = 1 " +
                     "WHERE p.status != 'Inactive' "; // Không lấy hàng đã xóa
 
             if (keyword != null && !keyword.trim().isEmpty()) {
@@ -313,7 +311,8 @@ public class ProductDAO {
                 tableModel.addRow(new Object[] {
                         rs.getInt("id"), rs.getString("name"), rs.getDouble("base_price"),
                         rs.getString("sample_color") != null ? rs.getString("sample_color") : "",
-                        rs.getInt("total_stock"), rs.getString("gender")
+                        rs.getInt("total_stock"), rs.getString("gender"),
+                        rs.getString("image_url")
                 });
             }
         } finally {

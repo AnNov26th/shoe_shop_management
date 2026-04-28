@@ -139,7 +139,10 @@ public class LoginForm extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isRollover() ? accentColor.darker() : accentColor);
+                GradientPaint gp = getModel().isRollover()
+                        ? new GradientPaint(0, 0, accentColor.darker(), getWidth(), 0, accentColor)
+                        : new GradientPaint(0, 0, accentColor, getWidth(), 0, accentColor.brighter());
+                g2.setPaint(gp);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
                 g2.dispose();
                 super.paintComponent(g);

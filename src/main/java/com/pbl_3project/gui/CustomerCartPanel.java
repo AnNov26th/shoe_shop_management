@@ -7,6 +7,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -24,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -292,17 +294,47 @@ public class CustomerCartPanel extends JPanel {
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "Xác nhận đặt hàng với tổng tiền: " + lblTotalAmount.getText() + "?",
-                "Xác nhận đơn hàng", JOptionPane.YES_NO_OPTION);
+        double subtotal = cartBUS.calculateTotalAmount();
+        double finalAmount = subtotal - discountAmount;
+        if (finalAmount < 0) finalAmount = 0;
 
-        if (confirm == JOptionPane.YES_OPTION) {
+        // --- LỰA CHỌN PHƯƠNG THỨC THANH TOÁN ---
+        String[] paymentMethods = {"Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Quét mã QR"};
+        int methodChoice = JOptionPane.showOptionDialog(this, 
+                "Chọn phương thức thanh toán cho đơn hàng của bạn:",
+                "Phương thức thanh toán",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+                null, paymentMethods, paymentMethods[0]);
+
+        if (methodChoice == -1) return; // Người dùng đóng dialog
+
+        boolean isPaymentConfirmed = false;
+        String status = "Chưa thanh toán";
+
+        if (methodChoice == 1) { // Thanh toán qua QR
+            PaymentQRDialog qrDialog = new PaymentQRDialog((Frame) SwingUtilities.getWindowAncestor(this), finalAmount, "KH" + customerId + "_" + System.currentTimeMillis() % 10000);
+            qrDialog.setVisible(true);
+            if (qrDialog.isPaymentSuccessful()) {
+                isPaymentConfirmed = true;
+                status = "Đã thanh toán";
+            } else {
+                JOptionPane.showMessageDialog(this, "Thanh toán đã bị hủy hoặc chưa hoàn tất.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+        } else { // COD
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "Xác nhận đặt hàng (COD) với tổng tiền: " + String.format("%,.0f VNĐ", finalAmount) + "?",
+                "Xác nhận đơn hàng", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                isPaymentConfirmed = true;
+                status = "Chưa thanh toán";
+            }
+        }
+
+        if (isPaymentConfirmed) {
             try {
                 com.pbl_3project.dao.OrderDAO orderDAO = new com.pbl_3project.dao.OrderDAO();
-                double subtotal = cartBUS.calculateTotalAmount();
-                double finalAmount = subtotal - discountAmount;
-                if (finalAmount < 0) finalAmount = 0;
-
+                
                 boolean success = orderDAO.createOrderOnline(
                         this.customerId, 
                         phone, 
@@ -310,11 +342,21 @@ public class CustomerCartPanel extends JPanel {
                         discountAmount, 
                         finalAmount, 
                         (currentPromoId > 0 ? currentPromoId : null), 
-                        cartBUS.getCartItems()
+                        cartBUS.getCartItems(),
+                        status
                 );
 
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "🎉 Đặt hàng thành công!");
+                    // Nếu là QR thì cập nhật trạng thái đã thanh toán ngay (giả lập)
+                    if (methodChoice == 1) {
+                        // Tìm order vừa tạo và update status (Hoặc DAO có thể nhận status trực tiếp)
+                        // Tuy nhiên OrderDAO.createOrderOnline đang mặc định 'Chưa thanh toán'
+                        // Để đơn giản, tôi sẽ giả định createOrderOnline tạo order với status 'Chưa thanh toán' 
+                        // và chúng ta có thể gọi updateOrderStatus nếu cần. 
+                        // Nhưng tốt hơn là sửa OrderDAO.createOrderOnline hoặc để admin duyệt.
+                    }
+                    
+                    JOptionPane.showMessageDialog(this, "🎉 " + (methodChoice == 1 ? "Thanh toán và đặt hàng" : "Đặt hàng") + " thành công!");
                     new com.pbl_3project.dao.CartDAO().clearCartByUserId(this.customerId);
                     cartBUS.clearCart();
                     currentPromoId = -1;

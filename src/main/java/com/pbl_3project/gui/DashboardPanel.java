@@ -83,15 +83,15 @@ public class DashboardPanel extends JPanel {
 
         // Tab 1: Tồn kho
         tableBrandStats = createStyledTable();
-        tabbedPane.addTab("📦 Tồn kho theo Thương hiệu", createTableScrollPane(tableBrandStats));
+        tabbedPane.addTab("Tồn kho theo Thương hiệu", createTableScrollPane(tableBrandStats));
 
         // Tab 2: Doanh thu theo tháng
         tableMonthlyStats = createStyledTable();
-        tabbedPane.addTab("📅 Doanh thu theo Tháng", createTableScrollPane(tableMonthlyStats));
+        tabbedPane.addTab("Doanh thu theo Tháng", createTableScrollPane(tableMonthlyStats));
 
         // Tab 3: Doanh thu theo nhân viên
         tableEmployeeStats = createStyledTable();
-        tabbedPane.addTab("👤 Doanh thu theo Nhân viên", createTableScrollPane(tableEmployeeStats));
+        tabbedPane.addTab("Doanh thu theo Nhân viên", createTableScrollPane(tableEmployeeStats));
 
         centerPanel.add(tabbedPane, BorderLayout.CENTER);
 
@@ -181,7 +181,7 @@ public class DashboardPanel extends JPanel {
             lblTotalUsers.setText(String.valueOf(stats.getOrDefault("total_users", 0)));
             lblTotalProducts.setText(String.valueOf(stats.getOrDefault("total_products", 0)));
             lblTotalStock.setText(String.format("%,d", (Integer) stats.getOrDefault("total_stock", 0)));
-            
+
             double revenue = (Double) stats.getOrDefault("total_revenue", 0.0);
             lblTotalRevenue.setText(String.format("%,.0f", revenue));
 

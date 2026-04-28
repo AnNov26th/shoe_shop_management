@@ -513,4 +513,79 @@ public class UserDAO {
         }
         return success;
     }
+
+    public java.util.Map<String, String> findCustomerByPhone(String phone) throws SQLException {
+        java.util.Map<String, String> customer = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT u.id, cp.full_name, u.email FROM [User] u " +
+                         "JOIN Customer_Profile cp ON u.id = cp.user_id " +
+                         "WHERE u.phone = ? AND u.role_id = 4";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, phone);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                customer = new java.util.HashMap<>();
+                customer.put("id", String.valueOf(rs.getInt("id")));
+                customer.put("name", rs.getString("full_name"));
+                customer.put("email", rs.getString("email"));
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return customer;
+    }
+
+    public int createQuickCustomer(String name, String phone, String email, String password) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmtUser = null;
+        PreparedStatement pstmtProfile = null;
+        ResultSet rsKeys = null;
+        int newUserId = -1;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            String sqlUser = "INSERT INTO [User] (role_id, email, password_hash, phone, status) VALUES (4, ?, ?, ?, 'Active')";
+            pstmtUser = conn.prepareStatement(sqlUser, java.sql.Statement.RETURN_GENERATED_KEYS);
+            pstmtUser.setString(1, (email != null && !email.isEmpty()) ? email : "guest_" + phone + "@shoes.com");
+            pstmtUser.setString(2, (password != null && !password.isEmpty()) ? password : "password123");
+            pstmtUser.setString(3, phone);
+
+            int rowsAffected = pstmtUser.executeUpdate();
+            if (rowsAffected > 0) {
+                rsKeys = pstmtUser.getGeneratedKeys();
+                if (rsKeys.next()) {
+                    newUserId = rsKeys.getInt(1);
+                }
+
+                if (newUserId != -1) {
+                    String sqlProfile = "INSERT INTO Customer_Profile (user_id, full_name) VALUES (?, ?)";
+                    pstmtProfile = conn.prepareStatement(sqlProfile);
+                    pstmtProfile.setInt(1, newUserId);
+                    pstmtProfile.setNString(2, name);
+                    pstmtProfile.executeUpdate();
+                }
+                conn.commit();
+            }
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e;
+        } finally {
+            if (rsKeys != null) rsKeys.close();
+            if (pstmtProfile != null) pstmtProfile.close();
+            if (pstmtUser != null) pstmtUser.close();
+            if (conn != null) conn.setAutoCommit(true);
+            DatabaseConnection.closeConnection(conn);
+        }
+        return newUserId;
+    }
 }

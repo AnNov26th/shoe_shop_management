@@ -50,11 +50,11 @@ public class EmployeeForm extends JFrame {
         sidebarPanel.add(lblEmployee);
         sidebarPanel.add(Box.createVerticalStrut(40));
 
-        JButton btnPOS = createMenuButton("Bán hàng tại quầy (POS)");
-        JButton btnDonOnline = createMenuButton("Đơn hàng Online");
-        JButton btnTonKho = createMenuButton("Tra cứu tồn kho");
-        JButton btnDoiTra = createMenuButton("Yêu cầu Đổi/Trả");
-        JButton btnLogout = createMenuButton("Đăng xuất");
+        JButton btnPOS = createMenuButton("Bán hàng tại quầy (POS)", com.pbl_3project.util.IconUtils.IconType.TROLLEY);
+        JButton btnDonOnline = createMenuButton("Đơn hàng Online", com.pbl_3project.util.IconUtils.IconType.TAG);
+        JButton btnTonKho = createMenuButton("Tra cứu tồn kho", com.pbl_3project.util.IconUtils.IconType.WAREHOUSE);
+        JButton btnDoiTra = createMenuButton("Yêu cầu Đổi/Trả", com.pbl_3project.util.IconUtils.IconType.USER);
+        JButton btnLogout = createMenuButton("Đăng xuất", com.pbl_3project.util.IconUtils.IconType.LOGOUT);
 
         sidebarPanel.add(btnPOS);
         sidebarPanel.add(Box.createVerticalStrut(8));
@@ -134,7 +134,7 @@ public class EmployeeForm extends JFrame {
         selectedMenuButton = btn;
     }
 
-    private JButton createMenuButton(String text) {
+    private JButton createMenuButton(String text, com.pbl_3project.util.IconUtils.IconType iconType) {
         JButton btn = new JButton(text) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -153,12 +153,16 @@ public class EmployeeForm extends JFrame {
         btn.setForeground(TEXT_INACTIVE);
         btn.setBackground(MENU_INACTIVE);
         btn.setHorizontalAlignment(SwingConstants.LEFT);
+        btn.setIconTextGap(15);
+        if (iconType != null) {
+            btn.setIcon(com.pbl_3project.util.IconUtils.loadMenuIcon(iconType));
+        }
         btn.setBorder(new EmptyBorder(12, 20, 12, 20));
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 
         btn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {

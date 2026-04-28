@@ -11,14 +11,14 @@ import com.pbl_3project.dto.CartItem;
 public class OrderBUS {
     private OrderDAO orderDAO = new OrderDAO();
 
-    public boolean checkout(String customerInfo, double totalAmount, List<CartItem> cartItems) throws SQLException {
+    public boolean checkout(String customerInfo, double totalAmount, List<CartItem> cartItems, String status) throws SQLException {
         if (cartItems == null || cartItems.isEmpty()) {
             throw new SQLException("Giỏ hàng đang trống, không thể thanh toán!");
         }
         if (customerInfo == null || customerInfo.trim().isEmpty()) {
             throw new SQLException("Vui lòng nhập thông tin khách hàng (Số điện thoại)!");
         }
-        return orderDAO.createOrder(customerInfo, totalAmount, cartItems);
+        return orderDAO.createOrder(customerInfo, totalAmount, cartItems, status);
     }
 
     /** Lấy đơn hàng của khách hàng (phía Customer) */
@@ -54,4 +54,12 @@ public class OrderBUS {
         }
         return orderDAO.processPayment(orderId, method, amount);
     }
-}
+
+    public boolean confirmReceipt(int orderId) throws SQLException {
+        return orderDAO.confirmReceipt(orderId);
+    }
+
+    public boolean requestReturn(int orderId) throws SQLException {
+        return orderDAO.requestReturn(orderId);
+    }
+}

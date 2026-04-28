@@ -14,7 +14,7 @@ import com.pbl_3project.util.DatabaseConnection;
 
 public class OrderDAO {
 
-    public boolean createOrder(String customerInfo, double totalAmount, List<CartItem> cartItems) throws SQLException {
+    public boolean createOrder(String customerInfo, double totalAmount, List<CartItem> cartItems, String status) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtOrder = null;
         PreparedStatement pstmtDetail = null;
@@ -30,7 +30,7 @@ public class OrderDAO {
 
             // ĐÃ FIX: Có đủ 6 dấu chấm hỏi cho 6 cột
             String sqlOrder = "INSERT INTO [Order] (order_code, customer_id, customer_phone, subtotal, total_amount, final_amount, created_at, status) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), N'Chưa thanh toán')";
+                    + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?)";
 
             pstmtOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
 
@@ -54,6 +54,7 @@ public class OrderDAO {
             pstmtOrder.setDouble(4, totalAmount); // subtotal
             pstmtOrder.setDouble(5, totalAmount); // total_amount
             pstmtOrder.setDouble(6, totalAmount); // final_amount
+            pstmtOrder.setString(7, status);
 
             int affectedRows = pstmtOrder.executeUpdate();
             if (affectedRows == 0)
@@ -114,7 +115,7 @@ public class OrderDAO {
         }
     }
 
-    public boolean createOrderOnline(int customerId, String customerPhone, double subtotal, double discountAmount, double finalAmount, Integer promotionId, List<CartItem> cartItems)
+    public boolean createOrderOnline(int customerId, String customerPhone, double subtotal, double discountAmount, double finalAmount, Integer promotionId, List<CartItem> cartItems, String status)
             throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtOrder = null;
@@ -131,7 +132,7 @@ public class OrderDAO {
             String orderCode = "ORD" + System.currentTimeMillis();
 
             String sqlOrder = "INSERT INTO [Order] (order_code, customer_id, customer_phone, subtotal, discount_amount, final_amount, created_at, status, promotion_id) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), N'Chưa thanh toán', ?)";
+                    + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?, ?)";
 
             pstmtOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
 
@@ -141,10 +142,11 @@ public class OrderDAO {
             pstmtOrder.setDouble(4, subtotal);
             pstmtOrder.setDouble(5, discountAmount);
             pstmtOrder.setDouble(6, finalAmount);
+            pstmtOrder.setString(7, status);
             if (promotionId != null && promotionId > 0) {
-                pstmtOrder.setInt(7, promotionId);
+                pstmtOrder.setInt(8, promotionId);
             } else {
-                pstmtOrder.setNull(7, java.sql.Types.INTEGER);
+                pstmtOrder.setNull(8, java.sql.Types.INTEGER);
             }
 
             int affectedRows = pstmtOrder.executeUpdate();
@@ -454,5 +456,13 @@ public class OrderDAO {
                 DatabaseConnection.closeConnection(conn);
             }
         }
+    }
+
+    public boolean confirmReceipt(int orderId) throws SQLException {
+        return updateOrderStatus(orderId, "Hoàn thành");
+    }
+
+    public boolean requestReturn(int orderId) throws SQLException {
+        return updateOrderStatus(orderId, "Yêu cầu Đổi/Trả");
     }
 }

@@ -7,10 +7,12 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import javax.swing.SwingUtilities;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -80,7 +82,7 @@ public class CustomerOrderPanel extends JPanel {
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitle.setForeground(TEXT_H);
 
-        JButton btnRefresh = createAccentButton("⟳  Làm mới", ACCENT);
+        JButton btnRefresh = createAccentButton("Làm mới", ACCENT);
         btnRefresh.addActionListener(e -> loadOrders());
 
         header.add(lblTitle, BorderLayout.WEST);
@@ -155,12 +157,19 @@ public class CustomerOrderPanel extends JPanel {
 
         btnCancel = createAccentButton("Hủy đơn", DANGER);
         btnPay = createAccentButton("Thanh toán", SUCCESS);
+        btnConfirmReceipt = createAccentButton("Đã nhận hàng", SUCCESS);
+        btnReturnRequest = createAccentButton("Đổi trả", WARNING);
+
         lblStatus = new JLabel(""); // Khởi tạo để tránh NullPointerException
         btnCancel.setVisible(false);
         btnPay.setVisible(false);
+        btnConfirmReceipt.setVisible(false);
+        btnReturnRequest.setVisible(false);
 
         rightHeader.add(btnCancel);
         rightHeader.add(btnPay);
+        rightHeader.add(btnConfirmReceipt);
+        rightHeader.add(btnReturnRequest);
         rightHeader.add(lblStatus);
 
         detailHeader.add(lblDetailTitle, BorderLayout.WEST);
@@ -168,6 +177,8 @@ public class CustomerOrderPanel extends JPanel {
 
         btnCancel.addActionListener(e -> handleCancelOrder());
         btnPay.addActionListener(e -> handlePayment());
+        btnConfirmReceipt.addActionListener(e -> handleConfirmReceipt());
+        btnReturnRequest.addActionListener(e -> handleRequestReturn());
 
         JPanel panelDetails = new JPanel(new BorderLayout());
         panelDetails.setBackground(WHITE);
@@ -229,6 +240,9 @@ public class CustomerOrderPanel extends JPanel {
         }
     }
 
+    private JButton btnConfirmReceipt;
+    private JButton btnReturnRequest;
+
     private void loadOrderDetail(int orderId, String status) {
         try {
             DefaultTableModel model = orderBUS.getOrderDetails(orderId);
@@ -256,16 +270,21 @@ public class CustomerOrderPanel extends JPanel {
             lblStatus.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
             // Hiển thị/ẩn nút hành động dựa trên trạng thái
+            btnCancel.setVisible(false);
+            btnPay.setVisible(false);
+            btnConfirmReceipt.setVisible(false);
+            btnReturnRequest.setVisible(false);
+
             if (status.equals("Chưa thanh toán")) {
                 btnCancel.setVisible(true);
                 btnPay.setVisible(true);
             } else if (status.equals("Đã thanh toán")) {
                 btnCancel.setVisible(true);
-                btnPay.setVisible(false);
-            } else {
-                btnCancel.setVisible(false);
-                btnPay.setVisible(false);
+            } else if (status.equals("Đang giao")) {
+                btnConfirmReceipt.setVisible(true);
+                btnReturnRequest.setVisible(true);
             }
+
             detailHeader.revalidate();
             detailHeader.repaint();
 
@@ -275,16 +294,68 @@ public class CustomerOrderPanel extends JPanel {
         }
     }
 
-    private void handleCancelOrder() {
+    private void handleConfirmReceipt() {
         int row = tableOrders.getSelectedRow();
-        if (row < 0) return;
+        if (row < 0)
+            return;
         int modelRow = tableOrders.convertRowIndexToModel(row);
         int orderId = (int) ordersModel.getValueAt(modelRow, 0);
 
-        int confirm = JOptionPane.showConfirmDialog(this, 
-            "Bạn có chắc muốn hủy đơn hàng #" + orderId + "?\nSản phẩm sẽ được hoàn lại kho.", 
-            "Xác nhận hủy", JOptionPane.YES_NO_OPTION);
-        
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Xác nhận bạn đã nhận được đơn hàng #" + orderId + "?\nBạn sẽ có thể đánh giá sản phẩm sau đó.",
+                "Xác nhận đã nhận hàng", JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                if (orderBUS.confirmReceipt(orderId)) {
+                    JOptionPane.showMessageDialog(this, "Đã cập nhật trạng thái đơn hàng!");
+                    loadOrders();
+
+                    // Hiện Review Dialog
+                    ReviewDialog reviewDialog = new ReviewDialog((Frame) SwingUtilities.getWindowAncestor(this),
+                            customerId, orderId);
+                    reviewDialog.setVisible(true);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void handleRequestReturn() {
+        int row = tableOrders.getSelectedRow();
+        if (row < 0)
+            return;
+        int modelRow = tableOrders.convertRowIndexToModel(row);
+        int orderId = (int) ordersModel.getValueAt(modelRow, 0);
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Bạn muốn yêu cầu đổi trả cho đơn hàng #" + orderId + "?",
+                "Xác nhận yêu cầu", JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                if (orderBUS.requestReturn(orderId)) {
+                    JOptionPane.showMessageDialog(this, "Đã gửi yêu cầu đổi trả thành công!");
+                    loadOrders();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void handleCancelOrder() {
+        int row = tableOrders.getSelectedRow();
+        if (row < 0)
+            return;
+        int modelRow = tableOrders.convertRowIndexToModel(row);
+        int orderId = (int) ordersModel.getValueAt(modelRow, 0);
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Bạn có chắc muốn hủy đơn hàng #" + orderId + "?\nSản phẩm sẽ được hoàn lại kho.",
+                "Xác nhận hủy", JOptionPane.YES_NO_OPTION);
+
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 if (orderBUS.cancelOrder(orderId)) {
@@ -299,25 +370,40 @@ public class CustomerOrderPanel extends JPanel {
 
     private void handlePayment() {
         int row = tableOrders.getSelectedRow();
-        if (row < 0) return;
+        if (row < 0)
+            return;
         int modelRow = tableOrders.convertRowIndexToModel(row);
         int orderId = (int) ordersModel.getValueAt(modelRow, 0);
         String totalStr = (String) ordersModel.getValueAt(modelRow, 3);
         double total = Double.parseDouble(totalStr.replaceAll("[^0-9]", ""));
 
-        String[] options = {"Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Ví điện tử"};
-        String method = (String) JOptionPane.showInputDialog(this, 
-            "Chọn phương thức thanh toán cho đơn #" + orderId + ":",
-            "Thanh toán", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        String[] options = { "Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Ví điện tử" };
+        String method = (String) JOptionPane.showInputDialog(this,
+                "Chọn phương thức thanh toán cho đơn #" + orderId + ":",
+                "Thanh toán", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
         if (method != null) {
-            try {
-                if (orderBUS.payOrder(orderId, method, total)) {
-                    JOptionPane.showMessageDialog(this, "✅ Thanh toán thành công (Phương thức: " + method + ")");
-                    loadOrders();
+            boolean canProceed = true;
+            if (method.equals("Chuyển khoản / Ví điện tử")) {
+                PaymentQRDialog qrDialog = new PaymentQRDialog((Frame) SwingUtilities.getWindowAncestor(this), total,
+                        "PAY_" + orderId + "_" + System.currentTimeMillis() % 1000);
+                qrDialog.setVisible(true);
+                if (!qrDialog.isPaymentSuccessful()) {
+                    canProceed = false;
                 }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi thanh toán: " + ex.getMessage());
+            }
+
+            if (canProceed) {
+                try {
+                    if (orderBUS.payOrder(orderId, method, total)) {
+                        JOptionPane.showMessageDialog(this,
+                                "✅ " + (method.contains("COD") ? "Đã chọn phương thức COD" : "Thanh toán thành công")
+                                        + " cho đơn #" + orderId);
+                        loadOrders();
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+                }
             }
         }
     }
@@ -417,6 +503,8 @@ public class CustomerOrderPanel extends JPanel {
                 return new Color(16, 185, 129);
             case "Đã hủy":
                 return DANGER;
+            case "Yêu cầu Đổi/Trả":
+                return WARNING;
             case "Chưa thanh toán":
                 return WARNING;
             default:
