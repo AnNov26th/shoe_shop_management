@@ -1,12 +1,9 @@
 package com.pbl_3project.dao;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import com.pbl_3project.util.DatabaseConnection;
-
 public class ReviewDAO {
-
     public boolean addProductReview(int userId, int productId, int orderId, int rating, String comment) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -25,7 +22,6 @@ public class ReviewDAO {
             DatabaseConnection.closeConnection(conn);
         }
     }
-
     public boolean addShippingReview(int userId, int orderId, int rating, String comment) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;

@@ -1,5 +1,4 @@
 package com.pbl_3project.gui;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -11,7 +10,6 @@ import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -30,20 +28,12 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-
 import com.pbl_3project.bus.OrderBUS;
-
-/**
- * Panel Quản lý Đơn hàng dành cho Admin.
- * Hiển thị toàn bộ đơn hàng, xem chi tiết và cập nhật trạng thái.
- */
 public class OrderManagementPanel extends JPanel {
-
-    // ---- BẢNG MÀU ----
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color WHITE = Color.WHITE;
-    private static final Color ACCENT = new Color(34, 177, 76); // Xanh lá (đồng bộ AdminForm)
-    private static final Color BTN_BLUE = new Color(56, 189, 248); // Cyan
+    private static final Color ACCENT = new Color(34, 177, 76); 
+    private static final Color BTN_BLUE = new Color(56, 189, 248); 
     private static final Color BTN_GRAY = new Color(148, 163, 184);
     private static final Color BTN_DANGER = new Color(239, 68, 68);
     private static final Color BORDER = new Color(226, 232, 240);
@@ -53,11 +43,9 @@ public class OrderManagementPanel extends JPanel {
     private static final Color SUCCESS = new Color(34, 197, 94);
     private static final Color DANGER_CLR = new Color(239, 68, 68);
     private static final Color WARNING = new Color(245, 158, 11);
-
     private static final String[] STATUSES = {
             "Chưa thanh toán", "Đã thanh toán", "Đang giao", "Hoàn thành", "Đã hủy", "Yêu cầu Đổi/Trả"
     };
-
     private JTable tableOrders;
     private DefaultTableModel ordersModel;
     private JTable tableDetails;
@@ -66,10 +54,8 @@ public class OrderManagementPanel extends JPanel {
     private JLabel lblDetailTitle;
     private JLabel lblTotalOrders;
     private JComboBox<String> cmbStatus;
-
     private final OrderBUS orderBUS = new OrderBUS();
     private final boolean isAdmin;
-
     public OrderManagementPanel(boolean isAdmin) {
         this.isAdmin = isAdmin;
         setLayout(new BorderLayout(0, 0));
@@ -77,49 +63,33 @@ public class OrderManagementPanel extends JPanel {
         initComponents();
         loadOrders("");
     }
-
     public OrderManagementPanel() {
         this(true);
     }
-
-    // =========================================================
-    // KHỞI TẠO GIAO DIỆN
-    // =========================================================
     private void initComponents() {
-
-        // -------- TOOLBAR --------
         JPanel toolBar = new JPanel(new BorderLayout());
         toolBar.setBackground(WHITE);
         toolBar.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER),
                 new EmptyBorder(16, 24, 16, 24)));
-
-        // Bên trái: Tiêu đề + badge tổng đơn
         JPanel leftBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         leftBar.setOpaque(false);
-
         JLabel lblTitle = new JLabel("QUẢN LÝ ĐƠN HÀNG");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(TEXT_H);
-
         lblTotalOrders = new JLabel("0 đơn");
         lblTotalOrders.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTotalOrders.setForeground(WHITE);
         lblTotalOrders.setBackground(ACCENT);
         lblTotalOrders.setOpaque(true);
         lblTotalOrders.setBorder(new EmptyBorder(4, 10, 4, 10));
-
         leftBar.add(lblTitle);
         leftBar.add(lblTotalOrders);
-
-        // Bên phải: Ô tìm kiếm + nút
         JPanel rightBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightBar.setOpaque(false);
-
         JLabel lblSearch = new JLabel("Tìm kiếm:");
         lblSearch.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblSearch.setForeground(TEXT_H);
-
         txtSearch = new JTextField(20);
         txtSearch.setPreferredSize(new Dimension(220, 36));
         txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -127,19 +97,14 @@ public class OrderManagementPanel extends JPanel {
                 new LineBorder(BORDER, 1, true),
                 new EmptyBorder(0, 12, 0, 12)));
         txtSearch.setToolTipText("Nhập mã ĐH hoặc số điện thoại");
-
         JButton btnSearch = createRoundButton("Tìm kiếm", BTN_BLUE);
         JButton btnRefresh = createRoundButton("Làm mới", BTN_GRAY);
-
         rightBar.add(lblSearch);
         rightBar.add(txtSearch);
         rightBar.add(btnSearch);
         rightBar.add(btnRefresh);
-
         toolBar.add(leftBar, BorderLayout.WEST);
         toolBar.add(rightBar, BorderLayout.EAST);
-
-        // -------- BẢNG DANH SÁCH ĐƠN --------
         String[] colsOrders = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Ngày Đặt", "Trạng Thái" };
         ordersModel = new DefaultTableModel(colsOrders, 0) {
             @Override
@@ -147,33 +112,24 @@ public class OrderManagementPanel extends JPanel {
                 return false;
             }
         };
-
         tableOrders = buildStyledTable(ordersModel);
-
-        // Ẩn cột ID khỏi giao diện người dùng nhưng vẫn giữ trong Model
         tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(0));
-
-        tableOrders.getColumnModel().getColumn(0).setPreferredWidth(100); // Mã Đơn
-        tableOrders.getColumnModel().getColumn(1).setPreferredWidth(140); // Khách Hàng
-        tableOrders.getColumnModel().getColumn(2).setPreferredWidth(110); // SĐT
-        tableOrders.getColumnModel().getColumn(3).setPreferredWidth(130); // Tổng Tiền
-        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(150); // Ngày Đặt
-        tableOrders.getColumnModel().getColumn(5).setPreferredWidth(130); // Trạng Thái
+        tableOrders.getColumnModel().getColumn(0).setPreferredWidth(100); 
+        tableOrders.getColumnModel().getColumn(1).setPreferredWidth(140); 
+        tableOrders.getColumnModel().getColumn(2).setPreferredWidth(110); 
+        tableOrders.getColumnModel().getColumn(3).setPreferredWidth(130); 
+        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(150); 
+        tableOrders.getColumnModel().getColumn(5).setPreferredWidth(130); 
         tableOrders.getColumnModel().getColumn(5).setCellRenderer(new StatusRenderer());
-
         JScrollPane scrollOrders = buildScrollPane(tableOrders);
-
         JPanel panelOrders = new JPanel(new BorderLayout());
         panelOrders.setBackground(WHITE);
         panelOrders.setBorder(new EmptyBorder(14, 20, 0, 20));
         panelOrders.add(buildSectionTitle("Danh sách đơn hàng"), BorderLayout.NORTH);
-
         JPanel ordersCard = new JPanel(new BorderLayout());
         ordersCard.setBorder(new LineBorder(BORDER, 1, true));
         ordersCard.add(scrollOrders, BorderLayout.CENTER);
         panelOrders.add(ordersCard, BorderLayout.CENTER);
-
-        // -------- BẢNG CHI TIẾT ĐƠN --------
         String[] colsDetail = { "Tên sản phẩm", "SKU", "Size", "Màu sắc", "SL", "Đơn giá (VNĐ)", "Thành tiền (VNĐ)" };
         detailsModel = new DefaultTableModel(colsDetail, 0) {
             @Override
@@ -181,7 +137,6 @@ public class OrderManagementPanel extends JPanel {
                 return false;
             }
         };
-
         tableDetails = buildStyledTable(detailsModel);
         tableDetails.getColumnModel().getColumn(0).setPreferredWidth(200);
         tableDetails.getColumnModel().getColumn(1).setPreferredWidth(120);
@@ -190,80 +145,58 @@ public class OrderManagementPanel extends JPanel {
         tableDetails.getColumnModel().getColumn(4).setPreferredWidth(50);
         tableDetails.getColumnModel().getColumn(5).setPreferredWidth(130);
         tableDetails.getColumnModel().getColumn(6).setPreferredWidth(140);
-
         JScrollPane scrollDetails = buildScrollPane(tableDetails);
-
-        // Header khu chi tiết (tiêu đề + toolbar cập nhật trạng thái)
         JPanel detailHeader = new JPanel(new BorderLayout());
         detailHeader.setBackground(HEADER_BG);
         detailHeader.setBorder(new EmptyBorder(10, 16, 10, 16));
-
         lblDetailTitle = new JLabel("← Chọn một đơn hàng để xem chi tiết & cập nhật trạng thái");
         lblDetailTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblDetailTitle.setForeground(TEXT_S);
-
-        // Toolbar cập nhật trạng thái (bên phải)
         JPanel statusBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         statusBar.setOpaque(false);
-
         JLabel lblChangeStatus = new JLabel("Cập nhật trạng thái:");
         lblChangeStatus.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblChangeStatus.setForeground(TEXT_H);
-
         cmbStatus = new JComboBox<>(new DefaultComboBoxModel<>(STATUSES));
         cmbStatus.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cmbStatus.setPreferredSize(new Dimension(180, 32));
-
         JButton btnUpdateStatus = createRoundButton("Lưu", ACCENT);
-
         statusBar.add(lblChangeStatus);
         statusBar.add(cmbStatus);
         statusBar.add(btnUpdateStatus);
-
         if (!isAdmin) {
             statusBar.setVisible(false);
             lblDetailTitle.setText("Chọn một đơn hàng để xem chi tiết");
         }
-
         detailHeader.add(lblDetailTitle, BorderLayout.WEST);
         detailHeader.add(statusBar, BorderLayout.EAST);
-
         JPanel panelDetails = new JPanel(new BorderLayout());
         panelDetails.setBackground(WHITE);
         panelDetails.setBorder(new EmptyBorder(0, 20, 14, 20));
         panelDetails.add(buildSectionTitle("Chi tiết đơn hàng"), BorderLayout.NORTH);
-
         JPanel detailCard = new JPanel(new BorderLayout());
         detailCard.setBorder(new LineBorder(BORDER, 1, true));
         detailCard.add(detailHeader, BorderLayout.NORTH);
         detailCard.add(scrollDetails, BorderLayout.CENTER);
         panelDetails.add(detailCard, BorderLayout.CENTER);
-
-        // -------- SPLIT PANE --------
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelOrders, panelDetails);
         split.setDividerLocation(300);
         split.setDividerSize(8);
         split.setBorder(null);
         split.setBackground(BG_CONTENT);
         split.setOpaque(false);
-
         add(toolBar, BorderLayout.NORTH);
         add(split, BorderLayout.CENTER);
-
-        // -------- SỰ KIỆN --------
         btnSearch.addActionListener(e -> loadOrders(txtSearch.getText()));
         txtSearch.addActionListener(e -> loadOrders(txtSearch.getText()));
-
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
             loadOrders("");
         });
-
         tableOrders.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int viewRow = tableOrders.getSelectedRow();
                 if (viewRow >= 0) {
-                    // Chuyển index từ View sang Model để lấy đúng cột ID ẩn
                     int modelRow = tableOrders.convertRowIndexToModel(viewRow);
                     int orderId = Integer.parseInt(ordersModel.getValueAt(modelRow, 0).toString());
                     String status = ordersModel.getValueAt(modelRow, 6).toString();
@@ -271,30 +204,24 @@ public class OrderManagementPanel extends JPanel {
                 }
             }
         });
-
         btnUpdateStatus.addActionListener(e -> handleUpdateStatus());
     }
-
-    // =========================================================
-    // LOAD DỮ LIỆU
-    // =========================================================
     private void loadOrders(String keyword) {
         try {
             DefaultTableModel model = orderBUS.getAllOrders(keyword);
             ordersModel.setRowCount(0);
             for (int i = 0; i < model.getRowCount(); i++) {
                 ordersModel.addRow(new Object[] {
-                        model.getValueAt(i, 0), // ID (int)
-                        model.getValueAt(i, 1), // Mã Đơn
-                        model.getValueAt(i, 2), // Khách Hàng
-                        model.getValueAt(i, 3), // SĐT
-                        model.getValueAt(i, 4), // Tổng Tiền
-                        model.getValueAt(i, 5), // Ngày Đặt
-                        model.getValueAt(i, 6) // Trạng Thái
+                        model.getValueAt(i, 0), 
+                        model.getValueAt(i, 1), 
+                        model.getValueAt(i, 2), 
+                        model.getValueAt(i, 3), 
+                        model.getValueAt(i, 4), 
+                        model.getValueAt(i, 5), 
+                        model.getValueAt(i, 6) 
                 });
             }
             lblTotalOrders.setText(model.getRowCount() + " đơn");
-            // Reset chi tiết
             detailsModel.setRowCount(0);
             if (isAdmin) {
                 lblDetailTitle.setText("← Chọn một đơn hàng để xem chi tiết & cập nhật trạng thái");
@@ -307,7 +234,6 @@ public class OrderManagementPanel extends JPanel {
                     "Lỗi tải dữ liệu: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
-
     private void loadOrderDetail(int orderId, String currentStatus) {
         try {
             DefaultTableModel model = orderBUS.getOrderDetails(orderId);
@@ -325,14 +251,12 @@ public class OrderManagementPanel extends JPanel {
             }
             lblDetailTitle.setText("Chi tiết Đơn hàng #" + orderId);
             lblDetailTitle.setForeground(TEXT_H);
-            // Set combobox về trạng thái hiện tại
             cmbStatus.setSelectedItem(currentStatus);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Lỗi tải chi tiết: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
-
     private void handleUpdateStatus() {
         int viewRow = tableOrders.getSelectedRow();
         if (viewRow < 0) {
@@ -340,15 +264,12 @@ public class OrderManagementPanel extends JPanel {
                     "Vui lòng chọn một đơn hàng trước!", "Chưa chọn đơn", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         int modelRow = tableOrders.convertRowIndexToModel(viewRow);
         int orderId = Integer.parseInt(ordersModel.getValueAt(modelRow, 0).toString());
         String newStatus = (String) cmbStatus.getSelectedItem();
-
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Cập nhật trạng thái Đơn #" + orderId + " → \"" + newStatus + "\"?",
                 "Xác nhận", JOptionPane.YES_NO_OPTION);
-
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 if (orderBUS.updateOrderStatus(orderId, newStatus)) {
@@ -362,10 +283,6 @@ public class OrderManagementPanel extends JPanel {
             }
         }
     }
-
-    // =========================================================
-    // HÀM TIỆN ÍCH XÂY DỰNG UI
-    // =========================================================
     private JTable buildStyledTable(DefaultTableModel model) {
         JTable table = new JTable(model) {
             @Override
@@ -375,7 +292,7 @@ public class OrderManagementPanel extends JPanel {
                     c.setBackground(row % 2 == 0 ? WHITE : new Color(248, 250, 252));
                     c.setForeground(TEXT_H);
                 } else {
-                    c.setBackground(new Color(220, 252, 231)); // Xanh lá nhạt khi chọn
+                    c.setBackground(new Color(220, 252, 231)); 
                     c.setForeground(TEXT_H);
                 }
                 return c;
@@ -389,14 +306,12 @@ public class OrderManagementPanel extends JPanel {
         table.setSelectionBackground(new Color(220, 252, 231));
         table.setSelectionForeground(TEXT_H);
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         JTableHeader th = table.getTableHeader();
         th.setFont(new Font("Segoe UI", Font.BOLD, 13));
         th.setBackground(HEADER_BG);
         th.setForeground(TEXT_S);
         th.setPreferredSize(new Dimension(0, 42));
         th.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER));
-
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(JLabel.CENTER);
         for (int i = 0; i < model.getColumnCount(); i++) {
@@ -404,7 +319,6 @@ public class OrderManagementPanel extends JPanel {
         }
         return table;
     }
-
     private JScrollPane buildScrollPane(JTable table) {
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(null);
@@ -412,7 +326,6 @@ public class OrderManagementPanel extends JPanel {
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         return scroll;
     }
-
     private JPanel buildSectionTitle(String text) {
         JPanel p = new JPanel(new BorderLayout());
         p.setOpaque(false);
@@ -423,7 +336,6 @@ public class OrderManagementPanel extends JPanel {
         p.add(lbl, BorderLayout.WEST);
         return p;
     }
-
     private JButton createRoundButton(String text, Color color) {
         JButton btn = new JButton(text) {
             @Override
@@ -448,7 +360,6 @@ public class OrderManagementPanel extends JPanel {
         btn.setBorder(new EmptyBorder(8, 16, 8, 16));
         return btn;
     }
-
     private Color getStatusColor(String status) {
         if (status == null)
             return TEXT_S;
@@ -469,8 +380,6 @@ public class OrderManagementPanel extends JPanel {
                 return TEXT_S;
         }
     }
-
-    // ---- Custom Renderer cho cột Trạng thái ----
     class StatusRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -480,7 +389,6 @@ public class OrderManagementPanel extends JPanel {
             String status = value == null ? "" : value.toString().trim();
             lbl.setHorizontalAlignment(SwingConstants.CENTER);
             lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-
             if (!isSelected) {
                 Color bg = getStatusColor(status);
                 lbl.setBackground(new Color(bg.getRed(), bg.getGreen(), bg.getBlue(), 35));

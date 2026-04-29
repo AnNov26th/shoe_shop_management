@@ -1,5 +1,4 @@
 package com.pbl_3project.gui;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -15,7 +14,6 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -33,104 +31,76 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
-
 import com.pbl_3project.bus.ProductBUS;
-
 public class ProductManagementPanel extends JPanel {
-
-    // --- BẢNG MÀU UI/UX HIỆN ĐẠI ---
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color CARD_BG = Color.WHITE;
     private static final Color BORDER_COLOR = new Color(226, 232, 240);
     private static final Color TEXT_MAIN = new Color(15, 23, 42);
     private static final Color TEXT_SUB = new Color(100, 116, 139);
-
-    private static final Color BTN_PRIMARY = new Color(56, 189, 248); // Xanh Cyan
-    private static final Color BTN_SUCCESS = new Color(74, 222, 128); // Xanh lá
-    private static final Color BTN_DANGER = new Color(248, 113, 113); // Đỏ
-    private static final Color BTN_SECONDARY = new Color(148, 163, 184); // Xám
-
+    private static final Color BTN_PRIMARY = new Color(56, 189, 248); 
+    private static final Color BTN_SUCCESS = new Color(74, 222, 128); 
+    private static final Color BTN_DANGER = new Color(248, 113, 113); 
+    private static final Color BTN_SECONDARY = new Color(148, 163, 184); 
     private JPanel productGrid;
     private ProductBUS productBUS = new ProductBUS();
     private JTextField txtSearch;
-
     public ProductManagementPanel() {
         setLayout(new BorderLayout(0, 0));
         setBackground(BG_CONTENT);
-
         initComponents();
         loadProducts("");
     }
-
     private void initComponents() {
-        // --- 1. THANH CÔNG CỤ (TOOLBAR) Ở TRÊN ---
         JPanel toolBarWrapper = new JPanel(new BorderLayout());
         toolBarWrapper.setBackground(CARD_BG);
         toolBarWrapper.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
                 new EmptyBorder(15, 25, 15, 25)));
-
         JPanel leftTools = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         leftTools.setOpaque(false);
-
         JLabel lblSearch = new JLabel("Tìm sản phẩm: ");
         lblSearch.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblSearch.setForeground(TEXT_MAIN);
-
         txtSearch = new JTextField(25);
         txtSearch.setPreferredSize(new Dimension(250, 38));
         txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtSearch.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(BORDER_COLOR, 1, true),
                 new EmptyBorder(0, 15, 0, 15)));
-
         JButton btnSearch = createButton("Tìm kiếm", BTN_PRIMARY, Color.WHITE);
         JButton btnRefresh = createButton("Làm mới", BTN_SECONDARY, Color.WHITE);
-
         leftTools.add(lblSearch);
         leftTools.add(txtSearch);
         leftTools.add(btnSearch);
         leftTools.add(btnRefresh);
-
         JPanel rightTools = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightTools.setOpaque(false);
         JButton btnAdd = createButton("Thêm SP mới", BTN_SUCCESS, Color.WHITE);
         rightTools.add(btnAdd);
-
         toolBarWrapper.add(leftTools, BorderLayout.WEST);
         toolBarWrapper.add(rightTools, BorderLayout.EAST);
-
-        // --- 2. KHU VỰC LƯỚI SẢN PHẨM (WRAPLAYOUT) ---
         productGrid = new JPanel(new WrapLayout(FlowLayout.LEFT, 20, 20));
         productGrid.setBackground(BG_CONTENT);
         productGrid.setBorder(new EmptyBorder(20, 25, 20, 25));
-
         JScrollPane scrollPane = new JScrollPane(productGrid);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(BG_CONTENT);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(20); // Cuộn mượt hơn
-
+        scrollPane.getVerticalScrollBar().setUnitIncrement(20); 
         add(toolBarWrapper, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
-
-        // --- 3. SỰ KIỆN NÚT BẤM ---
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
             loadProducts("");
         });
-
         btnSearch.addActionListener(e -> loadProducts(txtSearch.getText()));
         txtSearch.addActionListener(e -> loadProducts(txtSearch.getText()));
-
         btnAdd.addActionListener(e -> {
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            // Form thêm SP của bro
             AddProductDialog dialog = new AddProductDialog(parentFrame, () -> loadProducts(txtSearch.getText()));
             dialog.setVisible(true);
         });
     }
-
-    // --- HÀM TẠO NÚT BO GÓC MƯỢT MÀ ---
     private JButton createButton(String text, Color bgColor, Color fgColor) {
         JButton btn = new JButton(text) {
             @Override
@@ -156,14 +126,10 @@ public class ProductManagementPanel extends JPanel {
         btn.setBorder(new EmptyBorder(8, 18, 8, 18));
         return btn;
     }
-
-    // --- HÀM LOAD DỮ LIỆU ---
     private void loadProducts(String keyword) {
         try {
             productGrid.removeAll();
-
             DefaultTableModel model = productBUS.searchProductsAdmin(keyword);
-
             if (model.getRowCount() == 0) {
                 JLabel empty = new JLabel("Không tìm thấy sản phẩm nào.", SwingConstants.CENTER);
                 empty.setFont(new Font("Segoe UI", Font.PLAIN, 16));
@@ -176,22 +142,16 @@ public class ProductManagementPanel extends JPanel {
                     double price = Double.parseDouble(model.getValueAt(i, 2).toString());
                     String sampleColor = model.getValueAt(i, 3).toString();
                     String totalStock = model.getValueAt(i, 4).toString();
-
                     productGrid.add(createAdminProductCard(id, name, price, sampleColor, totalStock));
                 }
             }
-
             productGrid.revalidate();
             productGrid.repaint();
-
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải sản phẩm: " + e.getMessage());
         }
     }
-
-    // --- HÀM TẠO THẺ SẢN PHẨM CÓ ĐỔ BÓNG VÀ NÚT BO GÓC ---
     private JPanel createAdminProductCard(int productId, String name, double price, String sampleColor, String stock) {
-        // Shadow wrapper (Đổ bóng thẻ)
         JPanel shadow = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -207,11 +167,8 @@ public class ProductManagementPanel extends JPanel {
         shadow.setOpaque(false);
         shadow.setBorder(new EmptyBorder(0, 0, 8, 4));
         shadow.setPreferredSize(new Dimension(200, 310));
-
         JPanel card = new JPanel(new BorderLayout());
         card.setOpaque(false);
-
-        // --- KHU VỰC HÌNH ẢNH ---
         JPanel imgPanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -224,13 +181,11 @@ public class ProductManagementPanel extends JPanel {
         };
         imgPanel.setOpaque(false);
         imgPanel.setPreferredSize(new Dimension(0, 170));
-
         JLabel lblImage = new JLabel("", SwingConstants.CENTER);
         String colorEn = "";
         if (sampleColor != null && sampleColor.contains("(") && sampleColor.contains(")")) {
             colorEn = sampleColor.substring(sampleColor.lastIndexOf("(") + 1, sampleColor.lastIndexOf(")")).trim();
         }
-
         try {
             String fileName = name + " - " + colorEn + ".png";
             File file = new File("F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images\\" + fileName);
@@ -248,33 +203,24 @@ public class ProductManagementPanel extends JPanel {
             lblImage.setText("Lỗi ảnh");
         }
         imgPanel.add(lblImage, BorderLayout.CENTER);
-
-        // --- KHU VỰC THÔNG TIN & NÚT BẤM ---
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setOpaque(false);
         infoPanel.setBorder(new EmptyBorder(10, 12, 12, 12));
-
         JLabel lblName = new JLabel("<html><div style='text-align:center'>" + name + "</div></html>");
         lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblName.setForeground(TEXT_MAIN);
         lblName.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         JLabel lblStock = new JLabel("Kho: " + stock + " đôi", SwingConstants.CENTER);
         lblStock.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblStock.setForeground(TEXT_SUB);
         lblStock.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         JLabel lblPrice = new JLabel(String.format("%,.0f VNĐ", price), SwingConstants.CENTER);
         lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblPrice.setForeground(new Color(239, 68, 68)); // Đỏ nổi bật giá
+        lblPrice.setForeground(new Color(239, 68, 68)); 
         lblPrice.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // Hai nút chức năng
         JPanel btnPanel = new JPanel(new GridLayout(1, 2, 8, 0));
         btnPanel.setOpaque(false);
-
-        // Nút Chi tiết (Xanh Cyan)
         JButton btnView = new JButton("Chi tiết") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -296,8 +242,6 @@ public class ProductManagementPanel extends JPanel {
         btnView.setBorderPainted(false);
         btnView.setFocusPainted(false);
         btnView.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Nút Xóa (Đỏ)
         JButton btnDelete = new JButton("Xóa") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -319,19 +263,16 @@ public class ProductManagementPanel extends JPanel {
         btnDelete.setBorderPainted(false);
         btnDelete.setFocusPainted(false);
         btnDelete.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         btnView.addActionListener(e -> {
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
             ProductDetailDialog detailDialog = new ProductDetailDialog(parentFrame, productId, name, price, "ADMIN",
                     null, null, null);
             detailDialog.setVisible(true);
         });
-
         btnDelete.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this,
                     "Bạn có chắc chắn muốn vô hiệu hóa mẫu giày này?\n(" + name + ")",
                     "Xác nhận vô hiệu hóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
                     if (productBUS.xoaSanPham(productId)) {
@@ -346,10 +287,8 @@ public class ProductManagementPanel extends JPanel {
                 }
             }
         });
-
         btnPanel.add(btnView);
         btnPanel.add(btnDelete);
-
         infoPanel.add(lblName);
         infoPanel.add(Box.createVerticalStrut(4));
         infoPanel.add(lblStock);
@@ -357,11 +296,9 @@ public class ProductManagementPanel extends JPanel {
         infoPanel.add(lblPrice);
         infoPanel.add(Box.createVerticalStrut(10));
         infoPanel.add(btnPanel);
-
         card.add(imgPanel, BorderLayout.CENTER);
         card.add(infoPanel, BorderLayout.SOUTH);
         shadow.add(card, BorderLayout.CENTER);
-
         return shadow;
     }
 }
