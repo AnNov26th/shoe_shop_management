@@ -56,6 +56,74 @@ public class UserDAO {
         return result;
     }
 
+    /**
+     * Kiểm tra xem email đã tồn tại trong hệ thống chưa
+     */
+    public boolean checkEmailExists(String email) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        boolean exists = false;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT COUNT(*) FROM [User] WHERE email = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, email);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                exists = rs.getInt(1) > 0;
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return exists;
+    }
+
+    /**
+     * Cập nhật mật khẩu cho user dựa trên email
+     */
+    public boolean updatePassword(String email, String newPassword) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "UPDATE [User] SET password_hash = ? WHERE email = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, newPassword);
+            pstmt.setString(2, email);
+            return pstmt.executeUpdate() > 0;
+        } finally {
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    /**
+     * Lấy ID người dùng bằng email
+     */
+    public int getUserIdByEmail(String email) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT id FROM [User] WHERE email = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, email);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return -1;
+    }
+
     public javax.swing.table.DefaultTableModel getAllUsers() throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -294,32 +362,6 @@ public class UserDAO {
                 pstmt.close();
             DatabaseConnection.closeConnection(conn);
         }
-    }
-
-    public int getUserIdByEmail(String email) throws SQLException {
-        java.sql.Connection conn = null;
-        java.sql.PreparedStatement pstmt = null;
-        java.sql.ResultSet rs = null;
-        int userId = -1;
-
-        try {
-            conn = DatabaseConnection.getConnection();
-            String sql = "SELECT id FROM [User] WHERE email = ?";
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, email);
-
-            rs = pstmt.executeQuery();
-            if (rs.next()) {
-                userId = rs.getInt("id"); // Tóm gọn ID của nhân viên
-            }
-        } finally {
-            if (rs != null)
-                rs.close();
-            if (pstmt != null)
-                pstmt.close();
-            DatabaseConnection.closeConnection(conn);
-        }
-        return userId;
     }
 
     public java.util.Map<String, String> getCustomerProfile(int customerId) throws SQLException {

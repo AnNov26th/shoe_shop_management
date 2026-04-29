@@ -160,12 +160,29 @@ public class LoginForm extends JFrame {
         gbc.insets = new Insets(25, 5, 5, 5);
         loginBox.add(btnLogin, gbc);
 
+        // Nút Đăng ký
+        JButton btnRegister = new JButton("Chưa có tài khoản? Đăng ký ngay");
+        btnRegister.setContentAreaFilled(false);
+        btnRegister.setBorderPainted(false);
+        btnRegister.setFocusPainted(false);
+        btnRegister.setForeground(new Color(59, 130, 246));
+        btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRegister.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+        
+        gbc.gridy = 6;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        loginBox.add(btnRegister, gbc);
+
         rightPanel.add(loginBox);
         mainPanel.add(leftPanel);
         mainPanel.add(rightPanel);
         add(mainPanel, BorderLayout.CENTER);
 
         btnLogin.addActionListener(e -> handleLogin());
+        btnRegister.addActionListener(e -> {
+            RegisterDialog dialog = new RegisterDialog(this);
+            dialog.setVisible(true);
+        });
     }
 
     private void handleLogin() {
@@ -193,10 +210,42 @@ public class LoginForm extends JFrame {
                 else if (loginResult == 4)
                     new CustomerForm(loggedInId).setVisible(true);
             } else {
-                JOptionPane.showMessageDialog(this, "Sai email hoặc mật khẩu!");
+                // Kiểm tra xem email có tồn tại không
+                if (userDAO.checkEmailExists(email)) {
+                    int confirm = JOptionPane.showConfirmDialog(this, 
+                        "Sai mật khẩu! Bạn có muốn khôi phục mật khẩu không?", 
+                        "Thông báo", JOptionPane.YES_NO_OPTION);
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        handleForgotPassword(email);
+                    }
+                } else {
+                    int confirm = JOptionPane.showConfirmDialog(this, 
+                        "Email không tồn tại! Bạn có muốn đăng ký tài khoản mới không?", 
+                        "Thông báo", JOptionPane.YES_NO_OPTION);
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        RegisterDialog dialog = new RegisterDialog(this);
+                        dialog.setVisible(true);
+                    }
+                }
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Lỗi cơ sở dữ liệu: " + ex.getMessage());
+        }
+    }
+
+    private void handleForgotPassword(String email) {
+        String newPass = JOptionPane.showInputDialog(this, "Nhập mật khẩu mới cho " + email + ":");
+        if (newPass != null && !newPass.trim().isEmpty()) {
+            try {
+                UserDAO userDAO = new UserDAO();
+                if (userDAO.updatePassword(email, newPass.trim())) {
+                    JOptionPane.showMessageDialog(this, "Đổi mật khẩu thành công!");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Đổi mật khẩu thất bại!");
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+            }
         }
     }
 
