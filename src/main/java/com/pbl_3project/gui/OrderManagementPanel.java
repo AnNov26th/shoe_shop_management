@@ -44,7 +44,7 @@ public class OrderManagementPanel extends JPanel {
     private static final Color DANGER_CLR = new Color(239, 68, 68);
     private static final Color WARNING = new Color(245, 158, 11);
     private static final String[] STATUSES = {
-            "Chưa thanh toán", "Đã thanh toán", "Đang giao", "Hoàn thành", "Đã hủy", "Yêu cầu Đổi/Trả"
+            "Chưa thanh toán", "Đã thanh toán", "Đang giao", "Hoàn thành", "Đã hủy", "Yêu cầu Đổi/Trả", "Đã đổi/trả", "Từ chối đổi/trả"
     };
     private JTable tableOrders;
     private DefaultTableModel ordersModel;
@@ -374,6 +374,10 @@ public class OrderManagementPanel extends JPanel {
                 return DANGER_CLR;
             case "Yêu cầu Đổi/Trả":
                 return WARNING;
+            case "Đã đổi/trả":
+                return SUCCESS;
+            case "Từ chối đổi/trả":
+                return DANGER_CLR;
             case "Chưa thanh toán":
                 return WARNING;
             default:

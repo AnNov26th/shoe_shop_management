@@ -348,4 +348,85 @@ public class ProductDAO {
         }
         return model;
     }
+
+    public void setupReviewTable() throws SQLException {
+        Connection conn = null;
+        java.sql.Statement stmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            stmt = conn.createStatement();
+            String sql = "IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Product_Review' AND xtype='U') " +
+                         "BEGIN " +
+                         "CREATE TABLE Product_Review (" +
+                         "id INT IDENTITY(1,1) PRIMARY KEY, " +
+                         "product_id INT, " +
+                         "user_id INT, " +
+                         "rating INT, " +
+                         "comment NVARCHAR(MAX), " +
+                         "image_url VARCHAR(255), " +
+                         "created_at DATETIME DEFAULT GETDATE(), " +
+                         "FOREIGN KEY (product_id) REFERENCES Product(id), " +
+                         "FOREIGN KEY (user_id) REFERENCES [User](id)" +
+                         ") " +
+                         "END";
+            stmt.execute(sql);
+        } finally {
+            if (stmt != null) stmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    public boolean addReview(int productId, int userId, int rating, String comment, String imageUrl) throws SQLException {
+        setupReviewTable();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "INSERT INTO Product_Review (product_id, user_id, rating, comment, image_url) VALUES (?, ?, ?, ?, ?)";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, productId);
+            pstmt.setInt(2, userId);
+            pstmt.setInt(3, rating);
+            pstmt.setNString(4, comment);
+            pstmt.setString(5, imageUrl);
+            return pstmt.executeUpdate() > 0;
+        } finally {
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    public DefaultTableModel getReviewsByProductId(int productId) throws SQLException {
+        setupReviewTable();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        String[] columnNames = { "User Name", "Rating", "Comment", "Image URL", "Date" };
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT u.full_name, r.rating, r.comment, r.image_url, r.created_at " +
+                         "FROM Product_Review r " +
+                         "JOIN [User] u ON r.user_id = u.id " +
+                         "WHERE r.product_id = ? " +
+                         "ORDER BY r.created_at DESC";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, productId);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                model.addRow(new Object[] {
+                        rs.getString("full_name"),
+                        rs.getInt("rating"),
+                        rs.getString("comment"),
+                        rs.getString("image_url"),
+                        rs.getDate("created_at")
+                });
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return model;
+    }
 }

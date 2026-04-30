@@ -5,6 +5,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import com.pbl_3project.util.TimeDisplayPanel;
+import com.pbl_3project.gui.HeaderPanel;
 public class EmployeeForm extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainContentPanel;
@@ -27,14 +28,15 @@ public class EmployeeForm extends JFrame {
         initComponents();
     }
     private void initComponents() {
-        add(new TimeDisplayPanel(), BorderLayout.NORTH);
+        HeaderPanel headerPanel = new HeaderPanel(this.currentStaffId, 3);
+        add(headerPanel, BorderLayout.NORTH);
         JPanel sidebarPanel = new JPanel();
-        sidebarPanel.setPreferredSize(new Dimension(260, 0));
+        sidebarPanel.setPreferredSize(new Dimension(310, 0));
         sidebarPanel.setBackground(MENU_INACTIVE);
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
-        sidebarPanel.setBorder(new EmptyBorder(25, 15, 25, 15));
+        sidebarPanel.setBorder(new EmptyBorder(25, 10, 25, 10));
         JLabel lblEmployee = new JLabel("STAFF DASHBOARD", SwingConstants.CENTER);
-        lblEmployee.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblEmployee.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblEmployee.setForeground(MENU_ACTIVE);
         lblEmployee.setAlignmentX(Component.CENTER_ALIGNMENT);
         sidebarPanel.add(lblEmployee);
@@ -70,7 +72,7 @@ public class EmployeeForm extends JFrame {
         mainContentPanel.add(new POSPanel(this.currentStaffId), "POS");
         mainContentPanel.add(new OrderManagementPanel(false), "DonOnline");
         mainContentPanel.add(new InventoryLookupPanel(this.currentStaffId), "TonKho");
-        mainContentPanel.add(createDummyPanel("TIẾP NHẬN ĐỔI / TRẢ", "Chờ cập nhật..."), "DoiTra");
+        mainContentPanel.add(new ReturnManagementPanel(), "DoiTra");
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(APP_BACKGROUND);
         wrapper.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -135,12 +137,12 @@ public class EmployeeForm extends JFrame {
         if (iconType != null) {
             btn.setIcon(com.pbl_3project.util.IconUtils.loadMenuIcon(iconType));
         }
-        btn.setBorder(new EmptyBorder(12, 20, 12, 20));
+        btn.setBorder(new EmptyBorder(12, 10, 12, 10));
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
         btn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
                 if (btn != selectedMenuButton)

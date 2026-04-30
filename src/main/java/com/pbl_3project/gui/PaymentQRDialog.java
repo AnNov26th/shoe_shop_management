@@ -43,7 +43,7 @@ public class PaymentQRDialog extends JDialog {
         lblQR.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         new Thread(() -> {
             try {
-                String qrUrl = String.format("https://img.vietqr.io/image/MB-0000123456789-compact2.png?amount=%.0f&addInfo=Thanh%%20toan%%20don%%20hang%%20%s&accountName=SHOP%%20GIAY%%20PBL3", 
+                String qrUrl = String.format("https://img.vietqr.io/image/970422-0941910604-compact.jpg?amount=%f&addInfo=%s",
                                             amount, orderId);
                 URL url = new URL(qrUrl);
                 BufferedImage img = ImageIO.read(url);

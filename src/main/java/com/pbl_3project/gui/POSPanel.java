@@ -1,6 +1,8 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -21,6 +23,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -31,10 +34,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingConstants;
 import com.pbl_3project.bus.CartBUS;
 import com.pbl_3project.bus.ProductBUS;
 import com.pbl_3project.dto.CartItem;
 import com.pbl_3project.util.ConfigUtils;
+
 public class POSPanel extends JPanel {
     private JPanel pnlProductGrid;
     private JTable tableCart;
@@ -46,6 +52,7 @@ public class POSPanel extends JPanel {
     private boolean isUpdatingTable = false;
     private int staffId;
     private Timer reserveTimer;
+
     public POSPanel(int staffId) {
         this.staffId = staffId;
         productBUS = new ProductBUS();
@@ -57,6 +64,7 @@ public class POSPanel extends JPanel {
         loadProductsFromDB();
         startReserveTimer();
     }
+
     private void initComponents() {
         JPanel leftPanel = new JPanel(new BorderLayout(5, 5));
         leftPanel.setOpaque(false);
@@ -160,7 +168,7 @@ public class POSPanel extends JPanel {
         totalPanel.setBackground(new Color(245, 245, 245));
         JLabel lblTotal = new JLabel("TỔNG TIỀN: ");
         lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblTotal.setForeground(Color.BLACK); 
+        lblTotal.setForeground(Color.BLACK);
         lblTotalAmount = new JLabel("0 VNĐ");
         lblTotalAmount.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTotalAmount.setForeground(new Color(255, 80, 80));
@@ -225,6 +233,7 @@ public class POSPanel extends JPanel {
         add(leftPanel, BorderLayout.CENTER);
         add(rightPanel, BorderLayout.EAST);
     }
+
     private void handleCheckout() {
         if (cartBUS.getCartItems().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Giỏ hàng đang trống!", "Thông báo", JOptionPane.WARNING_MESSAGE);
@@ -250,7 +259,7 @@ public class POSPanel extends JPanel {
             return;
         boolean isPaymentConfirmed = false;
         String status = "Chưa thanh toán";
-        if (choice == 1) { 
+        if (choice == 1) {
             PaymentQRDialog qrDialog = new PaymentQRDialog((Frame) javax.swing.SwingUtilities.getWindowAncestor(this),
                     totalAmount, "POS_" + System.currentTimeMillis() % 10000);
             qrDialog.setVisible(true);
@@ -262,9 +271,9 @@ public class POSPanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
-        } else { 
+        } else {
             isPaymentConfirmed = true;
-            status = "Hoàn thành"; 
+            status = "Hoàn thành";
         }
         if (isPaymentConfirmed) {
             try {
@@ -283,6 +292,7 @@ public class POSPanel extends JPanel {
             }
         }
     }
+
     private void loadProductsFromDB() {
         try {
             renderProductGrid(productBUS.getBaseProducts("Tất cả"));
@@ -290,6 +300,7 @@ public class POSPanel extends JPanel {
             e.printStackTrace();
         }
     }
+
     private void handleSearch() {
         String keyword = txtSearch.getText();
         try {
@@ -298,31 +309,7 @@ public class POSPanel extends JPanel {
             e.printStackTrace();
         }
     }
-    private void renderProductGrid(DefaultTableModel model) {
-        pnlProductGrid.removeAll();
-        for (int i = 0; i < model.getRowCount(); i++) {
-            int id = (int) model.getValueAt(i, 0);
-            String name = (String) model.getValueAt(i, 1);
-            double price = (double) model.getValueAt(i, 2);
-            String color = (String) model.getValueAt(i, 3);
-            String imageUrl = (String) model.getValueAt(i, model.getColumnCount() - 1); 
-            pnlProductGrid.add(new ProductCard(id, name, price, color, imageUrl));
-            pnlProductGrid.add(Box.createVerticalStrut(10));
-        }
-        pnlProductGrid.revalidate();
-        pnlProductGrid.repaint();
-    }
-    private void handleAddToCart(String sku, String name, String size, String color, double price, int stock) {
-        try {
-            CartItem newItem = new CartItem(sku, name, size, color, price, 1, stock);
-            int reserveMinutes = com.pbl_3project.util.ConfigUtils.getReserveDurationMinutes();
-            newItem.setExpiresAt(LocalDateTime.now().plusMinutes(reserveMinutes));
-            cartBUS.addItem(newItem);
-            refreshCartGUI();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Cảnh báo kho", JOptionPane.WARNING_MESSAGE);
-        }
-    }
+
     private void handleQuantityChange(int rowIndex, int newQty) {
         try {
             if (newQty <= 0) {
@@ -340,6 +327,7 @@ public class POSPanel extends JPanel {
             refreshCartGUI();
         }
     }
+
     private void refreshCartGUI() {
         isUpdatingTable = true;
         cartModel.setRowCount(0);
@@ -353,102 +341,160 @@ public class POSPanel extends JPanel {
         lblTotalAmount.setText(String.format("%,.0f VNĐ", cartBUS.calculateTotalAmount()));
         isUpdatingTable = false;
     }
-    class ProductCard extends JPanel {
-        private final int productId;
-        private final String name;
-        private final double basePrice;
-        private final JPanel pnlVariants;
-        private boolean isExpanded = false;
-        public ProductCard(int id, String name, double price, String sampleColor, String imageUrl) {
-            this.productId = id;
-            this.name = name;
-            this.basePrice = price;
-            setLayout(new BorderLayout(15, 0));
-            setBackground(Color.WHITE);
-            setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                    new EmptyBorder(10, 15, 10, 15)));
-            JLabel lblImage = new JLabel();
-            lblImage.setPreferredSize(new Dimension(80, 80));
-            lblImage.setHorizontalAlignment(JLabel.CENTER);
-            lblImage.setBorder(BorderFactory.createLineBorder(new Color(241, 245, 249)));
-            try {
-                if (imageUrl != null && !imageUrl.isEmpty()) {
-                    javax.swing.ImageIcon icon = new javax.swing.ImageIcon(imageUrl);
-                    if (icon.getIconWidth() > 0) {
-                        java.awt.Image img = icon.getImage().getScaledInstance(80, 80, java.awt.Image.SCALE_SMOOTH);
-                        lblImage.setIcon(new javax.swing.ImageIcon(img));
-                    } else {
-                        lblImage.setText("No Img");
-                    }
-                } else {
-                    lblImage.setText("No Img");
-                }
-            } catch (Exception e) {
-                lblImage.setText("Error");
-            }
-            add(lblImage, BorderLayout.WEST);
-            JPanel pnlInfo = new JPanel(new BorderLayout());
-            pnlInfo.setOpaque(false);
-            JPanel pnlHeader = new JPanel(new BorderLayout());
-            pnlHeader.setOpaque(false);
-            JLabel lblName = new JLabel(name);
-            lblName.setFont(new Font("Segoe UI", Font.BOLD, 15));
-            lblName.setForeground(new Color(30, 41, 59));
-            JLabel lblPrice = new JLabel(String.format("%,.0f VNĐ", price));
-            lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            lblPrice.setForeground(new Color(59, 130, 246));
-            pnlHeader.add(lblName, BorderLayout.CENTER);
-            pnlHeader.add(lblPrice, BorderLayout.EAST);
-            pnlInfo.add(pnlHeader, BorderLayout.NORTH);
-            pnlVariants = new JPanel(new GridLayout(0, 4, 5, 5));
-            pnlVariants.setOpaque(false);
-            pnlVariants.setVisible(false);
-            pnlVariants.setBorder(new EmptyBorder(10, 0, 0, 0));
-            pnlInfo.add(pnlVariants, BorderLayout.CENTER);
-            add(pnlInfo, BorderLayout.CENTER);
-            addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    toggleExpand();
-                }
-            });
+
+    private void renderProductGrid(DefaultTableModel model) {
+        pnlProductGrid.removeAll();
+        pnlProductGrid.setLayout(new GridLayout(0, 3, 15, 15));
+        pnlProductGrid.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int id = (int) model.getValueAt(i, 0);
+            String name = (String) model.getValueAt(i, 1);
+            double price = (double) model.getValueAt(i, 2);
+            String color = (String) model.getValueAt(i, 3);
+            int stock = (int) model.getValueAt(i, 4);
+            String imageUrl = (String) model.getValueAt(i, model.getColumnCount() - 1);
+            pnlProductGrid.add(createCard(id, name, price, color, stock, imageUrl));
         }
-        private void toggleExpand() {
-            isExpanded = !isExpanded;
-            pnlVariants.setVisible(isExpanded);
-            if (isExpanded && pnlVariants.getComponentCount() == 0) {
-                loadVariants();
-            }
-            revalidate();
-            pnlProductGrid.revalidate();
-        }
-        private void loadVariants() {
-            try {
-                DefaultTableModel model = productBUS.getVariantsByProductId(productId);
-                for (int i = 0; i < model.getRowCount(); i++) {
-                    String sku = (String) model.getValueAt(i, 0);
-                    String size = (String) model.getValueAt(i, 1);
-                    String color = (String) model.getValueAt(i, 2);
-                    int stock = (int) model.getValueAt(i, 3);
-                    JButton btnVar = new JButton(
-                            "<html><center>" + size + "<br><small>" + color + "</small></center></html>");
-                    btnVar.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-                    btnVar.setToolTipText("Kho: " + stock);
-                    btnVar.addActionListener(e -> handleAddToCart(sku, name, size, color, basePrice, stock));
-                    pnlVariants.add(btnVar);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        pnlProductGrid.revalidate();
+        pnlProductGrid.repaint();
     }
+
+    private JPanel createCard(int productId, String name, double price, String sampleColor, int stock,
+            String imageUrl) {
+        JPanel shadow = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0, 0, 0, 12));
+                g2.fillRoundRect(4, 6, getWidth() - 8, getHeight() - 6, 18, 18);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 6, 18, 18);
+                g2.dispose();
+            }
+        };
+        shadow.setOpaque(false);
+        shadow.setBorder(new EmptyBorder(0, 0, 8, 4));
+
+        JPanel card = new JPanel(new BorderLayout());
+        card.setOpaque(false);
+
+        JPanel imgPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(new Color(241, 245, 249));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        imgPanel.setOpaque(false);
+        imgPanel.setPreferredSize(new Dimension(0, 150));
+
+        JLabel lblImg = new JLabel("", SwingConstants.CENTER);
+        try {
+            boolean imageLoaded = false;
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(imageUrl);
+                if (icon.getIconWidth() > 0) {
+                    java.awt.Image img = icon.getImage().getScaledInstance(130, 130, java.awt.Image.SCALE_SMOOTH);
+                    lblImg.setIcon(new javax.swing.ImageIcon(img));
+                    imageLoaded = true;
+                }
+            }
+            if (!imageLoaded) {
+                javax.swing.Icon defaultIcon = com.pbl_3project.util.IconUtils
+                        .loadLargeIcon(com.pbl_3project.util.IconUtils.IconType.SHOE);
+                if (defaultIcon != null) {
+                    lblImg.setIcon(defaultIcon);
+                } else {
+                    lblImg.setText("👟");
+                    lblImg.setFont(new Font("Segoe UI", Font.PLAIN, 56));
+                }
+            }
+        } catch (Exception e) {
+            lblImg.setText("👟");
+            lblImg.setFont(new Font("Segoe UI", Font.PLAIN, 56));
+        }
+        imgPanel.add(lblImg, BorderLayout.CENTER);
+
+        JPanel info = new JPanel();
+        info.setOpaque(false);
+        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+        info.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JLabel lblName = new JLabel("<html><div style='text-align:center'>" + name + "</div></html>");
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblName.setForeground(new Color(30, 41, 59));
+        lblName.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel lblStock = new JLabel("Tồn kho: " + stock, SwingConstants.CENTER);
+        lblStock.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblStock.setForeground(new Color(100, 116, 139));
+        lblStock.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel lblPrice = new JLabel(String.format("%,.0f VNĐ", price), SwingConstants.CENTER);
+        lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblPrice.setForeground(new Color(238, 77, 45));
+        lblPrice.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton btnView = new JButton("Thêm / Xem Chi Tiết") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isRollover()) {
+                    g2.setPaint(
+                            new GradientPaint(0, 0, new Color(16, 185, 129), getWidth(), 0, new Color(52, 211, 153)));
+                } else {
+                    g2.setColor(new Color(16, 185, 129, 220));
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnView.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnView.setForeground(Color.WHITE);
+        btnView.setContentAreaFilled(false);
+        btnView.setBorderPainted(false);
+        btnView.setFocusPainted(false);
+        btnView.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnView.setBorder(new EmptyBorder(8, 0, 8, 0));
+        btnView.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        btnView.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        btnView.addActionListener(e -> {
+            JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
+            ProductDetailDialog dialog = new ProductDetailDialog(
+                    parent, productId, name, price, "POS", this.staffId, cartBUS, () -> refreshCartGUI());
+            dialog.setVisible(true);
+        });
+
+        info.add(lblName);
+        info.add(Box.createVerticalStrut(4));
+        info.add(lblStock);
+        info.add(Box.createVerticalStrut(6));
+        info.add(lblPrice);
+        info.add(Box.createVerticalStrut(10));
+        info.add(btnView);
+
+        card.add(imgPanel, BorderLayout.CENTER);
+        card.add(info, BorderLayout.SOUTH);
+        shadow.add(card, BorderLayout.CENTER);
+
+        return shadow;
+    }
+
     class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
             setFont(new Font("Segoe UI", Font.BOLD, 16));
             setBackground(new Color(220, 220, 220));
         }
+
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
                 int row, int column) {
@@ -456,15 +502,17 @@ public class POSPanel extends JPanel {
             return this;
         }
     }
+
     private void startReserveTimer() {
-        reserveTimer = new Timer(true); 
+        reserveTimer = new Timer(true);
         reserveTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 checkExpiredItems();
             }
-        }, 5000, 5000); 
+        }, 5000, 5000);
     }
+
     private void checkExpiredItems() {
         try {
             boolean hasExpired = false;
@@ -483,6 +531,7 @@ public class POSPanel extends JPanel {
             System.err.println("❌ Lỗi khi check expired items: " + e.getMessage());
         }
     }
+
     @Override
     public void finalize() throws Throwable {
         try {

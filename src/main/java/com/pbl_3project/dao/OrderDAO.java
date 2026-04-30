@@ -168,7 +168,7 @@ public class OrderDAO {
     public DefaultTableModel getAllOrdersByCustomer(int customerId) throws SQLException {
         String[] cols = { "ID", "Mã Đơn", "Số điện thoại", "Tổng Thanh Toán", "Ngày Đặt", "Trạng Thái" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
-        String sql = "SELECT id, order_code, customer_phone, total_amount, created_at, status FROM [Order] WHERE customer_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT id, order_code, customer_phone, final_amount, created_at, status FROM [Order] WHERE customer_id = ? ORDER BY created_at DESC";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -182,7 +182,7 @@ public class OrderDAO {
                         rs.getInt("id"),
                         rs.getString("order_code"),
                         rs.getString("customer_phone") == null ? "Không có" : rs.getString("customer_phone"),
-                        String.format("%,.0f VNĐ", rs.getDouble("total_amount")),
+                        String.format("%,.0f VNĐ", rs.getDouble("final_amount")),
                         rs.getTimestamp("created_at"),
                         rs.getString("status")
                 });
@@ -200,7 +200,7 @@ public class OrderDAO {
     public DefaultTableModel getAllOrders(String keyword) throws SQLException {
         String[] cols = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Ngày Đặt", "Trạng Thái" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
-        String sql = "SELECT o.id, o.order_code, cp.full_name, o.customer_phone, o.total_amount, o.created_at, o.status "
+        String sql = "SELECT o.id, o.order_code, cp.full_name, o.customer_phone, o.final_amount, o.created_at, o.status "
                 +
                 "FROM [Order] o " +
                 "LEFT JOIN [Customer_Profile] cp ON o.customer_id = cp.user_id " +
@@ -221,7 +221,7 @@ public class OrderDAO {
                         rs.getString("order_code"),
                         rs.getString("full_name") == null ? "Khách vãng lai" : rs.getString("full_name"),
                         rs.getString("customer_phone"),
-                        String.format("%,.0f VNĐ", rs.getDouble("total_amount")),
+                        String.format("%,.0f VNĐ", rs.getDouble("final_amount")),
                         rs.getTimestamp("created_at"),
                         rs.getString("status")
                 });
@@ -370,7 +370,115 @@ public class OrderDAO {
     public boolean confirmReceipt(int orderId) throws SQLException {
         return updateOrderStatus(orderId, "Hoàn thành");
     }
-    public boolean requestReturn(int orderId) throws SQLException {
-        return updateOrderStatus(orderId, "Yêu cầu Đổi/Trả");
+    public boolean requestReturn(int orderId, String reason, String type, String details) throws SQLException {
+        String sql = "UPDATE [Order] SET status = N'Yêu cầu Đổi/Trả', return_reason = ?, return_type = ?, return_details = ? WHERE id = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setNString(1, reason);
+            pstmt.setNString(2, type);
+            pstmt.setNString(3, details);
+            pstmt.setInt(4, orderId);
+            return pstmt.executeUpdate() > 0;
+        } finally {
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    public DefaultTableModel getReturnRequests() throws SQLException {
+        String[] cols = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Loại", "Lý do", "Chi tiết", "Ngày Đặt" };
+        DefaultTableModel model = new DefaultTableModel(cols, 0);
+        String sql = "SELECT o.id, o.order_code, cp.full_name, o.customer_phone, o.return_type, o.return_reason, o.return_details, o.created_at "
+                + "FROM [Order] o "
+                + "LEFT JOIN [Customer_Profile] cp ON o.customer_id = cp.user_id "
+                + "WHERE o.status = N'Yêu cầu Đổi/Trả' "
+                + "ORDER BY o.created_at DESC";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                model.addRow(new Object[] {
+                        rs.getInt("id"),
+                        rs.getString("order_code"),
+                        rs.getString("full_name") == null ? "Khách vãng lai" : rs.getString("full_name"),
+                        rs.getString("customer_phone"),
+                        rs.getString("return_type"),
+                        rs.getString("return_reason"),
+                        rs.getString("return_details"),
+                        rs.getTimestamp("created_at")
+                });
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return model;
+    }
+
+    public boolean handleReturnRequest(int orderId, boolean accept) throws SQLException {
+        String newStatus = accept ? "Đã đổi/trả" : "Từ chối đổi/trả";
+        if (accept) {
+            Connection conn = null;
+            PreparedStatement pstmtStatus = null;
+            PreparedStatement pstmtGetItems = null;
+            PreparedStatement pstmtUpdateStock = null;
+            ResultSet rs = null;
+            try {
+                conn = DatabaseConnection.getConnection();
+                conn.setAutoCommit(false);
+                String sqlStatus = "UPDATE [Order] SET status = ? WHERE id = ?";
+                pstmtStatus = conn.prepareStatement(sqlStatus);
+                pstmtStatus.setNString(1, newStatus);
+                pstmtStatus.setInt(2, orderId);
+                pstmtStatus.executeUpdate();
+
+                String sqlGetItems = "SELECT variant_id, quantity FROM [Order_Detail] WHERE order_id = ?";
+                pstmtGetItems = conn.prepareStatement(sqlGetItems);
+                pstmtGetItems.setInt(1, orderId);
+                rs = pstmtGetItems.executeQuery();
+                String sqlUpdateStock = "UPDATE [Product_Variant] SET stock_quantity = stock_quantity + ? WHERE id = ?";
+                pstmtUpdateStock = conn.prepareStatement(sqlUpdateStock);
+                while (rs.next()) {
+                    pstmtUpdateStock.setInt(1, rs.getInt("quantity"));
+                    pstmtUpdateStock.setInt(2, rs.getInt("variant_id"));
+                    pstmtUpdateStock.addBatch();
+                }
+                pstmtUpdateStock.executeBatch();
+                conn.commit();
+                return true;
+            } catch (SQLException ex) {
+                if (conn != null) conn.rollback();
+                throw ex;
+            } finally {
+                if (rs != null) rs.close();
+                if (pstmtStatus != null) pstmtStatus.close();
+                if (pstmtGetItems != null) pstmtGetItems.close();
+                if (pstmtUpdateStock != null) pstmtUpdateStock.close();
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    DatabaseConnection.closeConnection(conn);
+                }
+            }
+        } else {
+            return updateOrderStatus(orderId, "Hoàn thành");
+        }
+    }
+
+    public boolean updateExchangeInfo(int orderId, String info) throws SQLException {
+        String sql = "UPDATE [Order] SET exchange_info = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setNString(1, info);
+            pstmt.setInt(2, orderId);
+            return pstmt.executeUpdate() > 0;
+        }
     }
 }

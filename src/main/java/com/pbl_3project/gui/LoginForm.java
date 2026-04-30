@@ -155,6 +155,7 @@ public class LoginForm extends JFrame {
 
         gbc.gridy = 5;
         gbc.insets = new Insets(25, 5, 5, 5);
+        loginBox.add(btnLogin, gbc);
 
         JButton btnRegister = new JButton("Chưa có tài khoản? Đăng ký ngay");
         btnRegister.setContentAreaFilled(false);
@@ -178,6 +179,9 @@ public class LoginForm extends JFrame {
             RegisterDialog dialog = new RegisterDialog(this);
             dialog.setVisible(true);
         });
+
+
+        getRootPane().setDefaultButton(btnLogin);
     }
 
     private void handleLogin() {
@@ -199,7 +203,7 @@ public class LoginForm extends JFrame {
                 this.dispose();
 
                 if (loginResult == 1 || loginResult == 2)
-                    new AdminForm().setVisible(true);
+                    new AdminForm(loggedInId, loginResult).setVisible(true);
                 else if (loginResult == 3)
                     new EmployeeForm(loggedInId).setVisible(true);
                 else if (loginResult == 4)

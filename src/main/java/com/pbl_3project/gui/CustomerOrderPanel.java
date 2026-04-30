@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -27,6 +28,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import com.pbl_3project.bus.OrderBUS;
+
 public class CustomerOrderPanel extends JPanel {
     private static final Color BG = new Color(248, 250, 252);
     private static final Color WHITE = Color.WHITE;
@@ -50,6 +52,8 @@ public class CustomerOrderPanel extends JPanel {
     private JPanel detailHeader;
     private final int customerId;
     private final OrderBUS orderBUS = new OrderBUS();
+    private final com.pbl_3project.dao.ReviewDAO reviewDAO = new com.pbl_3project.dao.ReviewDAO();
+
     public CustomerOrderPanel(int customerId) {
         this.customerId = customerId;
         setLayout(new BorderLayout(0, 0));
@@ -57,9 +61,11 @@ public class CustomerOrderPanel extends JPanel {
         initComponents();
         loadOrders();
     }
+
     public void refresh() {
         loadOrders();
     }
+
     private void initComponents() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(WHITE);
@@ -127,7 +133,7 @@ public class CustomerOrderPanel extends JPanel {
         btnPay = createAccentButton("Thanh toán", SUCCESS);
         btnConfirmReceipt = createAccentButton("Đã nhận hàng", SUCCESS);
         btnReturnRequest = createAccentButton("Đổi trả", WARNING);
-        lblStatus = new JLabel(""); 
+        lblStatus = new JLabel("");
         btnCancel.setVisible(false);
         btnPay.setVisible(false);
         btnConfirmReceipt.setVisible(false);
@@ -171,18 +177,24 @@ public class CustomerOrderPanel extends JPanel {
             }
         });
     }
+
     private void loadOrders() {
         try {
             DefaultTableModel model = orderBUS.getOrdersByCustomer(customerId);
             ordersModel.setRowCount(0);
             for (int i = 0; i < model.getRowCount(); i++) {
+                int id = (int) model.getValueAt(i, 0);
+                String status = (String) model.getValueAt(i, 5);
+                if (status.equals("Hoàn thành") && reviewDAO.isOrderReviewed(id)) {
+                    status += " (Đã đánh giá)";
+                }
                 ordersModel.addRow(new Object[] {
-                        model.getValueAt(i, 0), 
-                        model.getValueAt(i, 1), 
-                        model.getValueAt(i, 2), 
-                        model.getValueAt(i, 3), 
-                        model.getValueAt(i, 4), 
-                        model.getValueAt(i, 5) 
+                        id,
+                        model.getValueAt(i, 1),
+                        model.getValueAt(i, 2),
+                        model.getValueAt(i, 3),
+                        model.getValueAt(i, 4),
+                        status
                 });
             }
             detailsModel.setRowCount(0);
@@ -194,8 +206,11 @@ public class CustomerOrderPanel extends JPanel {
                     "Lỗi tải dữ liệu đơn hàng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     private JButton btnConfirmReceipt;
     private JButton btnReturnRequest;
+    private JButton btnReview;
+
     private void loadOrderDetail(int orderId, String status) {
         try {
             DefaultTableModel model = orderBUS.getOrderDetails(orderId);
@@ -224,6 +239,23 @@ public class CustomerOrderPanel extends JPanel {
             btnPay.setVisible(false);
             btnConfirmReceipt.setVisible(false);
             btnReturnRequest.setVisible(false);
+            if (btnReview == null) {
+                btnReview = createAccentButton("Đánh giá", new Color(238, 77, 45));
+                btnReview.addActionListener(e -> {
+                    int row = tableOrders.getSelectedRow();
+                    if (row < 0)
+                        return;
+                    int modelRow = tableOrders.convertRowIndexToModel(row);
+                    int oId = (int) ordersModel.getValueAt(modelRow, 0);
+                    ReviewDialog reviewDialog = new ReviewDialog((Frame) SwingUtilities.getWindowAncestor(this),
+                            customerId, oId);
+                    reviewDialog.setVisible(true);
+                    loadOrders();
+                });
+                ((JPanel) btnCancel.getParent()).add(btnReview, 0);
+            }
+            btnReview.setVisible(false);
+
             if (status.equals("Chưa thanh toán")) {
                 btnCancel.setVisible(true);
                 btnPay.setVisible(true);
@@ -232,6 +264,20 @@ public class CustomerOrderPanel extends JPanel {
             } else if (status.equals("Đang giao")) {
                 btnConfirmReceipt.setVisible(true);
                 btnReturnRequest.setVisible(true);
+            } else if (status.startsWith("Hoàn thành")) {
+                btnReview.setVisible(true);
+                btnReturnRequest.setVisible(true);
+                try {
+                    if (reviewDAO.isOrderReviewed(orderId)) {
+                        btnReview.setEnabled(false);
+                        btnReview.setText("Đã đánh giá");
+                    } else {
+                        btnReview.setEnabled(true);
+                        btnReview.setText("Đánh giá");
+                    }
+                } catch (Exception ex) {
+                    btnReview.setEnabled(true);
+                }
             }
             detailHeader.revalidate();
             detailHeader.repaint();
@@ -240,6 +286,7 @@ public class CustomerOrderPanel extends JPanel {
                     "Lỗi tải chi tiết: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     private void handleConfirmReceipt() {
         int row = tableOrders.getSelectedRow();
         if (row < 0)
@@ -263,19 +310,20 @@ public class CustomerOrderPanel extends JPanel {
             }
         }
     }
+
     private void handleRequestReturn() {
         int row = tableOrders.getSelectedRow();
         if (row < 0)
             return;
         int modelRow = tableOrders.convertRowIndexToModel(row);
         int orderId = (int) ordersModel.getValueAt(modelRow, 0);
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "Bạn muốn yêu cầu đổi trả cho đơn hàng #" + orderId + "?",
-                "Xác nhận yêu cầu", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
+        ReturnRequestDialog dialog = new ReturnRequestDialog((Frame) SwingUtilities.getWindowAncestor(this), orderId);
+        dialog.setVisible(true);
+
+        if (dialog.isConfirmed()) {
             try {
-                if (orderBUS.requestReturn(orderId)) {
-                    JOptionPane.showMessageDialog(this, "Đã gửi yêu cầu đổi trả thành công!");
+                if (orderBUS.requestReturn(orderId, dialog.getReason(), dialog.getReturnRequestType(), dialog.getDetails())) {
+                    JOptionPane.showMessageDialog(this, "Đã gửi yêu cầu thành công!");
                     loadOrders();
                 }
             } catch (Exception ex) {
@@ -283,6 +331,7 @@ public class CustomerOrderPanel extends JPanel {
             }
         }
     }
+
     private void handleCancelOrder() {
         int row = tableOrders.getSelectedRow();
         if (row < 0)
@@ -303,6 +352,7 @@ public class CustomerOrderPanel extends JPanel {
             }
         }
     }
+
     private void handlePayment() {
         int row = tableOrders.getSelectedRow();
         if (row < 0)
@@ -339,6 +389,7 @@ public class CustomerOrderPanel extends JPanel {
             }
         }
     }
+
     private JTable buildStyledTable(DefaultTableModel model) {
         JTable table = new JTable(model) {
             @Override
@@ -375,6 +426,7 @@ public class CustomerOrderPanel extends JPanel {
         }
         return table;
     }
+
     private JScrollPane buildScrollPane(JTable table) {
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(null);
@@ -382,6 +434,7 @@ public class CustomerOrderPanel extends JPanel {
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         return scroll;
     }
+
     private JPanel buildSectionLabel(String text, boolean isTop) {
         JPanel p = new JPanel(new BorderLayout());
         p.setBackground(isTop ? WHITE : WHITE);
@@ -392,6 +445,7 @@ public class CustomerOrderPanel extends JPanel {
         p.add(lbl, BorderLayout.WEST);
         return p;
     }
+
     private JButton createAccentButton(String text, Color color) {
         JButton btn = new JButton(text) {
             @Override
@@ -416,26 +470,26 @@ public class CustomerOrderPanel extends JPanel {
         btn.setBorder(new EmptyBorder(8, 18, 8, 18));
         return btn;
     }
+
     private Color getStatusColor(String status) {
         if (status == null)
             return TEXT_S;
-        switch (status.trim()) {
-            case "Đã thanh toán":
-                return SUCCESS;
-            case "Đang giao":
-                return ACCENT;
-            case "Hoàn thành":
-                return new Color(16, 185, 129);
-            case "Đã hủy":
-                return DANGER;
-            case "Yêu cầu Đổi/Trả":
-                return WARNING;
-            case "Chưa thanh toán":
-                return WARNING;
-            default:
-                return TEXT_S;
-        }
+        String s = status.trim();
+        if (s.startsWith("Đã thanh toán"))
+            return SUCCESS;
+        if (s.startsWith("Đang giao"))
+            return ACCENT;
+        if (s.startsWith("Hoàn thành"))
+            return new Color(16, 185, 129);
+        if (s.startsWith("Đã hủy"))
+            return DANGER;
+        if (s.startsWith("Yêu cầu Đổi/Trả"))
+            return WARNING;
+        if (s.startsWith("Chưa thanh toán"))
+            return WARNING;
+        return TEXT_S;
     }
+
     class StatusRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,

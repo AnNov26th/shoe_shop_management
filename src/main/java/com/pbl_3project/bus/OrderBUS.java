@@ -42,7 +42,16 @@ public class OrderBUS {
     public boolean confirmReceipt(int orderId) throws SQLException {
         return orderDAO.confirmReceipt(orderId);
     }
-    public boolean requestReturn(int orderId) throws SQLException {
-        return orderDAO.requestReturn(orderId);
+    public boolean requestReturn(int orderId, String reason, String type, String details) throws SQLException {
+        return orderDAO.requestReturn(orderId, reason, type, details);
+    }
+    public DefaultTableModel getReturnRequests() throws SQLException {
+        return orderDAO.getReturnRequests();
+    }
+    public boolean handleReturnRequest(int orderId, boolean accept) throws SQLException {
+        return orderDAO.handleReturnRequest(orderId, accept);
+    }
+    public boolean updateExchangeInfo(int orderId, String info) throws SQLException {
+        return orderDAO.updateExchangeInfo(orderId, info);
     }
 }

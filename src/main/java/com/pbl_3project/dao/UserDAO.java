@@ -518,4 +518,192 @@ public class UserDAO {
         }
         return newUserId;
     }
+
+    public java.util.Map<String, String> getEmployeeProfile(int userId) throws SQLException {
+        java.util.Map<String, String> profile = new java.util.HashMap<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT full_name, email, phone, password_hash FROM [User] WHERE id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                profile.put("fullName", rs.getString("full_name") == null ? "" : rs.getString("full_name"));
+                profile.put("email", rs.getString("email"));
+                profile.put("phone", rs.getString("phone") == null ? "" : rs.getString("phone"));
+                profile.put("password", rs.getString("password_hash"));
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return profile;
+    }
+
+    public boolean updateEmployeeProfile(int userId, String fullName, String email, String phone, String password) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "UPDATE [User] SET full_name = ?, email = ?, phone = ?, password_hash = ? WHERE id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setNString(1, fullName);
+            pstmt.setString(2, email);
+            pstmt.setString(3, phone);
+            pstmt.setString(4, password);
+            pstmt.setInt(5, userId);
+            return pstmt.executeUpdate() > 0;
+        } finally {
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    public void setupProfileRequestTable() throws SQLException {
+        Connection conn = null;
+        java.sql.Statement stmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            stmt = conn.createStatement();
+            String sql = "IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Profile_Update_Request' AND xtype='U') " +
+                         "BEGIN " +
+                         "CREATE TABLE Profile_Update_Request (" +
+                         "id INT IDENTITY(1,1) PRIMARY KEY, " +
+                         "user_id INT, " +
+                         "full_name NVARCHAR(255), " +
+                         "email VARCHAR(255), " +
+                         "phone VARCHAR(20), " +
+                         "password_hash VARCHAR(255), " +
+                         "status VARCHAR(20) DEFAULT 'Pending', " +
+                         "created_at DATETIME DEFAULT GETDATE(), " +
+                         "FOREIGN KEY (user_id) REFERENCES [User](id)" +
+                         ") " +
+                         "END";
+            stmt.execute(sql);
+        } finally {
+            if (stmt != null) stmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    public boolean addProfileUpdateRequest(int userId, String fullName, String email, String phone, String password) throws SQLException {
+        setupProfileRequestTable();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "INSERT INTO Profile_Update_Request (user_id, full_name, email, phone, password_hash, status) " +
+                         "VALUES (?, ?, ?, ?, ?, 'Pending')";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            pstmt.setNString(2, fullName);
+            pstmt.setString(3, email);
+            pstmt.setString(4, phone);
+            pstmt.setString(5, password);
+            return pstmt.executeUpdate() > 0;
+        } finally {
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    public javax.swing.table.DefaultTableModel getPendingProfileRequests() throws SQLException {
+        setupProfileRequestTable();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        String[] columnNames = { "ID Yêu cầu", "Mã NV", "Họ Tên Cũ -> Mới", "Email Mới", "SĐT Mới", "Ngày Tạo" };
+        javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT p.id, p.user_id, u.full_name AS old_name, p.full_name AS new_name, p.email, p.phone, p.created_at " +
+                         "FROM Profile_Update_Request p " +
+                         "JOIN [User] u ON p.user_id = u.id " +
+                         "WHERE p.status = 'Pending' " +
+                         "ORDER BY p.created_at DESC";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                String oldName = rs.getString("old_name") == null ? "" : rs.getString("old_name");
+                String nameDisplay = oldName + " -> " + rs.getString("new_name");
+                model.addRow(new Object[]{
+                    rs.getInt("id"),
+                    rs.getInt("user_id"),
+                    nameDisplay,
+                    rs.getString("email"),
+                    rs.getString("phone"),
+                    rs.getDate("created_at")
+                });
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return model;
+    }
+
+    public boolean updateProfileRequestStatus(int requestId, String status) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmtStatus = null;
+        PreparedStatement pstmtFetch = null;
+        PreparedStatement pstmtUpdate = null;
+        ResultSet rs = null;
+        boolean success = false;
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
+            
+
+            if ("Approved".equalsIgnoreCase(status)) {
+                String sqlFetch = "SELECT user_id, full_name, email, phone, password_hash FROM Profile_Update_Request WHERE id = ?";
+                pstmtFetch = conn.prepareStatement(sqlFetch);
+                pstmtFetch.setInt(1, requestId);
+                rs = pstmtFetch.executeQuery();
+                if (rs.next()) {
+                    int userId = rs.getInt("user_id");
+                    String sqlUpdate = "UPDATE [User] SET full_name = ?, email = ?, phone = ?, password_hash = ? WHERE id = ?";
+                    pstmtUpdate = conn.prepareStatement(sqlUpdate);
+                    pstmtUpdate.setNString(1, rs.getString("full_name"));
+                    pstmtUpdate.setString(2, rs.getString("email"));
+                    pstmtUpdate.setString(3, rs.getString("phone"));
+                    pstmtUpdate.setString(4, rs.getString("password_hash"));
+                    pstmtUpdate.setInt(5, userId);
+                    pstmtUpdate.executeUpdate();
+                }
+            }
+
+
+            String sqlStatus = "UPDATE Profile_Update_Request SET status = ? WHERE id = ?";
+            pstmtStatus = conn.prepareStatement(sqlStatus);
+            pstmtStatus.setString(1, status);
+            pstmtStatus.setInt(2, requestId);
+            pstmtStatus.executeUpdate();
+            
+            conn.commit();
+            success = true;
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e;
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmtFetch != null) pstmtFetch.close();
+            if (pstmtUpdate != null) pstmtUpdate.close();
+            if (pstmtStatus != null) pstmtStatus.close();
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                DatabaseConnection.closeConnection(conn);
+            }
+        }
+        return success;
+    }
 }

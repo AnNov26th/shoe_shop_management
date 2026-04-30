@@ -23,6 +23,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import com.pbl_3project.util.TimeDisplayPanel;
+import com.pbl_3project.gui.HeaderPanel;
 public class AdminForm extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainContentPanel;
@@ -33,7 +34,12 @@ public class AdminForm extends JFrame {
     private final Color TEXT_INACTIVE = new Color(50, 50, 50); 
     private final Color TEXT_ACTIVE = Color.WHITE;
     private final Color APP_BACKGROUND = new Color(240, 244, 247); 
-    public AdminForm() {
+    private int adminId;
+    private int roleId;
+
+    public AdminForm(int adminId, int roleId) {
+        this.adminId = adminId;
+        this.roleId = roleId;
         setTitle("Hệ thống Quản lý Cửa hàng Giày dép - [ADMIN]");
         setSize(1200, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -43,8 +49,8 @@ public class AdminForm extends JFrame {
         initComponents();
     }
     private void initComponents() {
-        TimeDisplayPanel timePanel = new TimeDisplayPanel();
-        add(timePanel, BorderLayout.NORTH);
+        HeaderPanel headerPanel = new HeaderPanel(this.adminId, this.roleId);
+        add(headerPanel, BorderLayout.NORTH);
         JPanel sidebarPanel = new JPanel();
         sidebarPanel.setPreferredSize(new Dimension(260, getHeight()));
         sidebarPanel.setBackground(Color.WHITE);
@@ -66,6 +72,7 @@ public class AdminForm extends JFrame {
         JButton btnDonHang = createMenuButton("Quản lý Đơn hàng");
         JButton btnKhuyenMai = createMenuButton("Quản lý Khuyến mãi");
         JButton btnNhanVien = createMenuButton("Quản lý Nhân sự");
+        JButton btnDuyetYeuCau = createMenuButton("Duyệt Yêu cầu NV");
         JButton btnKhachHang = createMenuButton("Quản lý Khách hàng");
         JButton btnLogout = createMenuButton("Đăng xuất");
         btnLogout.setForeground(Color.RED);
@@ -78,6 +85,8 @@ public class AdminForm extends JFrame {
         menuPanel.add(btnKhuyenMai);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnNhanVien);
+        menuPanel.add(Box.createVerticalStrut(5));
+        menuPanel.add(btnDuyetYeuCau);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnKhachHang);
         menuPanel.add(Box.createVerticalGlue()); 
@@ -100,6 +109,7 @@ public class AdminForm extends JFrame {
         mainContentPanel.add(new ProductManagementPanel(), "SanPham");
         mainContentPanel.add(new DashboardPanel(), "ThongKe");
         mainContentPanel.add(new EmployeeManagementPanel(), "NhanVien");
+        mainContentPanel.add(new EmployeeRequestPanel(), "DuyetYeuCau");
         mainContentPanel.add(new CustomerManagementPanel(), "KhachHang");
         mainContentPanel.add(new OrderManagementPanel(true), "DonHang");
         mainContentPanel.add(new PromotionManagementPanel(), "KhuyenMai");
@@ -129,6 +139,10 @@ public class AdminForm extends JFrame {
             selectMenuButton(btnNhanVien);
             cardLayout.show(mainContentPanel, "NhanVien");
         });
+        btnDuyetYeuCau.addActionListener(e -> {
+            selectMenuButton(btnDuyetYeuCau);
+            cardLayout.show(mainContentPanel, "DuyetYeuCau");
+        });
         btnKhachHang.addActionListener(e -> {
             selectMenuButton(btnKhachHang);
             cardLayout.show(mainContentPanel, "KhachHang");
@@ -138,6 +152,7 @@ public class AdminForm extends JFrame {
                     JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 this.dispose();
+                new LoginForm().setVisible(true);
             }
         });
         selectMenuButton(btnThongKe);
@@ -202,6 +217,6 @@ public class AdminForm extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        SwingUtilities.invokeLater(() -> new AdminForm().setVisible(true));
+        SwingUtilities.invokeLater(() -> new AdminForm(-1, 1).setVisible(true));
     }
 }

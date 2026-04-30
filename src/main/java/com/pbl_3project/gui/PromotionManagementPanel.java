@@ -45,7 +45,7 @@ public class PromotionManagementPanel extends JPanel {
                 BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER),
                 new EmptyBorder(20, 30, 20, 30)));
 
-        JLabel lblTitle = new JLabel("🎟️ QUẢN LÝ MÃ GIẢM GIÁ");
+        JLabel lblTitle = new JLabel("QUẢN LÝ MÃ GIẢM GIÁ");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(TEXT_H);
         headerPanel.add(lblTitle, BorderLayout.WEST);
