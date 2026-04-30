@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -6,26 +7,32 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+
 public class WrapLayout extends FlowLayout {
     public WrapLayout() {
         super();
     }
+
     public WrapLayout(int align) {
         super(align);
     }
+
     public WrapLayout(int align, int hgap, int vgap) {
         super(align, hgap, vgap);
     }
+
     @Override
     public Dimension preferredLayoutSize(Container target) {
         return layoutSize(target, true);
     }
+
     @Override
     public Dimension minimumLayoutSize(Container target) {
         Dimension minimum = layoutSize(target, false);
         minimum.width -= (getHgap() + 1);
         return minimum;
     }
+
     private Dimension layoutSize(Container target, boolean preferred) {
         synchronized (target.getTreeLock()) {
             int targetWidth = target.getSize().width;
@@ -71,6 +78,7 @@ public class WrapLayout extends FlowLayout {
             return dim;
         }
     }
+
     private void addRow(Dimension dim, int rowWidth, int rowHeight) {
         dim.width = Math.max(dim.width, rowWidth);
         if (dim.height > 0) {

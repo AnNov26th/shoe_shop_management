@@ -1,19 +1,24 @@
 package com.pbl_3project.gui;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+
 public class PaymentQRDialog extends JDialog {
     private boolean paymentSuccessful = false;
+
     public PaymentQRDialog(Frame parent, double amount, String orderId) {
         super(parent, "Thanh toán QR", true);
         initComponents(amount, orderId);
     }
+
     public PaymentQRDialog(Dialog parent, double amount, String orderId) {
         super(parent, "Thanh toán QR", true);
         initComponents(amount, orderId);
     }
+
     private void initComponents(double amount, String orderId) {
         setLayout(new BorderLayout(10, 10));
         setSize(400, 550);
@@ -43,8 +48,9 @@ public class PaymentQRDialog extends JDialog {
         lblQR.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         new Thread(() -> {
             try {
-                String qrUrl = String.format("https://img.vietqr.io/image/970422-0941910604-compact.jpg?amount=%f&addInfo=%s",
-                                            amount, orderId);
+                String qrUrl = String.format(
+                        "https://img.vietqr.io/image/970422-0941910604-compact.jpg?amount=%f&addInfo=%s",
+                        amount, orderId);
                 URL url = new URL(qrUrl);
                 BufferedImage img = ImageIO.read(url);
                 if (img != null) {
@@ -104,7 +110,7 @@ public class PaymentQRDialog extends JDialog {
             }
         };
         btnConfirm.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnConfirm.setForeground(Color.BLACK); 
+        btnConfirm.setForeground(Color.BLACK);
         btnConfirm.setContentAreaFilled(false);
         btnConfirm.setBorderPainted(false);
         btnConfirm.setFocusPainted(false);
@@ -117,6 +123,7 @@ public class PaymentQRDialog extends JDialog {
         footerPanel.add(btnConfirm);
         add(footerPanel, BorderLayout.SOUTH);
     }
+
     public boolean isPaymentSuccessful() {
         return paymentSuccessful;
     }

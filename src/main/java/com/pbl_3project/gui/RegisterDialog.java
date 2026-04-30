@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -7,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import com.pbl_3project.dao.UserDAO;
+
 public class RegisterDialog extends JDialog {
     private JTextField txtName, txtEmail, txtPhone;
     private JPasswordField txtPassword, txtConfirmPassword;
@@ -16,6 +18,7 @@ public class RegisterDialog extends JDialog {
     private Font labelFont = new Font("Segoe UI", Font.BOLD, 14);
     private Color primaryColor = new Color(59, 130, 246);
     private Color hoverColor = new Color(37, 99, 235);
+
     public RegisterDialog(Frame parent) {
         super(parent, "Đăng ký tài khoản", true);
         setSize(450, 620);
@@ -68,6 +71,7 @@ public class RegisterDialog extends JDialog {
         btnRegister.addActionListener(e -> handleRegister());
         btnCancel.addActionListener(e -> dispose());
     }
+
     private void addLabelAndField(JPanel pnl, String labelText, JTextField field, GridBagConstraints gbc, int row) {
         gbc.gridy = row;
         gbc.gridx = 0;
@@ -89,6 +93,7 @@ public class RegisterDialog extends JDialog {
                         new LineBorder(primaryColor, 2, true),
                         BorderFactory.createEmptyBorder(4, 9, 4, 9)));
             }
+
             public void focusLost(java.awt.event.FocusEvent evt) {
                 field.setBorder(BorderFactory.createCompoundBorder(
                         new LineBorder(new Color(209, 213, 219), 1, true),
@@ -97,6 +102,7 @@ public class RegisterDialog extends JDialog {
         });
         pnl.add(field, gbc);
     }
+
     private JButton createStyledButton(String text, Color bgColor, Color fgColor, Color hoverBgColor) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -111,6 +117,7 @@ public class RegisterDialog extends JDialog {
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(hoverBgColor);
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(bgColor);
@@ -118,6 +125,7 @@ public class RegisterDialog extends JDialog {
         });
         return btn;
     }
+
     private void handleRegister() {
         String name = txtName.getText().trim();
         String email = txtEmail.getText().trim();

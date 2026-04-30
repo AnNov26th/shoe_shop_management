@@ -25,7 +25,7 @@ public class EmployeeRequestPanel extends JPanel {
     private void initComponents() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
-        
+
         JLabel lblTitle = new JLabel("Duyệt Yêu Cầu Cập Nhật Hồ Sơ");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(new Color(15, 23, 42));
@@ -37,17 +37,18 @@ public class EmployeeRequestPanel extends JPanel {
         btnRefresh.setFocusPainted(false);
         btnRefresh.addActionListener(e -> loadData());
         headerPanel.add(btnRefresh, BorderLayout.EAST);
-        
+
         add(headerPanel, BorderLayout.NORTH);
 
-        tableModel = new DefaultTableModel(new String[]{"ID Yêu cầu", "Mã NV", "Họ Tên Cũ -> Mới", "Email Mới", "SĐT Mới", "Ngày Tạo"}, 0);
+        tableModel = new DefaultTableModel(
+                new String[] { "ID Yêu cầu", "Mã NV", "Họ Tên Cũ -> Mới", "Email Mới", "SĐT Mới", "Ngày Tạo" }, 0);
         requestTable = new JTable(tableModel);
         requestTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         requestTable.setRowHeight(35);
         requestTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         requestTable.setSelectionBackground(new Color(224, 242, 254));
         requestTable.setSelectionForeground(new Color(15, 23, 42));
-        
+
         JTableHeader tableHeader = requestTable.getTableHeader();
         tableHeader.setFont(new Font("Segoe UI", Font.BOLD, 14));
         tableHeader.setBackground(new Color(241, 245, 249));
@@ -66,7 +67,7 @@ public class EmployeeRequestPanel extends JPanel {
         btnReject.setBackground(new Color(239, 68, 68));
         btnReject.setForeground(Color.WHITE);
         btnReject.setFocusPainted(false);
-        
+
         JButton btnApprove = new JButton("Phê duyệt");
         btnApprove.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnApprove.setBackground(new Color(34, 197, 94));
@@ -86,31 +87,37 @@ public class EmployeeRequestPanel extends JPanel {
             DefaultTableModel model = userDAO.getPendingProfileRequests();
             requestTable.setModel(model);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu: " + ex.getMessage(), "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void handleAction(String status) {
         int selectedRow = requestTable.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một yêu cầu để xử lý!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một yêu cầu để xử lý!", "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int requestId = (int) requestTable.getValueAt(selectedRow, 0);
         String actionName = status.equals("Approved") ? "phê duyệt" : "từ chối";
-        
-        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn " + actionName + " yêu cầu này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn " + actionName + " yêu cầu này?",
+                "Xác nhận", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 if (userDAO.updateProfileRequestStatus(requestId, status)) {
-                    JOptionPane.showMessageDialog(this, "Đã " + actionName + " yêu cầu thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Đã " + actionName + " yêu cầu thành công!", "Thông báo",
+                            JOptionPane.INFORMATION_MESSAGE);
                     loadData();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Thao tác thất bại. Vui lòng thử lại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Thao tác thất bại. Vui lòng thử lại.", "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi cơ sở dữ liệu: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Lỗi cơ sở dữ liệu: " + ex.getMessage(), "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
             }
         }
     }

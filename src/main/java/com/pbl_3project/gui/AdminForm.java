@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -24,16 +25,17 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import com.pbl_3project.util.TimeDisplayPanel;
 import com.pbl_3project.gui.HeaderPanel;
+
 public class AdminForm extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainContentPanel;
     private JButton selectedMenuButton;
     private final Color MENU_INACTIVE = Color.WHITE;
-    private final Color MENU_ACTIVE = new Color(34, 177, 76); 
-    private final Color MENU_HOVER = new Color(240, 245, 249); 
-    private final Color TEXT_INACTIVE = new Color(50, 50, 50); 
+    private final Color MENU_ACTIVE = new Color(34, 177, 76);
+    private final Color MENU_HOVER = new Color(240, 245, 249);
+    private final Color TEXT_INACTIVE = new Color(50, 50, 50);
     private final Color TEXT_ACTIVE = Color.WHITE;
-    private final Color APP_BACKGROUND = new Color(240, 244, 247); 
+    private final Color APP_BACKGROUND = new Color(240, 244, 247);
     private int adminId;
     private int roleId;
 
@@ -45,9 +47,10 @@ public class AdminForm extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(APP_BACKGROUND); 
+        getContentPane().setBackground(APP_BACKGROUND);
         initComponents();
     }
+
     private void initComponents() {
         HeaderPanel headerPanel = new HeaderPanel(this.adminId, this.roleId);
         add(headerPanel, BorderLayout.NORTH);
@@ -58,7 +61,7 @@ public class AdminForm extends JFrame {
         sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(230, 230, 230)));
         JLabel lblAdmin = new JLabel("Shoe Shop T&T", SwingConstants.CENTER);
         lblAdmin.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblAdmin.setForeground(new Color(34, 177, 76)); 
+        lblAdmin.setForeground(new Color(34, 177, 76));
         lblAdmin.setBorder(new EmptyBorder(25, 10, 25, 10));
         lblAdmin.setBackground(Color.WHITE);
         lblAdmin.setOpaque(true);
@@ -89,7 +92,7 @@ public class AdminForm extends JFrame {
         menuPanel.add(btnDuyetYeuCau);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnKhachHang);
-        menuPanel.add(Box.createVerticalGlue()); 
+        menuPanel.add(Box.createVerticalGlue());
         menuPanel.add(btnLogout);
         sidebarPanel.add(menuPanel, BorderLayout.CENTER);
         cardLayout = new CardLayout();
@@ -104,7 +107,7 @@ public class AdminForm extends JFrame {
                 super.paintComponent(g);
             }
         };
-        mainContentPanel.setOpaque(false); 
+        mainContentPanel.setOpaque(false);
         mainContentPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
         mainContentPanel.add(new ProductManagementPanel(), "SanPham");
         mainContentPanel.add(new DashboardPanel(), "ThongKe");
@@ -115,10 +118,10 @@ public class AdminForm extends JFrame {
         mainContentPanel.add(new PromotionManagementPanel(), "KhuyenMai");
         JPanel contentWrapper = new JPanel(new BorderLayout());
         contentWrapper.setBackground(APP_BACKGROUND);
-        contentWrapper.setBorder(new EmptyBorder(20, 20, 20, 20)); 
+        contentWrapper.setBorder(new EmptyBorder(20, 20, 20, 20));
         contentWrapper.add(mainContentPanel, BorderLayout.CENTER);
         add(sidebarPanel, BorderLayout.WEST);
-        add(contentWrapper, BorderLayout.CENTER); 
+        add(contentWrapper, BorderLayout.CENTER);
         btnThongKe.addActionListener(e -> {
             selectMenuButton(btnThongKe);
             cardLayout.show(mainContentPanel, "ThongKe");
@@ -158,6 +161,7 @@ public class AdminForm extends JFrame {
         selectMenuButton(btnThongKe);
         cardLayout.show(mainContentPanel, "ThongKe");
     }
+
     private void selectMenuButton(JButton selectedButton) {
         JButton oldSelected = selectedMenuButton;
         if (oldSelected != null && !oldSelected.equals(selectedButton)) {
@@ -171,6 +175,7 @@ public class AdminForm extends JFrame {
             oldSelected.repaint();
         selectedButton.repaint();
     }
+
     private JButton createMenuButton(String text) {
         JButton btn = new JButton(text) {
             @Override
@@ -180,10 +185,10 @@ public class AdminForm extends JFrame {
                 g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
                 g2.dispose();
-                super.paintComponent(g); 
+                super.paintComponent(g);
             }
         };
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14)); 
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btn.setForeground(TEXT_INACTIVE);
         btn.setBackground(MENU_INACTIVE);
         btn.setHorizontalAlignment(SwingConstants.LEFT);
@@ -201,6 +206,7 @@ public class AdminForm extends JFrame {
                     btn.repaint();
                 }
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 if (!btn.equals(selectedMenuButton)) {
@@ -211,6 +217,7 @@ public class AdminForm extends JFrame {
         });
         return btn;
     }
+
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

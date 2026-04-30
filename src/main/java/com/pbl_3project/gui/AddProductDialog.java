@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import com.pbl_3project.bus.ProductBUS;
+
 public class AddProductDialog extends JDialog {
     private ProductBUS productBUS;
     private Runnable onSuccess;
@@ -21,6 +23,7 @@ public class AddProductDialog extends JDialog {
             "6 - Crocs", "7 - New Balance", "8 - Nike", "9 - Puma", "10 - Vans", "11 - Balenciaga" };
     private final String[] CATEGORIES = { "6 - Sneaker", "7 - Running", "8 - Sandal & Clog", "9 - Skateboarding",
             "10 - Slide" };
+
     public AddProductDialog(JFrame parent, Runnable onSuccess) {
         super(parent, "Thêm Mẫu Giày Mới", true);
         this.productBUS = new ProductBUS();
@@ -63,7 +66,7 @@ public class AddProductDialog extends JDialog {
                         cbxGender.getSelectedItem().toString(), txtDesc.getText())) {
                     JOptionPane.showMessageDialog(this, "Thêm sản phẩm thành công!");
                     if (onSuccess != null)
-                        onSuccess.run(); 
+                        onSuccess.run();
                     dispose();
                 }
             } catch (Exception ex) {

@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -20,18 +21,21 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import com.pbl_3project.dao.DashboardDAO;
+
 public class DashboardPanel extends JPanel {
     private DashboardDAO dashboardDAO;
     private JLabel lblTotalUsers, lblTotalProducts, lblTotalStock, lblTotalRevenue;
     private JTable tableBrandStats, tableMonthlyStats, tableEmployeeStats;
+
     public DashboardPanel() {
         dashboardDAO = new DashboardDAO();
         setLayout(new BorderLayout(20, 20));
-        setBackground(new Color(248, 250, 252)); 
+        setBackground(new Color(248, 250, 252));
         setBorder(new EmptyBorder(25, 25, 25, 25));
         initComponents();
         loadData();
     }
+
     private void initComponents() {
         JPanel topCardsPanel = new JPanel(new GridLayout(1, 3, 25, 0));
         topCardsPanel.setBackground(new Color(248, 250, 252));
@@ -73,17 +77,17 @@ public class DashboardPanel extends JPanel {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 if (getModel().isRollover()) {
-                    g2.setColor(new Color(45, 160, 180)); 
+                    g2.setColor(new Color(45, 160, 180));
                 } else {
-                    g2.setColor(new Color(59, 190, 210)); 
+                    g2.setColor(new Color(59, 190, 210));
                 }
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
                 g2.dispose();
-                super.paintComponent(g); 
+                super.paintComponent(g);
             }
         };
         btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnRefresh.setForeground(new Color(15, 23, 42)); 
+        btnRefresh.setForeground(new Color(15, 23, 42));
         btnRefresh.setFocusPainted(false);
         btnRefresh.setContentAreaFilled(false);
         btnRefresh.setBorderPainted(false);
@@ -98,6 +102,7 @@ public class DashboardPanel extends JPanel {
         add(centerPanel, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
     }
+
     private JPanel createStatCard(String title, JLabel valueLabel, Color bgColor) {
         RoundedPanel card = new RoundedPanel(25, bgColor);
         card.setLayout(new BorderLayout(5, 5));
@@ -111,6 +116,7 @@ public class DashboardPanel extends JPanel {
         card.add(valueLabel, BorderLayout.CENTER);
         return card;
     }
+
     private JTable createStyledTable() {
         JTable table = new JTable();
         table.setRowHeight(40);
@@ -124,12 +130,14 @@ public class DashboardPanel extends JPanel {
         table.setShowVerticalLines(false);
         return table;
     }
+
     private JScrollPane createTableScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
         scrollPane.getViewport().setBackground(Color.WHITE);
         return scrollPane;
     }
+
     private void loadData() {
         try {
             Map<String, Object> stats = dashboardDAO.getQuickStats();
@@ -146,14 +154,17 @@ public class DashboardPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu Thống kê: " + e.getMessage());
         }
     }
+
     class RoundedPanel extends JPanel {
         private int radius;
         private Color bgColor;
+
         public RoundedPanel(int radius, Color bgColor) {
             this.radius = radius;
             this.bgColor = bgColor;
-            setOpaque(false); 
+            setOpaque(false);
         }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();

@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -31,6 +32,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import com.pbl_3project.bus.EmployeeBUS;
+
 public class EmployeeManagementPanel extends JPanel {
     private static final Color BG_COLOR = new Color(240, 244, 247);
     private static final Color CARD_BG = Color.WHITE;
@@ -47,6 +49,7 @@ public class EmployeeManagementPanel extends JPanel {
     private JTable tableEmployees;
     private JLabel lblNewestEmployee;
     private EmployeeBUS employeeBUS;
+
     public EmployeeManagementPanel() {
         employeeBUS = new EmployeeBUS();
         setLayout(new BorderLayout(20, 20));
@@ -55,6 +58,7 @@ public class EmployeeManagementPanel extends JPanel {
         initComponents();
         loadTableData("");
     }
+
     private void initComponents() {
         JPanel topPanel = new JPanel(new BorderLayout(25, 0));
         topPanel.setOpaque(false);
@@ -186,7 +190,7 @@ public class EmployeeManagementPanel extends JPanel {
             String email = txtEmail.getText().trim();
             String phone = txtPhone.getText().trim();
             String pass = new String(txtPassword.getPassword());
-            int roleId = cbRole.getSelectedIndex() + 1; 
+            int roleId = cbRole.getSelectedIndex() + 1;
             String result = employeeBUS.xuLyThemNhanVien(name, email, pass, phone, roleId);
             switch (result) {
                 case "EMPTY":
@@ -201,7 +205,7 @@ public class EmployeeManagementPanel extends JPanel {
                 case "SUCCESS":
                     JOptionPane.showMessageDialog(this, "Thêm nhân viên thành công!");
                     clearForm();
-                    loadTableData(""); 
+                    loadTableData("");
                     break;
                 default:
                     JOptionPane.showMessageDialog(this, "Lỗi hệ thống hoặc Email đã tồn tại!");
@@ -230,15 +234,17 @@ public class EmployeeManagementPanel extends JPanel {
             }
         });
     }
+
     private JPanel createStatCard(String title, String value) {
         return createStatCard(title, new JLabel(value));
     }
+
     private JPanel createStatCard(String title, JLabel lblValue) {
         RoundedPanel p = new RoundedPanel(20, CARD_BG);
         p.setLayout(new GridLayout(2, 1, 0, 5));
         p.setBorder(new EmptyBorder(12, 18, 12, 18));
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        p.setMaximumSize(new Dimension(280, 70)); 
+        p.setMaximumSize(new Dimension(280, 70));
         JLabel lblTitle = new JLabel(title);
         lblTitle.setForeground(TEXT_SUB);
         lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -248,17 +254,20 @@ public class EmployeeManagementPanel extends JPanel {
         p.add(lblValue);
         return p;
     }
+
     private JLabel createLabel(String text) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lbl.setForeground(TEXT_MAIN);
         return lbl;
     }
+
     private JTextField createTextField() {
         JTextField txt = new JTextField();
         styleTextField(txt);
         return txt;
     }
+
     private void styleTextField(JTextField txt) {
         txt.setPreferredSize(new Dimension(0, 36));
         txt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -266,6 +275,7 @@ public class EmployeeManagementPanel extends JPanel {
                 BorderFactory.createLineBorder(BORDER_COLOR, 1, true),
                 new EmptyBorder(0, 10, 0, 10)));
     }
+
     private JButton createButton(String text, Color bgColor, Color fgColor) {
         JButton btn = new JButton(text) {
             @Override
@@ -291,6 +301,7 @@ public class EmployeeManagementPanel extends JPanel {
         btn.setBorder(new EmptyBorder(8, 16, 8, 16));
         return btn;
     }
+
     private void clearForm() {
         txtName.setText("");
         txtEmail.setText("");
@@ -298,6 +309,7 @@ public class EmployeeManagementPanel extends JPanel {
         txtPassword.setText("");
         cbRole.setSelectedIndex(0);
     }
+
     private void loadTableData(String keyword) {
         try {
             DefaultTableModel model = employeeBUS.getEmployeeTableModel(keyword);
@@ -324,14 +336,17 @@ public class EmployeeManagementPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage());
         }
     }
+
     class RoundedPanel extends JPanel {
         private int radius;
         private Color bgColor;
+
         public RoundedPanel(int radius, Color bgColor) {
             this.radius = radius;
             this.bgColor = bgColor;
             setOpaque(false);
         }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();

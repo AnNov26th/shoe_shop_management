@@ -48,13 +48,13 @@ public class ReturnRequestDialog extends JDialog {
         mainPanel.add(createSectionHeader("Lý do đổi / trả"));
         JPanel pnlReason = createCardPanel();
         pnlReason.setLayout(new BorderLayout(0, 10));
-        
+
         String[] reasons = {
-            "Lỗi sản phẩm (Rách, hỏng, bong keo...)", 
-            "Giao sai mẫu mã / kích cỡ / màu sắc", 
-            "Kích cỡ không vừa", 
-            "Sản phẩm không giống mô tả", 
-            "Khác (Vui lòng ghi rõ bên dưới)"
+                "Lỗi sản phẩm (Rách, hỏng, bong keo...)",
+                "Giao sai mẫu mã / kích cỡ / màu sắc",
+                "Kích cỡ không vừa",
+                "Sản phẩm không giống mô tả",
+                "Khác (Vui lòng ghi rõ bên dưới)"
         };
         cmbReason = new JComboBox<>(reasons);
         cmbReason.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -63,7 +63,8 @@ public class ReturnRequestDialog extends JDialog {
 
         txtOtherReason = new JTextField();
         txtOtherReason.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtOtherReason.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(BORDER_COLOR), "Lý do cụ thể"));
+        txtOtherReason.setBorder(
+                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(BORDER_COLOR), "Lý do cụ thể"));
         txtOtherReason.setVisible(false);
         pnlReason.add(txtOtherReason, BorderLayout.CENTER);
 
@@ -116,11 +117,12 @@ public class ReturnRequestDialog extends JDialog {
 
         JButton btnCancel = createStyledButton("Hủy bỏ", Color.WHITE, TEXT_SUB, true);
         JButton btnSubmit = createStyledButton("Gửi yêu cầu", SHOPEE_ORANGE, Color.WHITE, false);
-        
+
         btnCancel.addActionListener(e -> dispose());
         btnSubmit.addActionListener(e -> {
             if (txtDetails.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Vui lòng nhập mô tả chi tiết để cửa hàng xử lý nhanh hơn!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập mô tả chi tiết để cửa hàng xử lý nhanh hơn!",
+                        "Thông báo", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             confirmed = true;
@@ -188,8 +190,15 @@ public class ReturnRequestDialog extends JDialog {
 
     static class JTextArea extends javax.swing.JTextArea {
         private String placeholder;
-        public JTextArea(int rows, int cols) { super(rows, cols); }
-        public void setPlaceholder(String p) { this.placeholder = p; }
+
+        public JTextArea(int rows, int cols) {
+            super(rows, cols);
+        }
+
+        public void setPlaceholder(String p) {
+            this.placeholder = p;
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -203,11 +212,21 @@ public class ReturnRequestDialog extends JDialog {
         }
     }
 
-    public boolean isConfirmed() { return confirmed; }
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
     public String getReason() {
-        if (cmbReason.getSelectedItem().equals("Khác (Vui lòng ghi rõ bên dưới)")) return txtOtherReason.getText();
+        if (cmbReason.getSelectedItem().equals("Khác (Vui lòng ghi rõ bên dưới)"))
+            return txtOtherReason.getText();
         return (String) cmbReason.getSelectedItem();
     }
-    public String getReturnRequestType() { return rbRefund.isSelected() ? "Trả hàng hoàn tiền" : "Đổi hàng"; }
-    public String getDetails() { return txtDetails.getText(); }
+
+    public String getReturnRequestType() {
+        return rbRefund.isSelected() ? "Trả hàng hoàn tiền" : "Đổi hàng";
+    }
+
+    public String getDetails() {
+        return txtDetails.getText();
+    }
 }

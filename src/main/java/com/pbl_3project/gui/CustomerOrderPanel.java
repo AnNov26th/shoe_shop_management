@@ -322,7 +322,8 @@ public class CustomerOrderPanel extends JPanel {
 
         if (dialog.isConfirmed()) {
             try {
-                if (orderBUS.requestReturn(orderId, dialog.getReason(), dialog.getReturnRequestType(), dialog.getDetails())) {
+                if (orderBUS.requestReturn(orderId, dialog.getReason(), dialog.getReturnRequestType(),
+                        dialog.getDetails())) {
                     JOptionPane.showMessageDialog(this, "Đã gửi yêu cầu thành công!");
                     loadOrders();
                 }

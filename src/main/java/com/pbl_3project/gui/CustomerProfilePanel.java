@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -6,6 +7,7 @@ import javax.swing.border.LineBorder;
 import java.util.Map;
 import java.util.HashMap;
 import com.pbl_3project.dao.UserDAO;
+
 public class CustomerProfilePanel extends JPanel {
     private int customerId;
     private JTextField txtFirstName, txtLastName, txtDob, txtPhone, txtEmail, txtAddress;
@@ -17,6 +19,7 @@ public class CustomerProfilePanel extends JPanel {
     private static final Color TEXT_MAIN = new Color(15, 23, 42);
     private static final Color TEXT_SUB = new Color(100, 116, 139);
     private static final Color ACCENT = new Color(56, 189, 248);
+
     public CustomerProfilePanel(int customerId) {
         this.customerId = customerId;
         this.userDAO = new UserDAO();
@@ -26,6 +29,7 @@ public class CustomerProfilePanel extends JPanel {
         initComponents();
         loadProfileData();
     }
+
     private void initComponents() {
         RoundedPanel card = new RoundedPanel(25, CARD_BG);
         card.setLayout(new BorderLayout(0, 20));
@@ -108,12 +112,14 @@ public class CustomerProfilePanel extends JPanel {
         wrapper.add(card);
         add(wrapper, BorderLayout.CENTER);
     }
+
     private JLabel createLabel(String text) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lbl.setForeground(TEXT_MAIN);
         return lbl;
     }
+
     private JTextField createTextField() {
         JTextField txt = new JTextField();
         txt.setPreferredSize(new Dimension(0, 42));
@@ -123,6 +129,7 @@ public class CustomerProfilePanel extends JPanel {
                 new EmptyBorder(0, 15, 0, 15)));
         return txt;
     }
+
     private JPasswordField createPasswordField() {
         JPasswordField txt = new JPasswordField();
         txt.setPreferredSize(new Dimension(0, 42));
@@ -132,6 +139,7 @@ public class CustomerProfilePanel extends JPanel {
                 new EmptyBorder(0, 15, 0, 15)));
         return txt;
     }
+
     private JButton createButton(String text) {
         JButton btn = new JButton(text) {
             @Override
@@ -157,6 +165,7 @@ public class CustomerProfilePanel extends JPanel {
         btn.setPreferredSize(new Dimension(200, 45));
         return btn;
     }
+
     private void loadProfileData() {
         try {
             Map<String, String> profile = userDAO.getCustomerProfile(customerId);
@@ -175,6 +184,7 @@ public class CustomerProfilePanel extends JPanel {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
+
     private void saveProfile() {
         String email = txtEmail.getText().trim();
         if (email.isEmpty()) {
@@ -202,14 +212,17 @@ public class CustomerProfilePanel extends JPanel {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
+
     class RoundedPanel extends JPanel {
         private int radius;
         private Color bgColor;
+
         public RoundedPanel(int radius, Color bgColor) {
             this.radius = radius;
             this.bgColor = bgColor;
             setOpaque(false);
         }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();

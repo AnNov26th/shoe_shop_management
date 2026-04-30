@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -16,17 +17,20 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import com.pbl_3project.bus.CustomerBUS;
+
 public class CustomerManagementPanel extends JPanel {
     private JTable tableCustomers;
     private JTextField txtSearch;
     private CustomerBUS customerBUS = new CustomerBUS();
+
     public CustomerManagementPanel() {
         setLayout(new BorderLayout(10, 10));
         setBackground(new Color(245, 245, 245));
         setBorder(new EmptyBorder(20, 20, 20, 20));
         initComponents();
-        loadDataToTable(""); 
+        loadDataToTable("");
     }
+
     private void initComponents() {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
@@ -83,13 +87,14 @@ public class CustomerManagementPanel extends JPanel {
                 new Font("Segoe UI", Font.BOLD, 13)));
         add(scrollPane, BorderLayout.CENTER);
         btnSearch.addActionListener(e -> loadDataToTable(txtSearch.getText()));
-        txtSearch.addActionListener(e -> loadDataToTable(txtSearch.getText())); 
+        txtSearch.addActionListener(e -> loadDataToTable(txtSearch.getText()));
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
             loadDataToTable("");
         });
         btnBan.addActionListener(e -> handleBanCustomer());
     }
+
     private void loadDataToTable(String keyword) {
         try {
             tableCustomers.setModel(customerBUS.getCustomerTableModel(keyword));
@@ -98,12 +103,13 @@ public class CustomerManagementPanel extends JPanel {
             if (tableCustomers.getColumnCount() > 0) {
                 tableCustomers.getColumnModel().getColumn(0).setCellRenderer(center);
                 tableCustomers.getColumnModel().getColumn(0).setPreferredWidth(50);
-                tableCustomers.getColumnModel().getColumn(4).setCellRenderer(center); 
+                tableCustomers.getColumnModel().getColumn(4).setCellRenderer(center);
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + ex.getMessage());
         }
     }
+
     private void handleBanCustomer() {
         int selectedRow = tableCustomers.getSelectedRow();
         if (selectedRow == -1) {

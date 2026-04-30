@@ -1,4 +1,5 @@
 package com.pbl_3project.dao;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,8 +9,10 @@ import java.util.List;
 import javax.swing.table.DefaultTableModel;
 import com.pbl_3project.dto.CartItem;
 import com.pbl_3project.util.DatabaseConnection;
+
 public class OrderDAO {
-    public boolean createOrder(String customerInfo, double totalAmount, List<CartItem> cartItems, String status) throws SQLException {
+    public boolean createOrder(String customerInfo, double totalAmount, List<CartItem> cartItems, String status)
+            throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtOrder = null;
         PreparedStatement pstmtDetail = null;
@@ -17,7 +20,7 @@ public class OrderDAO {
         ResultSet rs = null;
         try {
             conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false); 
+            conn.setAutoCommit(false);
             String orderCode = "ORD" + System.currentTimeMillis();
             String sqlOrder = "INSERT INTO [Order] (order_code, customer_id, customer_phone, subtotal, total_amount, final_amount, created_at, status) "
                     + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?)";
@@ -36,9 +39,9 @@ public class OrderDAO {
                 pstmtOrder.setNull(2, java.sql.Types.INTEGER);
             }
             pstmtOrder.setString(3, customerPhone);
-            pstmtOrder.setDouble(4, totalAmount); 
-            pstmtOrder.setDouble(5, totalAmount); 
-            pstmtOrder.setDouble(6, totalAmount); 
+            pstmtOrder.setDouble(4, totalAmount);
+            pstmtOrder.setDouble(5, totalAmount);
+            pstmtOrder.setDouble(6, totalAmount);
             pstmtOrder.setString(7, status);
             int affectedRows = pstmtOrder.executeUpdate();
             if (affectedRows == 0)
@@ -55,8 +58,8 @@ public class OrderDAO {
                 pstmtDetail.setInt(1, orderId);
                 pstmtDetail.setString(2, item.getSku());
                 pstmtDetail.setInt(3, item.getQuantity());
-                pstmtDetail.setDouble(4, item.getPrice()); 
-                pstmtDetail.setDouble(5, item.getPrice() * item.getQuantity()); 
+                pstmtDetail.setDouble(4, item.getPrice());
+                pstmtDetail.setDouble(5, item.getPrice() * item.getQuantity());
                 pstmtDetail.addBatch();
                 pstmtUpdateStock.setInt(1, item.getQuantity());
                 pstmtUpdateStock.setString(2, item.getSku());
@@ -68,7 +71,7 @@ public class OrderDAO {
             return true;
         } catch (SQLException ex) {
             if (conn != null)
-                conn.rollback(); 
+                conn.rollback();
             throw ex;
         } finally {
             if (rs != null)
@@ -85,7 +88,9 @@ public class OrderDAO {
             }
         }
     }
-    public boolean createOrderOnline(int customerId, String customerPhone, double subtotal, double discountAmount, double finalAmount, Integer promotionId, List<CartItem> cartItems, String status)
+
+    public boolean createOrderOnline(int customerId, String customerPhone, double subtotal, double discountAmount,
+            double finalAmount, Integer promotionId, List<CartItem> cartItems, String status)
             throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtOrder = null;
@@ -95,7 +100,7 @@ public class OrderDAO {
         ResultSet rs = null;
         try {
             conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false); 
+            conn.setAutoCommit(false);
             String orderCode = "ORD" + System.currentTimeMillis();
             String sqlOrder = "INSERT INTO [Order] (order_code, customer_id, customer_phone, subtotal, discount_amount, final_amount, created_at, status, promotion_id) "
                     + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?, ?)";
@@ -127,8 +132,8 @@ public class OrderDAO {
                 pstmtDetail.setInt(1, orderId);
                 pstmtDetail.setString(2, item.getSku());
                 pstmtDetail.setInt(3, item.getQuantity());
-                pstmtDetail.setDouble(4, item.getPrice()); 
-                pstmtDetail.setDouble(5, item.getPrice() * item.getQuantity()); 
+                pstmtDetail.setDouble(4, item.getPrice());
+                pstmtDetail.setDouble(5, item.getPrice() * item.getQuantity());
                 pstmtDetail.addBatch();
                 pstmtUpdateStock.setInt(1, item.getQuantity());
                 pstmtUpdateStock.setString(2, item.getSku());
@@ -146,7 +151,7 @@ public class OrderDAO {
             return true;
         } catch (SQLException ex) {
             if (conn != null)
-                conn.rollback(); 
+                conn.rollback();
             throw ex;
         } finally {
             if (rs != null)
@@ -165,6 +170,7 @@ public class OrderDAO {
             }
         }
     }
+
     public DefaultTableModel getAllOrdersByCustomer(int customerId) throws SQLException {
         String[] cols = { "ID", "Mã Đơn", "Số điện thoại", "Tổng Thanh Toán", "Ngày Đặt", "Trạng Thái" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
@@ -197,6 +203,7 @@ public class OrderDAO {
         }
         return model;
     }
+
     public DefaultTableModel getAllOrders(String keyword) throws SQLException {
         String[] cols = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Ngày Đặt", "Trạng Thái" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
@@ -236,6 +243,7 @@ public class OrderDAO {
         }
         return model;
     }
+
     public DefaultTableModel getOrderDetails(int orderId) throws SQLException {
         String[] cols = { "Sản phẩm", "Mã SKU", "Size", "Màu", "Số lượng", "Đơn giá", "Thành tiền" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
@@ -275,6 +283,7 @@ public class OrderDAO {
         }
         return model;
     }
+
     public boolean updateOrderStatus(int orderId, String newStatus) throws SQLException {
         String sql = "UPDATE [Order] SET status = ? WHERE id = ?";
         Connection conn = null;
@@ -292,6 +301,7 @@ public class OrderDAO {
                 DatabaseConnection.closeConnection(conn);
         }
     }
+
     public boolean cancelOrder(int orderId) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtStatus = null;
@@ -323,19 +333,25 @@ public class OrderDAO {
             }
             return false;
         } catch (SQLException ex) {
-            if (conn != null) conn.rollback();
+            if (conn != null)
+                conn.rollback();
             throw ex;
         } finally {
-            if (rs != null) rs.close();
-            if (pstmtStatus != null) pstmtStatus.close();
-            if (pstmtGetItems != null) pstmtGetItems.close();
-            if (pstmtUpdateStock != null) pstmtUpdateStock.close();
+            if (rs != null)
+                rs.close();
+            if (pstmtStatus != null)
+                pstmtStatus.close();
+            if (pstmtGetItems != null)
+                pstmtGetItems.close();
+            if (pstmtUpdateStock != null)
+                pstmtUpdateStock.close();
             if (conn != null) {
                 conn.setAutoCommit(true);
                 DatabaseConnection.closeConnection(conn);
             }
         }
     }
+
     public boolean processPayment(int orderId, String method, double amount) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtPay = null;
@@ -356,20 +372,25 @@ public class OrderDAO {
             conn.commit();
             return true;
         } catch (SQLException ex) {
-            if (conn != null) conn.rollback();
+            if (conn != null)
+                conn.rollback();
             throw ex;
         } finally {
-            if (pstmtPay != null) pstmtPay.close();
-            if (pstmtUpdateOrder != null) pstmtUpdateOrder.close();
+            if (pstmtPay != null)
+                pstmtPay.close();
+            if (pstmtUpdateOrder != null)
+                pstmtUpdateOrder.close();
             if (conn != null) {
                 conn.setAutoCommit(true);
                 DatabaseConnection.closeConnection(conn);
             }
         }
     }
+
     public boolean confirmReceipt(int orderId) throws SQLException {
         return updateOrderStatus(orderId, "Hoàn thành");
     }
+
     public boolean requestReturn(int orderId, String reason, String type, String details) throws SQLException {
         String sql = "UPDATE [Order] SET status = N'Yêu cầu Đổi/Trả', return_reason = ?, return_type = ?, return_details = ? WHERE id = ?";
         Connection conn = null;
@@ -383,7 +404,8 @@ public class OrderDAO {
             pstmt.setInt(4, orderId);
             return pstmt.executeUpdate() > 0;
         } finally {
-            if (pstmt != null) pstmt.close();
+            if (pstmt != null)
+                pstmt.close();
             DatabaseConnection.closeConnection(conn);
         }
     }
@@ -416,8 +438,10 @@ public class OrderDAO {
                 });
             }
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
+            if (rs != null)
+                rs.close();
+            if (pstmt != null)
+                pstmt.close();
             DatabaseConnection.closeConnection(conn);
         }
         return model;
@@ -455,13 +479,18 @@ public class OrderDAO {
                 conn.commit();
                 return true;
             } catch (SQLException ex) {
-                if (conn != null) conn.rollback();
+                if (conn != null)
+                    conn.rollback();
                 throw ex;
             } finally {
-                if (rs != null) rs.close();
-                if (pstmtStatus != null) pstmtStatus.close();
-                if (pstmtGetItems != null) pstmtGetItems.close();
-                if (pstmtUpdateStock != null) pstmtUpdateStock.close();
+                if (rs != null)
+                    rs.close();
+                if (pstmtStatus != null)
+                    pstmtStatus.close();
+                if (pstmtGetItems != null)
+                    pstmtGetItems.close();
+                if (pstmtUpdateStock != null)
+                    pstmtUpdateStock.close();
                 if (conn != null) {
                     conn.setAutoCommit(true);
                     DatabaseConnection.closeConnection(conn);

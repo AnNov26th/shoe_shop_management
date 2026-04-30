@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -29,11 +30,12 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import com.pbl_3project.bus.OrderBUS;
+
 public class OrderManagementPanel extends JPanel {
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color WHITE = Color.WHITE;
-    private static final Color ACCENT = new Color(34, 177, 76); 
-    private static final Color BTN_BLUE = new Color(56, 189, 248); 
+    private static final Color ACCENT = new Color(34, 177, 76);
+    private static final Color BTN_BLUE = new Color(56, 189, 248);
     private static final Color BTN_GRAY = new Color(148, 163, 184);
     private static final Color BTN_DANGER = new Color(239, 68, 68);
     private static final Color BORDER = new Color(226, 232, 240);
@@ -44,7 +46,8 @@ public class OrderManagementPanel extends JPanel {
     private static final Color DANGER_CLR = new Color(239, 68, 68);
     private static final Color WARNING = new Color(245, 158, 11);
     private static final String[] STATUSES = {
-            "Chưa thanh toán", "Đã thanh toán", "Đang giao", "Hoàn thành", "Đã hủy", "Yêu cầu Đổi/Trả", "Đã đổi/trả", "Từ chối đổi/trả"
+            "Chưa thanh toán", "Đã thanh toán", "Đang giao", "Hoàn thành", "Đã hủy", "Yêu cầu Đổi/Trả", "Đã đổi/trả",
+            "Từ chối đổi/trả"
     };
     private JTable tableOrders;
     private DefaultTableModel ordersModel;
@@ -56,6 +59,7 @@ public class OrderManagementPanel extends JPanel {
     private JComboBox<String> cmbStatus;
     private final OrderBUS orderBUS = new OrderBUS();
     private final boolean isAdmin;
+
     public OrderManagementPanel(boolean isAdmin) {
         this.isAdmin = isAdmin;
         setLayout(new BorderLayout(0, 0));
@@ -63,9 +67,11 @@ public class OrderManagementPanel extends JPanel {
         initComponents();
         loadOrders("");
     }
+
     public OrderManagementPanel() {
         this(true);
     }
+
     private void initComponents() {
         JPanel toolBar = new JPanel(new BorderLayout());
         toolBar.setBackground(WHITE);
@@ -114,12 +120,12 @@ public class OrderManagementPanel extends JPanel {
         };
         tableOrders = buildStyledTable(ordersModel);
         tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(0));
-        tableOrders.getColumnModel().getColumn(0).setPreferredWidth(100); 
-        tableOrders.getColumnModel().getColumn(1).setPreferredWidth(140); 
-        tableOrders.getColumnModel().getColumn(2).setPreferredWidth(110); 
-        tableOrders.getColumnModel().getColumn(3).setPreferredWidth(130); 
-        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(150); 
-        tableOrders.getColumnModel().getColumn(5).setPreferredWidth(130); 
+        tableOrders.getColumnModel().getColumn(0).setPreferredWidth(100);
+        tableOrders.getColumnModel().getColumn(1).setPreferredWidth(140);
+        tableOrders.getColumnModel().getColumn(2).setPreferredWidth(110);
+        tableOrders.getColumnModel().getColumn(3).setPreferredWidth(130);
+        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(150);
+        tableOrders.getColumnModel().getColumn(5).setPreferredWidth(130);
         tableOrders.getColumnModel().getColumn(5).setCellRenderer(new StatusRenderer());
         JScrollPane scrollOrders = buildScrollPane(tableOrders);
         JPanel panelOrders = new JPanel(new BorderLayout());
@@ -206,19 +212,20 @@ public class OrderManagementPanel extends JPanel {
         });
         btnUpdateStatus.addActionListener(e -> handleUpdateStatus());
     }
+
     private void loadOrders(String keyword) {
         try {
             DefaultTableModel model = orderBUS.getAllOrders(keyword);
             ordersModel.setRowCount(0);
             for (int i = 0; i < model.getRowCount(); i++) {
                 ordersModel.addRow(new Object[] {
-                        model.getValueAt(i, 0), 
-                        model.getValueAt(i, 1), 
-                        model.getValueAt(i, 2), 
-                        model.getValueAt(i, 3), 
-                        model.getValueAt(i, 4), 
-                        model.getValueAt(i, 5), 
-                        model.getValueAt(i, 6) 
+                        model.getValueAt(i, 0),
+                        model.getValueAt(i, 1),
+                        model.getValueAt(i, 2),
+                        model.getValueAt(i, 3),
+                        model.getValueAt(i, 4),
+                        model.getValueAt(i, 5),
+                        model.getValueAt(i, 6)
                 });
             }
             lblTotalOrders.setText(model.getRowCount() + " đơn");
@@ -234,6 +241,7 @@ public class OrderManagementPanel extends JPanel {
                     "Lỗi tải dữ liệu: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     private void loadOrderDetail(int orderId, String currentStatus) {
         try {
             DefaultTableModel model = orderBUS.getOrderDetails(orderId);
@@ -257,6 +265,7 @@ public class OrderManagementPanel extends JPanel {
                     "Lỗi tải chi tiết: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     private void handleUpdateStatus() {
         int viewRow = tableOrders.getSelectedRow();
         if (viewRow < 0) {
@@ -283,6 +292,7 @@ public class OrderManagementPanel extends JPanel {
             }
         }
     }
+
     private JTable buildStyledTable(DefaultTableModel model) {
         JTable table = new JTable(model) {
             @Override
@@ -292,7 +302,7 @@ public class OrderManagementPanel extends JPanel {
                     c.setBackground(row % 2 == 0 ? WHITE : new Color(248, 250, 252));
                     c.setForeground(TEXT_H);
                 } else {
-                    c.setBackground(new Color(220, 252, 231)); 
+                    c.setBackground(new Color(220, 252, 231));
                     c.setForeground(TEXT_H);
                 }
                 return c;
@@ -319,6 +329,7 @@ public class OrderManagementPanel extends JPanel {
         }
         return table;
     }
+
     private JScrollPane buildScrollPane(JTable table) {
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(null);
@@ -326,6 +337,7 @@ public class OrderManagementPanel extends JPanel {
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         return scroll;
     }
+
     private JPanel buildSectionTitle(String text) {
         JPanel p = new JPanel(new BorderLayout());
         p.setOpaque(false);
@@ -336,6 +348,7 @@ public class OrderManagementPanel extends JPanel {
         p.add(lbl, BorderLayout.WEST);
         return p;
     }
+
     private JButton createRoundButton(String text, Color color) {
         JButton btn = new JButton(text) {
             @Override
@@ -360,6 +373,7 @@ public class OrderManagementPanel extends JPanel {
         btn.setBorder(new EmptyBorder(8, 16, 8, 16));
         return btn;
     }
+
     private Color getStatusColor(String status) {
         if (status == null)
             return TEXT_S;
@@ -384,6 +398,7 @@ public class OrderManagementPanel extends JPanel {
                 return TEXT_S;
         }
     }
+
     class StatusRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,

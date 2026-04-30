@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -7,15 +8,17 @@ import com.pbl_3project.bus.CartBUS;
 import com.pbl_3project.dto.CartItem;
 import com.pbl_3project.util.IconUtils;
 import com.pbl_3project.util.TimeDisplayPanel;
+
 public class CustomerForm extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainContentPanel;
     private CartBUS cartBUS;
-    private int customerId; 
+    private int customerId;
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color NAV_BG = Color.WHITE;
     private static final Color BORDER_COLOR = new Color(226, 232, 240);
     private static final Color NAV_TEXT = new Color(15, 23, 42);
+
     public CustomerForm(int customerId) {
         this.customerId = customerId;
         this.cartBUS = new CartBUS();
@@ -27,6 +30,7 @@ public class CustomerForm extends JFrame {
         setLayout(new BorderLayout());
         initComponents();
     }
+
     private void initComponents() {
         JPanel topHeaderWrapper = new JPanel();
         topHeaderWrapper.setLayout(new BoxLayout(topHeaderWrapper, BoxLayout.Y_AXIS));
@@ -128,11 +132,11 @@ public class CustomerForm extends JFrame {
         mainContentPanel.add(orderPanel, "Orders");
         mainContentPanel.add(cartPanel, "Cart");
         add(mainContentPanel, BorderLayout.CENTER);
-        updateCartBadge.run(); 
+        updateCartBadge.run();
         btnLogo.addActionListener(e -> cardLayout.show(mainContentPanel, "Shop"));
         btnProfile.addActionListener(e -> cardLayout.show(mainContentPanel, "Profile"));
         btnOrders.addActionListener(e -> {
-            orderPanel.refresh(); 
+            orderPanel.refresh();
             cardLayout.show(mainContentPanel, "Orders");
         });
         btnCart.addActionListener(e -> {
@@ -148,6 +152,7 @@ public class CustomerForm extends JFrame {
             }
         });
     }
+
     private JButton createNavButton(String text, boolean isAccent) {
         JButton btn = new JButton(text) {
             @Override
@@ -186,12 +191,14 @@ public class CustomerForm extends JFrame {
         btn.setBorder(new EmptyBorder(8, 14, 8, 14));
         return btn;
     }
+
     private JLabel makeDivider() {
         JLabel div = new JLabel("|");
         div.setForeground(new Color(203, 213, 225));
         div.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         return div;
     }
+
     private JPanel createDummyPanel(String title) {
         JPanel p = new JPanel(new BorderLayout());
         p.setBackground(BG_CONTENT);
@@ -201,6 +208,7 @@ public class CustomerForm extends JFrame {
         p.add(lbl, BorderLayout.CENTER);
         return p;
     }
+
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

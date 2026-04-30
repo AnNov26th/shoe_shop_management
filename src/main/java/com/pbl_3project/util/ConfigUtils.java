@@ -1,13 +1,16 @@
 package com.pbl_3project.util;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+
 public class ConfigUtils {
-    private static int RESERVE_DURATION_MINUTES = 5; 
+    private static int RESERVE_DURATION_MINUTES = 5;
     private static boolean cacheLoaded = false;
     static {
         loadConfigFromDB();
     }
+
     public static void loadConfigFromDB() {
         if (cacheLoaded)
             return;
@@ -40,15 +43,19 @@ public class ConfigUtils {
             }
         }
     }
+
     public static int getReserveDurationMinutes() {
         return RESERVE_DURATION_MINUTES;
     }
+
     public static void setReserveDurationMinutes(int minutes) {
         RESERVE_DURATION_MINUTES = minutes;
     }
+
     public static long getReserveDurationMillis() {
         return (long) RESERVE_DURATION_MINUTES * 60 * 1000;
     }
+
     public static String getSQLExpireDateTime() {
         return "DATEADD(minute, " + RESERVE_DURATION_MINUTES + ", GETDATE())";
     }

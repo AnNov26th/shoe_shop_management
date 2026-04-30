@@ -1,4 +1,5 @@
 package com.pbl_3project.dao;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.table.DefaultTableModel;
 import com.pbl_3project.util.DatabaseConnection;
+
 public class DashboardDAO {
     public Map<String, Object> getQuickStats() throws SQLException {
         Map<String, Object> stats = new HashMap<>();
@@ -38,6 +40,7 @@ public class DashboardDAO {
         }
         return stats;
     }
+
     public DefaultTableModel getBrandStatistics() throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -71,44 +74,48 @@ public class DashboardDAO {
         }
         return model;
     }
+
     public DefaultTableModel getMonthlyRevenueStatistics() throws SQLException {
         String[] cols = { "Tháng/Năm", "Số Đơn Hàng", "Doanh Thu (VNĐ)" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
-        String sql = "SELECT FORMAT(created_at, 'MM/yyyy') as month_year, COUNT(id) as order_count, SUM(final_amount) as revenue " +
-                     "FROM [Order] WHERE status != N'Đã hủy' " +
-                     "GROUP BY FORMAT(created_at, 'MM/yyyy') " +
-                     "ORDER BY MIN(created_at) DESC";
+        String sql = "SELECT FORMAT(created_at, 'MM/yyyy') as month_year, COUNT(id) as order_count, SUM(final_amount) as revenue "
+                +
+                "FROM [Order] WHERE status != N'Đã hủy' " +
+                "GROUP BY FORMAT(created_at, 'MM/yyyy') " +
+                "ORDER BY MIN(created_at) DESC";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("month_year"),
-                    rs.getInt("order_count") + " Đơn",
-                    String.format("%,.0f", rs.getDouble("revenue"))
+                model.addRow(new Object[] {
+                        rs.getString("month_year"),
+                        rs.getInt("order_count") + " Đơn",
+                        String.format("%,.0f", rs.getDouble("revenue"))
                 });
             }
         }
         return model;
     }
+
     public DefaultTableModel getEmployeeRevenueStatistics() throws SQLException {
         String[] cols = { "Nhân Viên / Nguồn", "Số Đơn Phục Vụ", "Doanh Thu Đóng Góp (VNĐ)" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
-        String sql = "SELECT CASE WHEN o.employee_id IS NULL THEN N'Đơn Khách Online' ELSE u.full_name END as seller, " +
-                     "COUNT(o.id) as order_count, SUM(o.final_amount) as revenue " +
-                     "FROM [Order] o " +
-                     "LEFT JOIN [User] u ON o.employee_id = u.id " +
-                     "WHERE o.status != N'Đã hủy' " +
-                     "GROUP BY o.employee_id, u.full_name " +
-                     "ORDER BY revenue DESC";
+        String sql = "SELECT CASE WHEN o.employee_id IS NULL THEN N'Đơn Khách Online' ELSE u.full_name END as seller, "
+                +
+                "COUNT(o.id) as order_count, SUM(o.final_amount) as revenue " +
+                "FROM [Order] o " +
+                "LEFT JOIN [User] u ON o.employee_id = u.id " +
+                "WHERE o.status != N'Đã hủy' " +
+                "GROUP BY o.employee_id, u.full_name " +
+                "ORDER BY revenue DESC";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("seller"),
-                    rs.getInt("order_count") + " Đơn",
-                    String.format("%,.0f", rs.getDouble("revenue"))
+                model.addRow(new Object[] {
+                        rs.getString("seller"),
+                        rs.getInt("order_count") + " Đơn",
+                        String.format("%,.0f", rs.getDouble("revenue"))
                 });
             }
         }

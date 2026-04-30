@@ -1,10 +1,12 @@
 package com.pbl_3project.gui;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.Map;
 import com.pbl_3project.dao.UserDAO;
+
 public class CustomerInfoDialog extends JDialog {
     private JTextField txtPhone, txtName, txtEmail;
     private JCheckBox chkCreateAccount;
@@ -14,10 +16,12 @@ public class CustomerInfoDialog extends JDialog {
     private String customerPhone = "";
     private String customerName = "Khách vãng lai";
     private UserDAO userDAO = new UserDAO();
+
     public CustomerInfoDialog(Frame parent) {
         super(parent, "Thông tin khách hàng", true);
         initComponents();
     }
+
     private void initComponents() {
         setLayout(new BorderLayout());
         setSize(400, 450);
@@ -28,7 +32,8 @@ public class CustomerInfoDialog extends JDialog {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 5, 10, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         mainPanel.add(new JLabel("Số điện thoại:"), gbc);
         JPanel phonePanel = new JPanel(new BorderLayout(5, 0));
         phonePanel.setOpaque(false);
@@ -40,18 +45,21 @@ public class CustomerInfoDialog extends JDialog {
         phonePanel.add(btnSearch, BorderLayout.EAST);
         gbc.gridx = 1;
         mainPanel.add(phonePanel, gbc);
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         mainPanel.add(new JLabel("Họ tên:"), gbc);
         txtName = new JTextField();
         txtName.setPreferredSize(new Dimension(200, 35));
         gbc.gridx = 1;
         mainPanel.add(txtName, gbc);
-        gbc.gridx = 1; gbc.gridy = 2;
+        gbc.gridx = 1;
+        gbc.gridy = 2;
         chkCreateAccount = new JCheckBox("Tạo tài khoản thành viên?");
         chkCreateAccount.setOpaque(false);
         chkCreateAccount.addActionListener(e -> txtEmail.setEnabled(chkCreateAccount.isSelected()));
         mainPanel.add(chkCreateAccount, gbc);
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
         mainPanel.add(new JLabel("Email:"), gbc);
         txtEmail = new JTextField();
         txtEmail.setEnabled(false);
@@ -74,9 +82,11 @@ public class CustomerInfoDialog extends JDialog {
         btnPanel.add(btnConfirm);
         add(btnPanel, BorderLayout.SOUTH);
     }
+
     private void searchCustomer() {
         String phone = txtPhone.getText().trim();
-        if (phone.isEmpty()) return;
+        if (phone.isEmpty())
+            return;
         try {
             Map<String, String> customer = userDAO.findCustomerByPhone(phone);
             if (customer != null) {
@@ -99,6 +109,7 @@ public class CustomerInfoDialog extends JDialog {
             e.printStackTrace();
         }
     }
+
     private void handleConfirm() {
         customerPhone = txtPhone.getText().trim();
         customerName = txtName.getText().trim();
@@ -123,8 +134,20 @@ public class CustomerInfoDialog extends JDialog {
         confirmed = true;
         dispose();
     }
-    public boolean isConfirmed() { return confirmed; }
-    public int getCustomerId() { return customerId; }
-    public String getCustomerPhone() { return customerPhone; }
-    public String getCustomerName() { return customerName; }
+
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
 }

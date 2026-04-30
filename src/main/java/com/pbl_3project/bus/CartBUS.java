@@ -1,15 +1,20 @@
 package com.pbl_3project.bus;
+
 import java.util.ArrayList;
 import java.util.List;
 import com.pbl_3project.dto.CartItem;
+
 public class CartBUS {
     private List<CartItem> cartItems;
+
     public CartBUS() {
         this.cartItems = new ArrayList<>();
     }
+
     public List<CartItem> getCartItems() {
         return cartItems;
     }
+
     public void addItem(CartItem newItem) throws Exception {
         for (CartItem item : cartItems) {
             if (item.getSku().equals(newItem.getSku())) {
@@ -18,7 +23,7 @@ public class CartBUS {
                     throw new Exception("Không đủ số lượng tồn kho! (Tối đa: " + item.getStock() + ")");
                 }
                 item.setQuantity(newQty);
-                return; 
+                return;
             }
         }
         if (newItem.getQuantity() > newItem.getStock()) {
@@ -26,6 +31,7 @@ public class CartBUS {
         }
         cartItems.add(newItem);
     }
+
     public void updateQuantity(int index, int newQty) throws Exception {
         CartItem item = cartItems.get(index);
         if (newQty > item.getStock()) {
@@ -33,14 +39,17 @@ public class CartBUS {
         }
         item.setQuantity(newQty);
     }
+
     public void removeItem(int index) {
         if (index >= 0 && index < cartItems.size()) {
             cartItems.remove(index);
         }
     }
+
     public void clearCart() {
         cartItems.clear();
     }
+
     public double calculateTotalAmount() {
         double total = 0;
         for (CartItem item : cartItems) {

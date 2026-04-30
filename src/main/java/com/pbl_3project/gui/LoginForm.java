@@ -180,7 +180,6 @@ public class LoginForm extends JFrame {
             dialog.setVisible(true);
         });
 
-
         getRootPane().setDefaultButton(btnLogin);
     }
 

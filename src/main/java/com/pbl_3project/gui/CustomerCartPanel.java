@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -31,6 +32,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import com.pbl_3project.bus.CartBUS;
 import com.pbl_3project.dto.CartItem;
+
 public class CustomerCartPanel extends JPanel {
     private JTable tableCart;
     private DefaultTableModel cartModel;
@@ -49,6 +51,7 @@ public class CustomerCartPanel extends JPanel {
     private static final Color BORDER = new Color(226, 232, 240);
     private static final Color TEXT_H = new Color(15, 23, 42);
     private static final Color TEXT_S = new Color(100, 116, 139);
+
     public CustomerCartPanel(int customerId, CartBUS cartBUS, Runnable updateCartBadge) {
         this.customerId = customerId;
         this.cartBUS = cartBUS;
@@ -57,6 +60,7 @@ public class CustomerCartPanel extends JPanel {
         setBackground(BG);
         initComponents();
     }
+
     private void initComponents() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(245, 245, 245));
@@ -175,15 +179,14 @@ public class CustomerCartPanel extends JPanel {
         txtCoupon = new JTextField(12);
         txtCoupon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtCoupon.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(BORDER, 1, true),
-            new EmptyBorder(8, 12, 8, 12)
-        ));
+                BorderFactory.createLineBorder(BORDER, 1, true),
+                new EmptyBorder(8, 12, 8, 12)));
         JButton btnApply = new JButton("Áp dụng") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(56, 189, 248)); 
+                g2.setColor(new Color(56, 189, 248));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
                 g2.dispose();
                 super.paintComponent(g);
@@ -245,6 +248,7 @@ public class CustomerCartPanel extends JPanel {
         footer.add(bottomRight, BorderLayout.EAST);
         add(footer, BorderLayout.SOUTH);
     }
+
     private void handleCheckout() {
         if (cartBUS.getCartItems().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Giỏ hàng của bạn đang trống!", "Thông báo",
@@ -257,30 +261,34 @@ public class CustomerCartPanel extends JPanel {
         }
         double subtotal = cartBUS.calculateTotalAmount();
         double finalAmount = subtotal - discountAmount;
-        if (finalAmount < 0) finalAmount = 0;
-        String[] paymentMethods = {"Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Quét mã QR"};
-        int methodChoice = JOptionPane.showOptionDialog(this, 
+        if (finalAmount < 0)
+            finalAmount = 0;
+        String[] paymentMethods = { "Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Quét mã QR" };
+        int methodChoice = JOptionPane.showOptionDialog(this,
                 "Chọn phương thức thanh toán cho đơn hàng của bạn:",
                 "Phương thức thanh toán",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
                 null, paymentMethods, paymentMethods[0]);
-        if (methodChoice == -1) return; 
+        if (methodChoice == -1)
+            return;
         boolean isPaymentConfirmed = false;
         String status = "Chưa thanh toán";
-        if (methodChoice == 1) { 
-            PaymentQRDialog qrDialog = new PaymentQRDialog((Frame) SwingUtilities.getWindowAncestor(this), finalAmount, "KH" + customerId + "_" + System.currentTimeMillis() % 10000);
+        if (methodChoice == 1) {
+            PaymentQRDialog qrDialog = new PaymentQRDialog((Frame) SwingUtilities.getWindowAncestor(this), finalAmount,
+                    "KH" + customerId + "_" + System.currentTimeMillis() % 10000);
             qrDialog.setVisible(true);
             if (qrDialog.isPaymentSuccessful()) {
                 isPaymentConfirmed = true;
                 status = "Đã thanh toán";
             } else {
-                JOptionPane.showMessageDialog(this, "Thanh toán đã bị hủy hoặc chưa hoàn tất.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Thanh toán đã bị hủy hoặc chưa hoàn tất.", "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
-        } else { 
+        } else {
             int confirm = JOptionPane.showConfirmDialog(this,
-                "Xác nhận đặt hàng (COD) với tổng tiền: " + String.format("%,.0f VNĐ", finalAmount) + "?",
-                "Xác nhận đơn hàng", JOptionPane.YES_NO_OPTION);
+                    "Xác nhận đặt hàng (COD) với tổng tiền: " + String.format("%,.0f VNĐ", finalAmount) + "?",
+                    "Xác nhận đơn hàng", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 isPaymentConfirmed = true;
                 status = "Chưa thanh toán";
@@ -290,19 +298,19 @@ public class CustomerCartPanel extends JPanel {
             try {
                 com.pbl_3project.dao.OrderDAO orderDAO = new com.pbl_3project.dao.OrderDAO();
                 boolean success = orderDAO.createOrderOnline(
-                        this.customerId, 
-                        phone, 
-                        subtotal, 
-                        discountAmount, 
-                        finalAmount, 
-                        (currentPromoId > 0 ? currentPromoId : null), 
+                        this.customerId,
+                        phone,
+                        subtotal,
+                        discountAmount,
+                        finalAmount,
+                        (currentPromoId > 0 ? currentPromoId : null),
                         cartBUS.getCartItems(),
-                        status
-                );
+                        status);
                 if (success) {
                     if (methodChoice == 1) {
                     }
-                    JOptionPane.showMessageDialog(this, "🎉 " + (methodChoice == 1 ? "Thanh toán và đặt hàng" : "Đặt hàng") + " thành công!");
+                    JOptionPane.showMessageDialog(this,
+                            "🎉 " + (methodChoice == 1 ? "Thanh toán và đặt hàng" : "Đặt hàng") + " thành công!");
                     new com.pbl_3project.dao.CartDAO().clearCartByUserId(this.customerId);
                     cartBUS.clearCart();
                     currentPromoId = -1;
@@ -315,6 +323,7 @@ public class CustomerCartPanel extends JPanel {
             }
         }
     }
+
     private void handleApplyCoupon() {
         String code = txtCoupon.getText().trim();
         if (code.isEmpty()) {
@@ -332,11 +341,13 @@ public class CustomerCartPanel extends JPanel {
             double maxD = (double) promo[4];
             if (type.equalsIgnoreCase("Percentage")) {
                 discountAmount = total * (val / 100.0);
-                if (maxD > 0 && discountAmount > maxD) discountAmount = maxD;
+                if (maxD > 0 && discountAmount > maxD)
+                    discountAmount = maxD;
             } else {
                 discountAmount = val;
             }
-            JOptionPane.showMessageDialog(this, "✅ Đã áp dụng mã giảm giá: -" + String.format("%,.0f", discountAmount) + " VNĐ");
+            JOptionPane.showMessageDialog(this,
+                    "✅ Đã áp dụng mã giảm giá: -" + String.format("%,.0f", discountAmount) + " VNĐ");
             refreshCartGUI();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi mã giảm giá", JOptionPane.WARNING_MESSAGE);
@@ -345,6 +356,7 @@ public class CustomerCartPanel extends JPanel {
             refreshCartGUI();
         }
     }
+
     private void handleQuantityChange(int rowIndex, int newQty) {
         try {
             if (newQty <= 0) {
@@ -361,6 +373,7 @@ public class CustomerCartPanel extends JPanel {
             refreshCartGUI();
         }
     }
+
     public void refreshCartGUI() {
         isUpdatingTable = true;
         cartModel.setRowCount(0);
@@ -374,11 +387,12 @@ public class CustomerCartPanel extends JPanel {
         }
         double total = cartBUS.calculateTotalAmount();
         double finalTotal = total - discountAmount;
-        if (finalTotal < 0) finalTotal = 0;
+        if (finalTotal < 0)
+            finalTotal = 0;
         if (discountAmount > 0) {
-            lblTotalAmount.setText("<html><body style='text-align:right'><font size='4' color='gray'><s>" + 
-                String.format("%,.0f", total) + "</s></font><br>" + 
-                String.format("%,.0f VNĐ", finalTotal) + "</body></html>");
+            lblTotalAmount.setText("<html><body style='text-align:right'><font size='4' color='gray'><s>" +
+                    String.format("%,.0f", total) + "</s></font><br>" +
+                    String.format("%,.0f VNĐ", finalTotal) + "</body></html>");
         } else {
             lblTotalAmount.setText(String.format("%,.0f VNĐ", total));
         }
@@ -386,11 +400,13 @@ public class CustomerCartPanel extends JPanel {
         if (updateCartBadge != null)
             updateCartBadge.run();
     }
+
     class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(false);
             setFont(new Font("Segoe UI", Font.BOLD, 18));
         }
+
         @Override
         public Component getTableCellRendererComponent(JTable t, Object v,
                 boolean sel, boolean foc, int row, int col) {

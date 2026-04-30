@@ -1,10 +1,12 @@
 package com.pbl_3project.dao;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import com.pbl_3project.util.DatabaseConnection;
+
 public class CartDAO {
     public int getOrCreateCart(int userId) throws SQLException {
         Connection conn = null;
@@ -38,6 +40,7 @@ public class CartDAO {
         }
         return cartId;
     }
+
     public boolean addToCartOnline(int userId, String skuCode, int quantity) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -83,6 +86,7 @@ public class CartDAO {
             DatabaseConnection.closeConnection(conn);
         }
     }
+
     public boolean holdItemForPOS(int staffId, String skuCode, int quantity) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtCheckStock = null;
@@ -154,6 +158,7 @@ public class CartDAO {
             }
         }
     }
+
     public boolean removeFromCart(int userId, String skuCode) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -201,6 +206,7 @@ public class CartDAO {
             }
         }
     }
+
     public boolean clearCartByUserId(int userId) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;

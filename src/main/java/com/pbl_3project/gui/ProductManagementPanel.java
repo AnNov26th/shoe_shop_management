@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -32,25 +33,28 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import com.pbl_3project.bus.ProductBUS;
+
 public class ProductManagementPanel extends JPanel {
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color CARD_BG = Color.WHITE;
     private static final Color BORDER_COLOR = new Color(226, 232, 240);
     private static final Color TEXT_MAIN = new Color(15, 23, 42);
     private static final Color TEXT_SUB = new Color(100, 116, 139);
-    private static final Color BTN_PRIMARY = new Color(56, 189, 248); 
-    private static final Color BTN_SUCCESS = new Color(74, 222, 128); 
-    private static final Color BTN_DANGER = new Color(248, 113, 113); 
-    private static final Color BTN_SECONDARY = new Color(148, 163, 184); 
+    private static final Color BTN_PRIMARY = new Color(56, 189, 248);
+    private static final Color BTN_SUCCESS = new Color(74, 222, 128);
+    private static final Color BTN_DANGER = new Color(248, 113, 113);
+    private static final Color BTN_SECONDARY = new Color(148, 163, 184);
     private JPanel productGrid;
     private ProductBUS productBUS = new ProductBUS();
     private JTextField txtSearch;
+
     public ProductManagementPanel() {
         setLayout(new BorderLayout(0, 0));
         setBackground(BG_CONTENT);
         initComponents();
         loadProducts("");
     }
+
     private void initComponents() {
         JPanel toolBarWrapper = new JPanel(new BorderLayout());
         toolBarWrapper.setBackground(CARD_BG);
@@ -86,7 +90,7 @@ public class ProductManagementPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(productGrid);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(BG_CONTENT);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(20); 
+        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
         add(toolBarWrapper, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         btnRefresh.addActionListener(e -> {
@@ -101,6 +105,7 @@ public class ProductManagementPanel extends JPanel {
             dialog.setVisible(true);
         });
     }
+
     private JButton createButton(String text, Color bgColor, Color fgColor) {
         JButton btn = new JButton(text) {
             @Override
@@ -126,6 +131,7 @@ public class ProductManagementPanel extends JPanel {
         btn.setBorder(new EmptyBorder(8, 18, 8, 18));
         return btn;
     }
+
     private void loadProducts(String keyword) {
         try {
             productGrid.removeAll();
@@ -151,6 +157,7 @@ public class ProductManagementPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Lỗi tải sản phẩm: " + e.getMessage());
         }
     }
+
     private JPanel createAdminProductCard(int productId, String name, double price, String sampleColor, String stock) {
         JPanel shadow = new JPanel(new BorderLayout()) {
             @Override
@@ -217,7 +224,7 @@ public class ProductManagementPanel extends JPanel {
         lblStock.setAlignmentX(Component.CENTER_ALIGNMENT);
         JLabel lblPrice = new JLabel(String.format("%,.0f VNĐ", price), SwingConstants.CENTER);
         lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblPrice.setForeground(new Color(239, 68, 68)); 
+        lblPrice.setForeground(new Color(239, 68, 68));
         lblPrice.setAlignmentX(Component.CENTER_ALIGNMENT);
         JPanel btnPanel = new JPanel(new GridLayout(1, 2, 8, 0));
         btnPanel.setOpaque(false);

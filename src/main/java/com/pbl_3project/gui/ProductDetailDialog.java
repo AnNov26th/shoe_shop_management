@@ -48,9 +48,9 @@ public class ProductDetailDialog extends JDialog {
         this.currentUserId = (userId != null) ? userId : -1;
         this.cartBUS = cartBUS;
         this.onSuccess = onSuccess;
-        setSize(1000, 750); 
+        setSize(1000, 750);
         setMinimumSize(new Dimension(800, 600));
-        setResizable(true); 
+        setResizable(true);
         setLocationRelativeTo(parent);
         initComponents();
         loadVariants();
@@ -62,10 +62,9 @@ public class ProductDetailDialog extends JDialog {
         mainContent.setBackground(BG_COLOR);
         mainContent.setBorder(new EmptyBorder(25, 25, 25, 25));
 
-
         JPanel infoSection = new JPanel(new BorderLayout(20, 20));
         infoSection.setBackground(BG_COLOR);
-        
+
         RoundedPanel imageCard = new RoundedPanel(25, CARD_BG);
         imageCard.setLayout(new BorderLayout());
         imageCard.setPreferredSize(new Dimension(400, 400));
@@ -85,7 +84,7 @@ public class ProductDetailDialog extends JDialog {
         lblName.setForeground(TEXT_MAIN);
         JLabel lblPrice = new JLabel(String.format("Giá: %,.0f VNĐ", basePrice));
         lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblPrice.setForeground(new Color(238, 77, 45)); 
+        lblPrice.setForeground(new Color(238, 77, 45));
         headerPanel.add(lblName);
         headerPanel.add(Box.createVerticalStrut(10));
         headerPanel.add(lblPrice);
@@ -134,7 +133,6 @@ public class ProductDetailDialog extends JDialog {
         mainContent.add(infoSection);
         mainContent.add(Box.createVerticalStrut(30));
 
-
         JPanel reviewSection = new JPanel(new BorderLayout(0, 15));
         reviewSection.setBackground(BG_COLOR);
         JLabel lblReviewTitle = new JLabel("ĐÁNH GIÁ SẢN PHẨM");
@@ -145,7 +143,7 @@ public class ProductDetailDialog extends JDialog {
         JPanel reviewsList = new JPanel();
         reviewsList.setLayout(new BoxLayout(reviewsList, BoxLayout.Y_AXIS));
         reviewsList.setBackground(BG_COLOR);
-        
+
         loadReviews(reviewsList);
 
         if (reviewsList.getComponentCount() == 0) {
@@ -192,7 +190,8 @@ public class ProductDetailDialog extends JDialog {
                 revTop.setOpaque(false);
                 JLabel lblAvatar = new JLabel("👤");
                 lblAvatar.setFont(new Font("Segoe UI", Font.PLAIN, 24));
-                JLabel lblUser = new JLabel("<html><b>" + uName + "</b><br><span style='color:gray;font-size:9px'>" + date.toString() + "</span></html>");
+                JLabel lblUser = new JLabel("<html><b>" + uName + "</b><br><span style='color:gray;font-size:9px'>"
+                        + date.toString() + "</span></html>");
                 lblUser.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                 revTop.add(lblAvatar);
                 revTop.add(lblUser);
@@ -205,7 +204,7 @@ public class ProductDetailDialog extends JDialog {
                 lblStars.setForeground(new Color(245, 158, 11));
                 revTop.add(Box.createHorizontalStrut(20));
                 revTop.add(lblStars);
-                
+
                 if (variantInfo != null && !variantInfo.isEmpty()) {
                     JLabel lblRevVar = new JLabel("Phân loại: " + variantInfo);
                     lblRevVar.setFont(new Font("Segoe UI", Font.ITALIC, 11));
@@ -213,7 +212,7 @@ public class ProductDetailDialog extends JDialog {
                     revTop.add(Box.createHorizontalStrut(15));
                     revTop.add(lblRevVar);
                 }
-                
+
                 revCard.add(revTop, BorderLayout.NORTH);
 
                 JPanel revContent = new JPanel(new BorderLayout(10, 10));
@@ -264,7 +263,8 @@ public class ProductDetailDialog extends JDialog {
 
     private void updateProductImage() {
         int row = tableVariants.getSelectedRow();
-        if (row == -1) return;
+        if (row == -1)
+            return;
         String colorName = tableVariants.getValueAt(row, 2).toString();
         String colorEn = "";
         if (colorName.contains("(") && colorName.contains(")")) {
@@ -308,7 +308,8 @@ public class ProductDetailDialog extends JDialog {
                     cartBUS.addItem(new CartItem(sku, productName, size, color, basePrice, qty, stock));
                 }
                 JOptionPane.showMessageDialog(this, "Đã thêm vào giỏ hàng thành công!");
-                if (onSuccess != null) onSuccess.run();
+                if (onSuccess != null)
+                    onSuccess.run();
                 dispose();
             }
         } catch (Exception ex) {
@@ -334,10 +335,12 @@ public class ProductDetailDialog extends JDialog {
             String color = tableVariants.getValueAt(row, 2).toString();
             try {
                 CartItem newItem = new CartItem(sku, productName, size, color, basePrice, qty, stock);
-                newItem.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(com.pbl_3project.util.ConfigUtils.getReserveDurationMinutes()));
+                newItem.setExpiresAt(java.time.LocalDateTime.now()
+                        .plusMinutes(com.pbl_3project.util.ConfigUtils.getReserveDurationMinutes()));
                 cartBUS.addItem(newItem);
                 JOptionPane.showMessageDialog(this, "Đã thêm vào giỏ hàng POS thành công!");
-                if (onSuccess != null) onSuccess.run();
+                if (onSuccess != null)
+                    onSuccess.run();
                 dispose();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
@@ -384,11 +387,13 @@ public class ProductDetailDialog extends JDialog {
     class RoundedPanel extends JPanel {
         private int radius;
         private Color bgColor;
+
         public RoundedPanel(int radius, Color bgColor) {
             this.radius = radius;
             this.bgColor = bgColor;
             setOpaque(false);
         }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();

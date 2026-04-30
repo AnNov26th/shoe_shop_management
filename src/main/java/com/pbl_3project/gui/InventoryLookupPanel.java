@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -8,11 +9,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import com.pbl_3project.bus.ProductBUS;
+
 public class InventoryLookupPanel extends JPanel {
     private JPanel productGrid;
     private JTextField txtSearch;
     private ProductBUS productBUS = new ProductBUS();
     private int currentStaffId;
+
     public InventoryLookupPanel(int staffId) {
         this.currentStaffId = staffId;
         setLayout(new BorderLayout(10, 10));
@@ -21,10 +24,11 @@ public class InventoryLookupPanel extends JPanel {
         initComponents();
         loadInventory("");
     }
+
     private void initComponents() {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
-        JLabel lblTitle = new JLabel("📦 TRA CỨU TỒN KHO TRỰC TUYẾN");
+        JLabel lblTitle = new JLabel("TRA CỨU TỒN KHO TRỰC TUYẾN");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(new Color(15, 23, 42));
         lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
@@ -55,6 +59,7 @@ public class InventoryLookupPanel extends JPanel {
         btnSearch.addActionListener(e -> loadInventory(txtSearch.getText()));
         txtSearch.addActionListener(e -> loadInventory(txtSearch.getText()));
     }
+
     private void loadInventory(String keyword) {
         try {
             productGrid.removeAll();
@@ -73,6 +78,7 @@ public class InventoryLookupPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Lỗi tải kho: " + e.getMessage());
         }
     }
+
     private JPanel createInventoryCard(int id, String name, double price, String color, int stock) {
         JPanel shadow = new JPanel(new BorderLayout()) {
             @Override
@@ -153,6 +159,7 @@ public class InventoryLookupPanel extends JPanel {
         shadow.add(card, BorderLayout.CENTER);
         return shadow;
     }
+
     private JButton createPillButton(String text, Color bgColor, Color fgColor) {
         JButton btn = new JButton(text) {
             @Override

@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -6,6 +7,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import com.pbl_3project.util.TimeDisplayPanel;
 import com.pbl_3project.gui.HeaderPanel;
+
 public class EmployeeForm extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainContentPanel;
@@ -17,6 +19,7 @@ public class EmployeeForm extends JFrame {
     private final Color TEXT_INACTIVE = Color.WHITE;
     private final Color TEXT_ACTIVE = new Color(15, 23, 42);
     private final Color APP_BACKGROUND = new Color(241, 245, 249);
+
     public EmployeeForm(int staffId) {
         this.currentStaffId = staffId;
         setTitle("Dashboard Nhân Viên - T&T Shoes");
@@ -27,6 +30,7 @@ public class EmployeeForm extends JFrame {
         getContentPane().setBackground(APP_BACKGROUND);
         initComponents();
     }
+
     private void initComponents() {
         HeaderPanel headerPanel = new HeaderPanel(this.currentStaffId, 3);
         add(headerPanel, BorderLayout.NORTH);
@@ -105,6 +109,7 @@ public class EmployeeForm extends JFrame {
         selectMenuButton(btnPOS);
         cardLayout.show(mainContentPanel, "POS");
     }
+
     private void selectMenuButton(JButton btn) {
         if (selectedMenuButton != null) {
             selectedMenuButton.setBackground(MENU_INACTIVE);
@@ -114,6 +119,7 @@ public class EmployeeForm extends JFrame {
         btn.setForeground(TEXT_ACTIVE);
         selectedMenuButton = btn;
     }
+
     private JButton createMenuButton(String text, com.pbl_3project.util.IconUtils.IconType iconType) {
         JButton btn = new JButton(text) {
             @Override
@@ -148,6 +154,7 @@ public class EmployeeForm extends JFrame {
                 if (btn != selectedMenuButton)
                     btn.setBackground(MENU_HOVER);
             }
+
             public void mouseExited(MouseEvent e) {
                 if (btn != selectedMenuButton)
                     btn.setBackground(MENU_INACTIVE);
@@ -155,6 +162,7 @@ public class EmployeeForm extends JFrame {
         });
         return btn;
     }
+
     private JPanel createDummyPanel(String title, String desc) {
         JPanel p = new JPanel(new BorderLayout());
         p.setOpaque(false);

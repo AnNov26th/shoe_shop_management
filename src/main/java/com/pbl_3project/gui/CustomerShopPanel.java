@@ -1,4 +1,5 @@
 package com.pbl_3project.gui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -29,6 +30,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import com.pbl_3project.bus.CartBUS;
 import com.pbl_3project.bus.ProductBUS;
+
 public class CustomerShopPanel extends JPanel {
     private JPanel productGrid;
     private ProductBUS productBUS;
@@ -43,6 +45,7 @@ public class CustomerShopPanel extends JPanel {
     private static final Color BORDER_C = new Color(226, 232, 240);
     private static final Color TEXT_H = new Color(15, 23, 42);
     private static final Color TEXT_S = new Color(100, 116, 139);
+
     public CustomerShopPanel(int customerId, CartBUS cartBUS, Runnable updateCartBadge) {
         this.customerId = customerId;
         this.productBUS = new ProductBUS();
@@ -53,6 +56,7 @@ public class CustomerShopPanel extends JPanel {
         initComponents();
         loadProductsFromDB("Tất cả");
     }
+
     private void initComponents() {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(CARD_BG);
@@ -105,6 +109,7 @@ public class CustomerShopPanel extends JPanel {
             loadProductsFromDB("Unisex");
         });
     }
+
     private JButton createFilterBtn(String text, boolean active) {
         JButton btn = new JButton(text) {
             @Override
@@ -139,6 +144,7 @@ public class CustomerShopPanel extends JPanel {
         btn.setBorder(new EmptyBorder(7, 20, 7, 20));
         return btn;
     }
+
     private void setActiveFilter(JButton active, JButton[] all) {
         for (JButton b : all) {
             b.putClientProperty("active", false);
@@ -149,6 +155,7 @@ public class CustomerShopPanel extends JPanel {
         for (JButton b : all)
             b.repaint();
     }
+
     private void loadProductsFromDB(String gender) {
         try {
             productGrid.removeAll();
@@ -176,6 +183,7 @@ public class CustomerShopPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Lỗi tải sản phẩm: " + e.getMessage());
         }
     }
+
     private JPanel createCard(int productId, String name, String priceStr, double rawPrice, String sampleColor,
             String stock) {
         JPanel shadow = new JPanel(new BorderLayout()) {
@@ -280,6 +288,7 @@ public class CustomerShopPanel extends JPanel {
         shadow.add(card, BorderLayout.CENTER);
         return shadow;
     }
+
     private String extractEnglishColor(String fullColor) {
         if (fullColor != null && fullColor.contains("(") && fullColor.contains(")")) {
             return fullColor.substring(fullColor.lastIndexOf("(") + 1, fullColor.lastIndexOf(")")).trim();

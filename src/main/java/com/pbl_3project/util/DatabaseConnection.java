@@ -1,7 +1,9 @@
 package com.pbl_3project.util;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
 public class DatabaseConnection {
     private static final String SERVER_NAME = "localhost";
     private static final String INSTANCE_NAME = "SQLEXPRESS";
@@ -12,6 +14,7 @@ public class DatabaseConnection {
             + ";instanceName=" + INSTANCE_NAME
             + ";databaseName=" + DATABASE_NAME
             + ";encrypt=true;trustServerCertificate=true;";
+
     public static Connection getConnection() {
         Connection conn = null;
         try {
@@ -24,6 +27,7 @@ public class DatabaseConnection {
         }
         return conn;
     }
+
     public static void closeConnection(Connection conn) {
         if (conn != null) {
             try {

@@ -1,10 +1,12 @@
 package com.pbl_3project.dao;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.table.DefaultTableModel;
 import com.pbl_3project.util.DatabaseConnection;
+
 public class ProductDAO {
     public DefaultTableModel getAllProductVariants() throws SQLException {
         Connection conn = null;
@@ -39,6 +41,7 @@ public class ProductDAO {
         }
         return tableModel;
     }
+
     public DefaultTableModel getProductsForPOS() throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -47,7 +50,7 @@ public class ProductDAO {
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; 
+                return false;
             }
         };
         try {
@@ -66,7 +69,7 @@ public class ProductDAO {
                         rs.getString("product_name"),
                         rs.getString("size"),
                         rs.getString("color"),
-                        String.format("%,.0f VNĐ", rs.getDouble("base_price")), 
+                        String.format("%,.0f VNĐ", rs.getDouble("base_price")),
                         rs.getInt("stock_quantity")
                 };
                 tableModel.addRow(row);
@@ -80,6 +83,7 @@ public class ProductDAO {
         }
         return tableModel;
     }
+
     public DefaultTableModel searchProductsForPOS(String keyword) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -88,7 +92,7 @@ public class ProductDAO {
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; 
+                return false;
             }
         };
         try {
@@ -100,7 +104,7 @@ public class ProductDAO {
                     "WHERE pv.stock_quantity > 0 AND (p.name LIKE ? OR pv.sku_code LIKE ?) " +
                     "ORDER BY p.name, pv.size";
             pstmt = conn.prepareStatement(sql);
-            String searchStr = "%" + keyword + "%"; 
+            String searchStr = "%" + keyword + "%";
             pstmt.setString(1, searchStr);
             pstmt.setString(2, searchStr);
             rs = pstmt.executeQuery();
@@ -124,6 +128,7 @@ public class ProductDAO {
         }
         return tableModel;
     }
+
     public DefaultTableModel getProductsForShop(String genderFilter) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -165,6 +170,7 @@ public class ProductDAO {
         }
         return tableModel;
     }
+
     public DefaultTableModel getBaseProducts(String genderFilter) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -194,12 +200,15 @@ public class ProductDAO {
                 });
             }
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
+            if (rs != null)
+                rs.close();
+            if (pstmt != null)
+                pstmt.close();
             DatabaseConnection.closeConnection(conn);
         }
         return tableModel;
     }
+
     public DefaultTableModel getVariantsByProductId(int productId) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -228,11 +237,13 @@ public class ProductDAO {
         }
         return tableModel;
     }
+
     public DefaultTableModel searchProductsAdmin(String keyword) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        String[] columnNames = { "ID", "Tên SP", "Giá Cơ Bản", "Màu Đại Diện", "Tổng Tồn Kho", "Giới tính", "Hình Ảnh" };
+        String[] columnNames = { "ID", "Tên SP", "Giá Cơ Bản", "Màu Đại Diện", "Tổng Tồn Kho", "Giới tính",
+                "Hình Ảnh" };
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         try {
             conn = DatabaseConnection.getConnection();
@@ -241,7 +252,7 @@ public class ProductDAO {
                     "FROM Product p " +
                     "LEFT JOIN Product_Variant pv ON p.id = pv.product_id " +
                     "LEFT JOIN Product_Image pi ON p.id = pi.product_id AND pi.is_primary = 1 " +
-                    "WHERE p.status != 'Inactive' "; 
+                    "WHERE p.status != 'Inactive' ";
             if (keyword != null && !keyword.trim().isEmpty()) {
                 sql += " AND p.name LIKE ? ";
             }
@@ -268,6 +279,7 @@ public class ProductDAO {
         }
         return tableModel;
     }
+
     public boolean addProduct(int brandId, int categoryId, String name, double basePrice, String gender,
             String description) throws SQLException {
         Connection conn = null;
@@ -293,6 +305,7 @@ public class ProductDAO {
             DatabaseConnection.closeConnection(conn);
         }
     }
+
     public boolean deleteProduct(int productId) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -308,6 +321,7 @@ public class ProductDAO {
             DatabaseConnection.closeConnection(conn);
         }
     }
+
     public DefaultTableModel lookupInventory(String keyword) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -356,27 +370,29 @@ public class ProductDAO {
             conn = DatabaseConnection.getConnection();
             stmt = conn.createStatement();
             String sql = "IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Product_Review' AND xtype='U') " +
-                         "BEGIN " +
-                         "CREATE TABLE Product_Review (" +
-                         "id INT IDENTITY(1,1) PRIMARY KEY, " +
-                         "product_id INT, " +
-                         "user_id INT, " +
-                         "rating INT, " +
-                         "comment NVARCHAR(MAX), " +
-                         "image_url VARCHAR(255), " +
-                         "created_at DATETIME DEFAULT GETDATE(), " +
-                         "FOREIGN KEY (product_id) REFERENCES Product(id), " +
-                         "FOREIGN KEY (user_id) REFERENCES [User](id)" +
-                         ") " +
-                         "END";
+                    "BEGIN " +
+                    "CREATE TABLE Product_Review (" +
+                    "id INT IDENTITY(1,1) PRIMARY KEY, " +
+                    "product_id INT, " +
+                    "user_id INT, " +
+                    "rating INT, " +
+                    "comment NVARCHAR(MAX), " +
+                    "image_url VARCHAR(255), " +
+                    "created_at DATETIME DEFAULT GETDATE(), " +
+                    "FOREIGN KEY (product_id) REFERENCES Product(id), " +
+                    "FOREIGN KEY (user_id) REFERENCES [User](id)" +
+                    ") " +
+                    "END";
             stmt.execute(sql);
         } finally {
-            if (stmt != null) stmt.close();
+            if (stmt != null)
+                stmt.close();
             DatabaseConnection.closeConnection(conn);
         }
     }
 
-    public boolean addReview(int productId, int userId, int rating, String comment, String imageUrl) throws SQLException {
+    public boolean addReview(int productId, int userId, int rating, String comment, String imageUrl)
+            throws SQLException {
         setupReviewTable();
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -391,7 +407,8 @@ public class ProductDAO {
             pstmt.setString(5, imageUrl);
             return pstmt.executeUpdate() > 0;
         } finally {
-            if (pstmt != null) pstmt.close();
+            if (pstmt != null)
+                pstmt.close();
             DatabaseConnection.closeConnection(conn);
         }
     }
@@ -406,10 +423,10 @@ public class ProductDAO {
         try {
             conn = DatabaseConnection.getConnection();
             String sql = "SELECT u.full_name, r.rating, r.comment, r.image_url, r.created_at " +
-                         "FROM Product_Review r " +
-                         "JOIN [User] u ON r.user_id = u.id " +
-                         "WHERE r.product_id = ? " +
-                         "ORDER BY r.created_at DESC";
+                    "FROM Product_Review r " +
+                    "JOIN [User] u ON r.user_id = u.id " +
+                    "WHERE r.product_id = ? " +
+                    "ORDER BY r.created_at DESC";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, productId);
             rs = pstmt.executeQuery();
@@ -423,8 +440,10 @@ public class ProductDAO {
                 });
             }
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
+            if (rs != null)
+                rs.close();
+            if (pstmt != null)
+                pstmt.close();
             DatabaseConnection.closeConnection(conn);
         }
         return model;

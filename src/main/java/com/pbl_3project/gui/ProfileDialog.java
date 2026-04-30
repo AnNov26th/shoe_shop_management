@@ -50,7 +50,7 @@ public class ProfileDialog extends JDialog {
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(primaryColor);
         lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
-        
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         mainPanel.add(lblTitle, gbc);
@@ -69,7 +69,8 @@ public class ProfileDialog extends JDialog {
         pnlButtons.setBackground(Color.WHITE);
         pnlButtons.setBorder(new EmptyBorder(15, 0, 0, 0));
 
-        JButton btnCancel = createStyledButton("Đóng", new Color(243, 244, 246), new Color(55, 65, 81), new Color(229, 231, 235));
+        JButton btnCancel = createStyledButton("Đóng", new Color(243, 244, 246), new Color(55, 65, 81),
+                new Color(229, 231, 235));
         JButton btnSave = createStyledButton("Lưu thay đổi", primaryColor, Color.WHITE, hoverColor);
 
         pnlButtons.add(btnCancel);
@@ -79,7 +80,8 @@ public class ProfileDialog extends JDialog {
         gbc.insets = new Insets(20, 0, 10, 0);
         mainPanel.add(pnlButtons, gbc);
 
-        JScrollPane scrollPane = new JScrollPane(mainPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane scrollPane = new JScrollPane(mainPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
@@ -129,12 +131,13 @@ public class ProfileDialog extends JDialog {
         btn.setBorderPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setPreferredSize(new Dimension(130, 40));
-        
+
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(hoverBgColor);
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(bgColor);
@@ -173,7 +176,8 @@ public class ProfileDialog extends JDialog {
         try {
             if (roleId == 3) {
                 if (userDAO.addProfileUpdateRequest(userId, fullName, email, phone, password)) {
-                    JOptionPane.showMessageDialog(this, "Yêu cầu thay đổi hồ sơ đã được gửi đến Quản lý để xét duyệt!", "Thông báo",
+                    JOptionPane.showMessageDialog(this, "Yêu cầu thay đổi hồ sơ đã được gửi đến Quản lý để xét duyệt!",
+                            "Thông báo",
                             JOptionPane.INFORMATION_MESSAGE);
                     dispose();
                 } else {

@@ -1,10 +1,12 @@
 package com.pbl_3project.dao;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.table.DefaultTableModel;
 import com.pbl_3project.util.DatabaseConnection;
+
 public class EmployeeDAO {
     public DefaultTableModel searchEmployees(String keyword) throws SQLException {
         Connection conn = null;
@@ -15,7 +17,7 @@ public class EmployeeDAO {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
-            } 
+            }
         };
         try {
             conn = DatabaseConnection.getConnection();
@@ -50,6 +52,7 @@ public class EmployeeDAO {
         }
         return model;
     }
+
     public boolean addEmployee(String fullName, String email, String phone, int roleId, String password)
             throws SQLException {
         Connection conn = null;
@@ -63,7 +66,7 @@ public class EmployeeDAO {
             pstmt.setString(2, email);
             pstmt.setString(3, phone);
             pstmt.setInt(4, roleId);
-            pstmt.setString(5, password); 
+            pstmt.setString(5, password);
             return pstmt.executeUpdate() > 0;
         } finally {
             if (pstmt != null)
