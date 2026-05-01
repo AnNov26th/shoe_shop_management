@@ -72,7 +72,8 @@ public class AdminForm extends JFrame {
         menuPanel.setBorder(new EmptyBorder(10, 15, 10, 15));
         JButton btnThongKe = createMenuButton("Báo cáo & Thống kê");
         JButton btnSanPham = createMenuButton("Quản lý Sản phẩm");
-        JButton btnDonHang = createMenuButton("Quản lý Đơn hàng");
+        JButton btnDonHang = createMenuButton("Quản lý Đơn hàng Online");
+        JButton btnHoaDon = createMenuButton("Lịch sử Hóa đơn");
         JButton btnKhuyenMai = createMenuButton("Quản lý Khuyến mãi");
         JButton btnNhanVien = createMenuButton("Quản lý Nhân sự");
         JButton btnDuyetYeuCau = createMenuButton("Duyệt Yêu cầu NV");
@@ -84,6 +85,8 @@ public class AdminForm extends JFrame {
         menuPanel.add(btnSanPham);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnDonHang);
+        menuPanel.add(Box.createVerticalStrut(5));
+        menuPanel.add(btnHoaDon);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnKhuyenMai);
         menuPanel.add(Box.createVerticalStrut(5));
@@ -114,7 +117,8 @@ public class AdminForm extends JFrame {
         mainContentPanel.add(new EmployeeManagementPanel(), "NhanVien");
         mainContentPanel.add(new EmployeeRequestPanel(), "DuyetYeuCau");
         mainContentPanel.add(new CustomerManagementPanel(), "KhachHang");
-        mainContentPanel.add(new OrderManagementPanel(true), "DonHang");
+        mainContentPanel.add(new OrderManagementPanel(true, false), "DonHang");
+        mainContentPanel.add(new OrderManagementPanel(true, true), "HoaDon");
         mainContentPanel.add(new PromotionManagementPanel(), "KhuyenMai");
         JPanel contentWrapper = new JPanel(new BorderLayout());
         contentWrapper.setBackground(APP_BACKGROUND);
@@ -133,6 +137,10 @@ public class AdminForm extends JFrame {
         btnDonHang.addActionListener(e -> {
             selectMenuButton(btnDonHang);
             cardLayout.show(mainContentPanel, "DonHang");
+        });
+        btnHoaDon.addActionListener(e -> {
+            selectMenuButton(btnHoaDon);
+            cardLayout.show(mainContentPanel, "HoaDon");
         });
         btnKhuyenMai.addActionListener(e -> {
             selectMenuButton(btnKhuyenMai);
@@ -182,8 +190,17 @@ public class AdminForm extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Background
                 g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                
+                // Active indicator
+                if (equals(selectedMenuButton)) {
+                    g2.setColor(Color.WHITE);
+                    g2.fillRoundRect(8, 12, 4, getHeight() - 24, 2, 2);
+                }
+                
                 g2.dispose();
                 super.paintComponent(g);
             }

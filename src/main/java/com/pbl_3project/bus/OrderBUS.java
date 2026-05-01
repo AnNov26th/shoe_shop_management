@@ -9,15 +9,12 @@ import com.pbl_3project.dto.CartItem;
 public class OrderBUS {
     private OrderDAO orderDAO = new OrderDAO();
 
-    public boolean checkout(String customerInfo, double totalAmount, List<CartItem> cartItems, String status)
+    public boolean checkout(Integer customerId, String customerPhone, Integer staffId, String paymentMethod, double totalAmount, List<CartItem> cartItems, String status)
             throws SQLException {
         if (cartItems == null || cartItems.isEmpty()) {
             throw new SQLException("Giỏ hàng đang trống, không thể thanh toán!");
         }
-        if (customerInfo == null || customerInfo.trim().isEmpty()) {
-            throw new SQLException("Vui lòng nhập thông tin khách hàng (Số điện thoại)!");
-        }
-        return orderDAO.createOrder(customerInfo, totalAmount, cartItems, status);
+        return orderDAO.createOrder(customerId, customerPhone, staffId, paymentMethod, totalAmount, cartItems, status);
     }
 
     public DefaultTableModel getOrdersByCustomer(int customerId) throws SQLException {
@@ -26,6 +23,10 @@ public class OrderBUS {
 
     public DefaultTableModel getAllOrders(String keyword) throws SQLException {
         return orderDAO.getAllOrders(keyword);
+    }
+
+    public DefaultTableModel getAllOrders(String keyword, String fromDate, String toDate) throws SQLException {
+        return orderDAO.getAllOrders(keyword, fromDate, toDate);
     }
 
     public DefaultTableModel getOrderDetails(int orderId) throws SQLException {
@@ -68,5 +69,9 @@ public class OrderBUS {
 
     public boolean updateExchangeInfo(int orderId, String info) throws SQLException {
         return orderDAO.updateExchangeInfo(orderId, info);
+    }
+
+    public boolean isEligibleForReturn(int orderId) throws SQLException {
+        return orderDAO.isEligibleForReturn(orderId);
     }
 }

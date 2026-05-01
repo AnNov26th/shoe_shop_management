@@ -80,7 +80,7 @@ public class CustomerOrderPanel extends JPanel {
         header.add(lblTitle, BorderLayout.WEST);
         header.add(btnRefresh, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
-        String[] colsOrders = { "ID", "Mã ĐH", "Số điện thoại", "Tổng tiền (VNĐ)", "Ngày đặt", "Trạng thái" };
+        String[] colsOrders = { "ID", "Mã ĐH", "Số điện thoại", "Tổng tiền (VNĐ)", "Hình thức TT", "Ngày đặt", "Trạng thái", "Ngày Thanh Toán", "Ngày Giao" };
         ordersModel = new DefaultTableModel(colsOrders, 0) {
             @Override
             public boolean isCellEditable(int r, int c) {
@@ -92,9 +92,10 @@ public class CustomerOrderPanel extends JPanel {
         tableOrders.getColumnModel().getColumn(0).setPreferredWidth(100);
         tableOrders.getColumnModel().getColumn(1).setPreferredWidth(130);
         tableOrders.getColumnModel().getColumn(2).setPreferredWidth(160);
-        tableOrders.getColumnModel().getColumn(3).setPreferredWidth(160);
-        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(150);
-        tableOrders.getColumnModel().getColumn(4).setCellRenderer(new StatusRenderer());
+        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(130);
+        tableOrders.getColumnModel().getColumn(5).setPreferredWidth(140);
+        tableOrders.getColumnModel().getColumn(6).setPreferredWidth(150);
+        tableOrders.getColumnModel().getColumn(6).setCellRenderer(new StatusRenderer());
         JScrollPane scrollOrders = buildScrollPane(tableOrders);
         JPanel panelOrders = new JPanel(new BorderLayout());
         panelOrders.setBackground(WHITE);
@@ -171,7 +172,7 @@ public class CustomerOrderPanel extends JPanel {
                 if (viewRow >= 0) {
                     int modelRow = tableOrders.convertRowIndexToModel(viewRow);
                     int orderId = Integer.parseInt(ordersModel.getValueAt(modelRow, 0).toString());
-                    String status = ordersModel.getValueAt(modelRow, 5).toString();
+                    String status = ordersModel.getValueAt(modelRow, 6).toString();
                     loadOrderDetail(orderId, status);
                 }
             }
@@ -184,7 +185,7 @@ public class CustomerOrderPanel extends JPanel {
             ordersModel.setRowCount(0);
             for (int i = 0; i < model.getRowCount(); i++) {
                 int id = (int) model.getValueAt(i, 0);
-                String status = (String) model.getValueAt(i, 5);
+                String status = (String) model.getValueAt(i, 6);
                 if (status.equals("Hoàn thành") && reviewDAO.isOrderReviewed(id)) {
                     status += " (Đã đánh giá)";
                 }
@@ -194,7 +195,10 @@ public class CustomerOrderPanel extends JPanel {
                         model.getValueAt(i, 2),
                         model.getValueAt(i, 3),
                         model.getValueAt(i, 4),
-                        status
+                        model.getValueAt(i, 5),
+                        status,
+                        model.getValueAt(i, 7),
+                        model.getValueAt(i, 8)
                 });
             }
             detailsModel.setRowCount(0);

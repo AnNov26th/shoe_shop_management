@@ -65,13 +65,13 @@ public class EmployeeRequestPanel extends JPanel {
         JButton btnReject = new JButton("Từ chối");
         btnReject.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnReject.setBackground(new Color(239, 68, 68));
-        btnReject.setForeground(Color.WHITE);
+        btnReject.setForeground(Color.BLACK);
         btnReject.setFocusPainted(false);
 
         JButton btnApprove = new JButton("Phê duyệt");
         btnApprove.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnApprove.setBackground(new Color(34, 197, 94));
-        btnApprove.setForeground(Color.WHITE);
+        btnApprove.setForeground(Color.BLACK);
         btnApprove.setFocusPainted(false);
 
         btnReject.addActionListener(e -> handleAction("Rejected"));

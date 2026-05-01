@@ -72,7 +72,7 @@ public class CustomerInfoDialog extends JDialog {
         btnCancel = new JButton("Bỏ qua (Khách vãng lai)");
         btnConfirm = new JButton("Xác nhận");
         btnConfirm.setBackground(new Color(52, 152, 219));
-        btnConfirm.setForeground(Color.WHITE);
+        btnConfirm.setForeground(Color.BLACK);
         btnCancel.addActionListener(e -> {
             confirmed = true;
             dispose();

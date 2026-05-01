@@ -11,49 +11,144 @@ import com.pbl_3project.dto.CartItem;
 import com.pbl_3project.util.DatabaseConnection;
 
 public class OrderDAO {
-    public boolean createOrder(String customerInfo, double totalAmount, List<CartItem> cartItems, String status)
+    // public boolean createOrder(String customerInfo, double totalAmount,
+    // List<CartItem> cartItems, String status)
+    // throws SQLException {
+    // Connection conn = null;
+    // PreparedStatement pstmtOrder = null;
+    // PreparedStatement pstmtDetail = null;
+    // PreparedStatement pstmtUpdateStock = null;
+    // ResultSet rs = null;
+    // try {
+    // conn = DatabaseConnection.getConnection();
+    // conn.setAutoCommit(false);
+    // String orderCode = "ORD" + System.currentTimeMillis();
+    // String sqlOrder = "INSERT INTO [Order] (order_code, customer_id,
+    // customer_phone, subtotal, total_amount, final_amount, created_at, status) "
+    // + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?)";
+    // pstmtOrder = conn.prepareStatement(sqlOrder,
+    // Statement.RETURN_GENERATED_KEYS);
+    // Integer customerId = null;
+    // String customerPhone = null;
+    // try {
+    // customerId = Integer.parseInt(customerInfo);
+    // } catch (NumberFormatException e) {
+    // customerPhone = customerInfo;
+    // }
+    // pstmtOrder.setString(1, orderCode);
+    // if (customerId != null) {
+    // pstmtOrder.setInt(2, customerId);
+    // } else {
+    // pstmtOrder.setNull(2, java.sql.Types.INTEGER);
+    // }
+    // pstmtOrder.setString(3, customerPhone);
+    // pstmtOrder.setDouble(4, totalAmount);
+    // pstmtOrder.setDouble(5, totalAmount);
+    // pstmtOrder.setDouble(6, totalAmount);
+    // pstmtOrder.setString(7, status);
+    // int affectedRows = pstmtOrder.executeUpdate();
+    // if (affectedRows == 0)
+    // throw new SQLException("Lỗi: Không thể tạo hóa đơn.");
+    // rs = pstmtOrder.getGeneratedKeys();
+    // int orderId = -1;
+    // if (rs.next())
+    // orderId = rs.getInt(1);
+    // String sqlDetail = "INSERT INTO [Order_Detail] (order_id, variant_id,
+    // quantity, unit_price, subtotal) VALUES (?, (SELECT id FROM [Product_Variant]
+    // WHERE sku_code = ?), ?, ?, ?)";
+    // String sqlUpdateStock = "UPDATE [Product_Variant] SET stock_quantity =
+    // stock_quantity - ? WHERE sku_code = ?";
+    // pstmtDetail = conn.prepareStatement(sqlDetail);
+    // pstmtUpdateStock = conn.prepareStatement(sqlUpdateStock);
+    // for (CartItem item : cartItems) {
+    // pstmtDetail.setInt(1, orderId);
+    // pstmtDetail.setString(2, item.getSku());
+    // pstmtDetail.setInt(3, item.getQuantity());
+    // pstmtDetail.setDouble(4, item.getPrice());
+    // pstmtDetail.setDouble(5, item.getPrice() * item.getQuantity());
+    // pstmtDetail.addBatch();
+    // pstmtUpdateStock.setInt(1, item.getQuantity());
+    // pstmtUpdateStock.setString(2, item.getSku());
+    // pstmtUpdateStock.addBatch();
+    // }
+    // pstmtDetail.executeBatch();
+    // pstmtUpdateStock.executeBatch();
+    // conn.commit();
+    // return true;
+    // } catch (SQLException ex) {
+    // if (conn != null)
+    // conn.rollback();
+    // throw ex;
+    // } finally {
+    // if (rs != null)
+    // rs.close();
+    // if (pstmtOrder != null)
+    // pstmtOrder.close();
+    // if (pstmtDetail != null)
+    // pstmtDetail.close();
+    // if (pstmtUpdateStock != null)
+    // pstmtUpdateStock.close();
+    // if (conn != null) {
+    // conn.setAutoCommit(true);
+    // DatabaseConnection.closeConnection(conn);
+    // }
+    // }
+    // }
+    public boolean createOrder(Integer customerId, String customerPhone, Integer staffId, String paymentMethod, double totalAmount, List<CartItem> cartItems, String status)
             throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtOrder = null;
         PreparedStatement pstmtDetail = null;
         PreparedStatement pstmtUpdateStock = null;
+        PreparedStatement pstmtPay = null;
         ResultSet rs = null;
         try {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
+
             String orderCode = "ORD" + System.currentTimeMillis();
-            String sqlOrder = "INSERT INTO [Order] (order_code, customer_id, customer_phone, subtotal, total_amount, final_amount, created_at, status) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?)";
-            pstmtOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
-            Integer customerId = null;
-            String customerPhone = null;
-            try {
-                customerId = Integer.parseInt(customerInfo);
-            } catch (NumberFormatException e) {
-                customerPhone = customerInfo;
-            }
+            
+            // Set payment_at and delivered_at in the SQL directly for simplicity if status allows
+            String sqlOrderExt = "INSERT INTO [Order] (order_code, customer_id, customer_phone, staff_id, payment_method, subtotal, discount_amount, final_amount, created_at, status, payment_at, delivered_at) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, ?, ?)";
+            pstmtOrder = conn.prepareStatement(sqlOrderExt, Statement.RETURN_GENERATED_KEYS);
             pstmtOrder.setString(1, orderCode);
-            if (customerId != null) {
-                pstmtOrder.setInt(2, customerId);
-            } else {
-                pstmtOrder.setNull(2, java.sql.Types.INTEGER);
-            }
+            if (customerId != null) pstmtOrder.setInt(2, customerId); else pstmtOrder.setNull(2, java.sql.Types.INTEGER);
             pstmtOrder.setString(3, customerPhone);
-            pstmtOrder.setDouble(4, totalAmount);
-            pstmtOrder.setDouble(5, totalAmount);
+            if (staffId != null) pstmtOrder.setInt(4, staffId); else pstmtOrder.setNull(4, java.sql.Types.INTEGER);
+            pstmtOrder.setNString(5, paymentMethod);
             pstmtOrder.setDouble(6, totalAmount);
-            pstmtOrder.setString(7, status);
+            pstmtOrder.setDouble(7, 0.0);
+            pstmtOrder.setDouble(8, totalAmount);
+            pstmtOrder.setString(9, status);
+            
+            if (status.equals("Đã thanh toán") || status.equals("Hoàn thành")) {
+                pstmtOrder.setTimestamp(10, new java.sql.Timestamp(System.currentTimeMillis()));
+            } else {
+                pstmtOrder.setNull(10, java.sql.Types.TIMESTAMP);
+            }
+            
+            if (status.equals("Hoàn thành")) {
+                pstmtOrder.setTimestamp(11, new java.sql.Timestamp(System.currentTimeMillis()));
+            } else {
+                pstmtOrder.setNull(11, java.sql.Types.TIMESTAMP);
+            }
+
             int affectedRows = pstmtOrder.executeUpdate();
             if (affectedRows == 0)
                 throw new SQLException("Lỗi: Không thể tạo hóa đơn.");
+
             rs = pstmtOrder.getGeneratedKeys();
             int orderId = -1;
             if (rs.next())
                 orderId = rs.getInt(1);
+
             String sqlDetail = "INSERT INTO [Order_Detail] (order_id, variant_id, quantity, unit_price, subtotal) VALUES (?, (SELECT id FROM [Product_Variant] WHERE sku_code = ?), ?, ?, ?)";
             String sqlUpdateStock = "UPDATE [Product_Variant] SET stock_quantity = stock_quantity - ? WHERE sku_code = ?";
+
             pstmtDetail = conn.prepareStatement(sqlDetail);
             pstmtUpdateStock = conn.prepareStatement(sqlUpdateStock);
+
             for (CartItem item : cartItems) {
                 pstmtDetail.setInt(1, orderId);
                 pstmtDetail.setString(2, item.getSku());
@@ -61,12 +156,24 @@ public class OrderDAO {
                 pstmtDetail.setDouble(4, item.getPrice());
                 pstmtDetail.setDouble(5, item.getPrice() * item.getQuantity());
                 pstmtDetail.addBatch();
+
                 pstmtUpdateStock.setInt(1, item.getQuantity());
                 pstmtUpdateStock.setString(2, item.getSku());
                 pstmtUpdateStock.addBatch();
             }
+
             pstmtDetail.executeBatch();
             pstmtUpdateStock.executeBatch();
+            
+            if (paymentMethod != null && !paymentMethod.isEmpty()) {
+                String sqlPay = "INSERT INTO [Payment] (order_id, method, amount, status, paid_at) VALUES (?, ?, ?, N'Hoàn thành', GETDATE())";
+                pstmtPay = conn.prepareStatement(sqlPay);
+                pstmtPay.setInt(1, orderId);
+                pstmtPay.setString(2, paymentMethod);
+                pstmtPay.setDouble(3, totalAmount);
+                pstmtPay.executeUpdate();
+            }
+
             conn.commit();
             return true;
         } catch (SQLException ex) {
@@ -74,6 +181,7 @@ public class OrderDAO {
                 conn.rollback();
             throw ex;
         } finally {
+            // Tự động đóng các resource (giữ nguyên logic của bạn)
             if (rs != null)
                 rs.close();
             if (pstmtOrder != null)
@@ -82,6 +190,8 @@ public class OrderDAO {
                 pstmtDetail.close();
             if (pstmtUpdateStock != null)
                 pstmtUpdateStock.close();
+            if (pstmtPay != null)
+                pstmtPay.close();
             if (conn != null) {
                 conn.setAutoCommit(true);
                 DatabaseConnection.closeConnection(conn);
@@ -89,7 +199,7 @@ public class OrderDAO {
         }
     }
 
-    public boolean createOrderOnline(int customerId, String customerPhone, double subtotal, double discountAmount,
+    public boolean createOrderOnline(int customerId, String customerPhone, String paymentMethod, double subtotal, double discountAmount,
             double finalAmount, Integer promotionId, List<CartItem> cartItems, String status)
             throws SQLException {
         Connection conn = null;
@@ -97,25 +207,30 @@ public class OrderDAO {
         PreparedStatement pstmtDetail = null;
         PreparedStatement pstmtUpdateStock = null;
         PreparedStatement pstmtUpdatePromo = null;
+        PreparedStatement pstmtPay = null;
         ResultSet rs = null;
         try {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
             String orderCode = "ORD" + System.currentTimeMillis();
-            String sqlOrder = "INSERT INTO [Order] (order_code, customer_id, customer_phone, subtotal, discount_amount, final_amount, created_at, status, promotion_id) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?, ?)";
-            pstmtOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
+
+            String sqlOrderExt = "INSERT INTO [Order] (order_code, customer_id, customer_phone, payment_method, subtotal, discount_amount, final_amount, created_at, status, promotion_id, payment_at) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, ?, ?)";
+            pstmtOrder = conn.prepareStatement(sqlOrderExt, Statement.RETURN_GENERATED_KEYS);
             pstmtOrder.setString(1, orderCode);
             pstmtOrder.setInt(2, customerId);
             pstmtOrder.setString(3, customerPhone);
-            pstmtOrder.setDouble(4, subtotal);
-            pstmtOrder.setDouble(5, discountAmount);
-            pstmtOrder.setDouble(6, finalAmount);
-            pstmtOrder.setString(7, status);
-            if (promotionId != null && promotionId > 0) {
-                pstmtOrder.setInt(8, promotionId);
+            pstmtOrder.setNString(4, paymentMethod);
+            pstmtOrder.setDouble(5, subtotal);
+            pstmtOrder.setDouble(6, discountAmount);
+            pstmtOrder.setDouble(7, finalAmount);
+            pstmtOrder.setNString(8, status);
+            if (promotionId != null && promotionId > 0) pstmtOrder.setInt(9, promotionId); else pstmtOrder.setNull(9, java.sql.Types.INTEGER);
+            
+            if (status.equals("Đã thanh toán")) {
+                pstmtOrder.setTimestamp(10, new java.sql.Timestamp(System.currentTimeMillis()));
             } else {
-                pstmtOrder.setNull(8, java.sql.Types.INTEGER);
+                pstmtOrder.setNull(10, java.sql.Types.TIMESTAMP);
             }
             int affectedRows = pstmtOrder.executeUpdate();
             if (affectedRows == 0)
@@ -147,6 +262,16 @@ public class OrderDAO {
                 pstmtUpdatePromo.setInt(1, promotionId);
                 pstmtUpdatePromo.executeUpdate();
             }
+            
+            if (paymentMethod != null && !paymentMethod.isEmpty()) {
+                String sqlPay = "INSERT INTO [Payment] (order_id, method, amount, status, paid_at) VALUES (?, ?, ?, N'Hoàn thành', GETDATE())";
+                pstmtPay = conn.prepareStatement(sqlPay);
+                pstmtPay.setInt(1, orderId);
+                pstmtPay.setString(2, paymentMethod);
+                pstmtPay.setDouble(3, finalAmount);
+                pstmtPay.executeUpdate();
+            }
+
             conn.commit();
             return true;
         } catch (SQLException ex) {
@@ -164,6 +289,8 @@ public class OrderDAO {
                 pstmtUpdateStock.close();
             if (pstmtUpdatePromo != null)
                 pstmtUpdatePromo.close();
+            if (pstmtPay != null)
+                pstmtPay.close();
             if (conn != null) {
                 conn.setAutoCommit(true);
                 DatabaseConnection.closeConnection(conn);
@@ -172,9 +299,9 @@ public class OrderDAO {
     }
 
     public DefaultTableModel getAllOrdersByCustomer(int customerId) throws SQLException {
-        String[] cols = { "ID", "Mã Đơn", "Số điện thoại", "Tổng Thanh Toán", "Ngày Đặt", "Trạng Thái" };
+        String[] cols = { "ID", "Mã Đơn", "Số điện thoại", "Tổng Thanh Toán", "Thanh Toán", "Ngày Đặt", "Trạng Thái", "Ngày Thanh Toán", "Ngày Giao" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
-        String sql = "SELECT id, order_code, customer_phone, final_amount, created_at, status FROM [Order] WHERE customer_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT id, order_code, customer_phone, final_amount, payment_method, created_at, status, payment_at, delivered_at FROM [Order] WHERE customer_id = ? ORDER BY created_at DESC";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -189,8 +316,11 @@ public class OrderDAO {
                         rs.getString("order_code"),
                         rs.getString("customer_phone") == null ? "Không có" : rs.getString("customer_phone"),
                         String.format("%,.0f VNĐ", rs.getDouble("final_amount")),
+                        rs.getString("payment_method") == null ? "Không rõ" : rs.getString("payment_method"),
                         rs.getTimestamp("created_at"),
-                        rs.getString("status")
+                        rs.getString("status"),
+                        rs.getTimestamp("payment_at"),
+                        rs.getTimestamp("delivered_at")
                 });
             }
         } finally {
@@ -204,44 +334,62 @@ public class OrderDAO {
         return model;
     }
 
-    public DefaultTableModel getAllOrders(String keyword) throws SQLException {
-        String[] cols = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Ngày Đặt", "Trạng Thái" };
+    public DefaultTableModel getAllOrders(String keyword, String fromDate, String toDate) throws SQLException {
+        String[] cols = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Thanh Toán", "Nhân Viên", "Ngày Đặt", "Trạng Thái", "Ngày Thanh Toán", "Ngày Giao" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
-        String sql = "SELECT o.id, o.order_code, cp.full_name, o.customer_phone, o.final_amount, o.created_at, o.status "
-                +
-                "FROM [Order] o " +
-                "LEFT JOIN [Customer_Profile] cp ON o.customer_id = cp.user_id " +
-                "WHERE o.order_code LIKE ? OR o.customer_phone LIKE ? " +
-                "ORDER BY o.created_at DESC";
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            conn = DatabaseConnection.getConnection();
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, "%" + keyword + "%");
-            pstmt.setString(2, "%" + keyword + "%");
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                model.addRow(new Object[] {
-                        rs.getInt("id"),
-                        rs.getString("order_code"),
-                        rs.getString("full_name") == null ? "Khách vãng lai" : rs.getString("full_name"),
-                        rs.getString("customer_phone"),
-                        String.format("%,.0f VNĐ", rs.getDouble("final_amount")),
-                        rs.getTimestamp("created_at"),
-                        rs.getString("status")
-                });
+        
+        StringBuilder sql = new StringBuilder("SELECT o.id, o.order_code, cp.full_name, o.customer_phone, o.final_amount, o.created_at, o.status, o.payment_method, sp.full_name as staff_name, o.payment_at, o.delivered_at ")
+                .append("FROM [Order] o ")
+                .append("LEFT JOIN [Customer_Profile] cp ON o.customer_id = cp.user_id ")
+                .append("LEFT JOIN [User] sp ON o.staff_id = sp.id ")
+                .append("WHERE (o.order_code LIKE ? OR o.customer_phone LIKE ?) ");
+        
+        if (fromDate != null && !fromDate.isEmpty()) {
+            sql.append("AND o.created_at >= ? ");
+        }
+        if (toDate != null && !toDate.isEmpty()) {
+            sql.append("AND o.created_at <= ? ");
+        }
+        
+        sql.append("ORDER BY o.created_at DESC");
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+            
+            int paramIndex = 1;
+            pstmt.setString(paramIndex++, "%" + keyword + "%");
+            pstmt.setString(paramIndex++, "%" + keyword + "%");
+            
+            if (fromDate != null && !fromDate.isEmpty()) {
+                pstmt.setString(paramIndex++, fromDate + " 00:00:00");
             }
-        } finally {
-            if (rs != null)
-                rs.close();
-            if (pstmt != null)
-                pstmt.close();
-            if (conn != null)
-                DatabaseConnection.closeConnection(conn);
+            if (toDate != null && !toDate.isEmpty()) {
+                pstmt.setString(paramIndex++, toDate + " 23:59:59");
+            }
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    model.addRow(new Object[] {
+                            rs.getInt("id"),
+                            rs.getString("order_code"),
+                            rs.getString("full_name") == null ? "Khách vãng lai" : rs.getString("full_name"),
+                            rs.getString("customer_phone"),
+                            String.format("%,.0f VNĐ", rs.getDouble("final_amount")),
+                            rs.getString("payment_method") == null ? "Chưa rõ" : rs.getString("payment_method"),
+                            rs.getString("staff_name") == null ? "Hệ thống" : rs.getString("staff_name"),
+                            rs.getTimestamp("created_at"),
+                            rs.getString("status"),
+                            rs.getTimestamp("payment_at"),
+                            rs.getTimestamp("delivered_at")
+                    });
+                }
+            }
         }
         return model;
+    }
+
+    public DefaultTableModel getAllOrders(String keyword) throws SQLException {
+        return getAllOrders(keyword, null, null);
     }
 
     public DefaultTableModel getOrderDetails(int orderId) throws SQLException {
@@ -293,6 +441,27 @@ public class OrderDAO {
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, newStatus);
             pstmt.setInt(2, orderId);
+            
+            // Cập nhật timestamp nếu trạng thái đổi thành Đã thanh toán hoặc Hoàn thành
+            if (newStatus.equals("Đã thanh toán")) {
+                String sqlPay = "UPDATE [Order] SET payment_at = GETDATE() WHERE id = ?";
+                try (PreparedStatement psP = conn.prepareStatement(sqlPay)) {
+                    psP.setInt(1, orderId);
+                    psP.executeUpdate();
+                }
+            } else if (newStatus.equals("Hoàn thành")) {
+                String sqlDel = "UPDATE [Order] SET delivered_at = GETDATE() WHERE id = ?";
+                try (PreparedStatement psD = conn.prepareStatement(sqlDel)) {
+                    psD.setInt(1, orderId);
+                    psD.executeUpdate();
+                }
+                // Nếu hoàn thành mà chưa có ngày thanh toán (thanh toán khi nhận hàng), set luôn
+                String sqlPayCheck = "UPDATE [Order] SET payment_at = GETDATE() WHERE id = ? AND payment_at IS NULL";
+                try (PreparedStatement psP = conn.prepareStatement(sqlPayCheck)) {
+                    psP.setInt(1, orderId);
+                    psP.executeUpdate();
+                }
+            }
             return pstmt.executeUpdate() > 0;
         } finally {
             if (pstmt != null)
@@ -509,5 +678,24 @@ public class OrderDAO {
             pstmt.setInt(2, orderId);
             return pstmt.executeUpdate() > 0;
         }
+    }
+
+    public boolean isEligibleForReturn(int orderId) throws SQLException {
+        String sql = "SELECT delivered_at FROM [Order] WHERE id = ? AND status = N'Hoàn thành'";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, orderId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    java.sql.Timestamp deliveredAt = rs.getTimestamp("delivered_at");
+                    if (deliveredAt != null) {
+                        long diffInMs = System.currentTimeMillis() - deliveredAt.getTime();
+                        long diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+                        return diffInDays <= 7; // Giả sử cho phép trả hàng trong 7 ngày
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

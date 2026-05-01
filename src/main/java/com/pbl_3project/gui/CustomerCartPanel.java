@@ -32,6 +32,8 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import com.pbl_3project.bus.CartBUS;
 import com.pbl_3project.dto.CartItem;
+import com.pbl_3project.dao.OrderDAO;
+import com.pbl_3project.dao.CartDAO;
 
 public class CustomerCartPanel extends JPanel {
     private JTable tableCart;
@@ -296,10 +298,12 @@ public class CustomerCartPanel extends JPanel {
         }
         if (isPaymentConfirmed) {
             try {
-                com.pbl_3project.dao.OrderDAO orderDAO = new com.pbl_3project.dao.OrderDAO();
+                OrderDAO orderDAO = new OrderDAO();
+                String paymentMethod = (methodChoice == 1) ? "Chuyển khoản / Quét mã QR" : "Thanh toán khi nhận hàng (COD)";
                 boolean success = orderDAO.createOrderOnline(
                         this.customerId,
                         phone,
+                        paymentMethod,
                         subtotal,
                         discountAmount,
                         finalAmount,
@@ -311,7 +315,7 @@ public class CustomerCartPanel extends JPanel {
                     }
                     JOptionPane.showMessageDialog(this,
                             "🎉 " + (methodChoice == 1 ? "Thanh toán và đặt hàng" : "Đặt hàng") + " thành công!");
-                    new com.pbl_3project.dao.CartDAO().clearCartByUserId(this.customerId);
+                    new CartDAO().clearCartByUserId(this.customerId);
                     cartBUS.clearCart();
                     currentPromoId = -1;
                     discountAmount = 0;

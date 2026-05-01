@@ -39,6 +39,8 @@ import javax.swing.SwingConstants;
 import com.pbl_3project.bus.CartBUS;
 import com.pbl_3project.bus.ProductBUS;
 import com.pbl_3project.dto.CartItem;
+import com.pbl_3project.dao.OrderDAO;
+import com.pbl_3project.dao.UserDAO;
 import com.pbl_3project.util.ConfigUtils;
 
 public class POSPanel extends JPanel {
@@ -179,18 +181,21 @@ public class POSPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color c1 = new Color(46, 204, 113);
-                Color c2 = new Color(39, 174, 96);
-                GradientPaint gp = getModel().isRollover()
-                        ? new GradientPaint(0, 0, c2, getWidth(), 0, c1)
-                        : new GradientPaint(0, 0, c1, getWidth(), 0, c2);
-                g2.setPaint(gp);
+                Color c1 = new Color(34, 197, 94); // Modern Success
+                Color c2 = new Color(21, 128, 61);
+                if (getModel().isPressed()) {
+                    g2.setColor(c2);
+                } else if (getModel().isRollover()) {
+                    g2.setPaint(new GradientPaint(0, 0, c1.brighter(), 0, getHeight(), c1));
+                } else {
+                    g2.setPaint(new GradientPaint(0, 0, c1, 0, getHeight(), c2));
+                }
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-        btnCheckout.setForeground(Color.BLACK);
+        btnCheckout.setForeground(Color.WHITE);
         btnCheckout.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnCheckout.setContentAreaFilled(false);
         btnCheckout.setBorderPainted(false);
@@ -203,18 +208,21 @@ public class POSPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color c1 = new Color(255, 80, 80);
-                Color c2 = new Color(231, 76, 60);
-                GradientPaint gp = getModel().isRollover()
-                        ? new GradientPaint(0, 0, c2, getWidth(), 0, c1)
-                        : new GradientPaint(0, 0, c1, getWidth(), 0, c2);
-                g2.setPaint(gp);
+                Color c1 = new Color(239, 68, 68); // Modern Danger
+                Color c2 = new Color(185, 28, 28);
+                if (getModel().isPressed()) {
+                    g2.setColor(c2);
+                } else if (getModel().isRollover()) {
+                    g2.setPaint(new GradientPaint(0, 0, c1.brighter(), 0, getHeight(), c1));
+                } else {
+                    g2.setPaint(new GradientPaint(0, 0, c1, 0, getHeight(), c2));
+                }
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-        btnClear.setForeground(Color.BLACK);
+        btnClear.setForeground(Color.WHITE);
         btnClear.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnClear.setContentAreaFilled(false);
         btnClear.setBorderPainted(false);
@@ -239,17 +247,22 @@ public class POSPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Giỏ hàng đang trống!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        CustomerInfoDialog infoDialog = new CustomerInfoDialog(
-                (Frame) javax.swing.SwingUtilities.getWindowAncestor(this));
+        Frame parent = (Frame) SwingUtilities.getWindowAncestor(this); // Khai báo biến parent ở đây
+        CustomerInfoDialog infoDialog = new CustomerInfoDialog(parent);
+        // CustomerInfoDialog infoDialog = new CustomerInfoDialog(
+        // (Frame) SwingUtilities.getWindowAncestor(this));
         infoDialog.setVisible(true);
         if (!infoDialog.isConfirmed())
             return;
-        String customerInfo = infoDialog.getCustomerId() > 0 ? String.valueOf(infoDialog.getCustomerId())
-                : infoDialog.getCustomerPhone();
-        if (customerInfo == null || customerInfo.trim().isEmpty()) {
-            customerInfo = "Khách vãng lai";
+        Integer customerId = infoDialog.getCustomerId() > 0 ? infoDialog.getCustomerId() : null;
+        String customerPhone = infoDialog.getCustomerPhone();
+        if (customerPhone == null || customerPhone.trim().isEmpty()) {
+            customerPhone = "Khách vãng lai";
         }
         double totalAmount = cartBUS.calculateTotalAmount();
+        // mahd
+        String maHD = "ORD" + System.currentTimeMillis();
+        //
         String[] options = { "Tiền mặt (Hoàn thành ngay)", "Chuyển khoản / Quét mã QR" };
         int choice = JOptionPane.showOptionDialog(this,
                 "Chọn phương thức thanh toán:", "Thanh toán",
@@ -260,7 +273,7 @@ public class POSPanel extends JPanel {
         boolean isPaymentConfirmed = false;
         String status = "Chưa thanh toán";
         if (choice == 1) {
-            PaymentQRDialog qrDialog = new PaymentQRDialog((Frame) javax.swing.SwingUtilities.getWindowAncestor(this),
+            PaymentQRDialog qrDialog = new PaymentQRDialog((Frame) SwingUtilities.getWindowAncestor(this),
                     totalAmount, "POS_" + System.currentTimeMillis() % 10000);
             qrDialog.setVisible(true);
             if (qrDialog.isPaymentSuccessful()) {
@@ -277,13 +290,32 @@ public class POSPanel extends JPanel {
         }
         if (isPaymentConfirmed) {
             try {
-                com.pbl_3project.dao.OrderDAO orderDAO = new com.pbl_3project.dao.OrderDAO();
-                boolean success = orderDAO.createOrder(customerInfo, totalAmount, cartBUS.getCartItems(), status);
+                String paymentMethod = (choice == 1) ? "Chuyển khoản / Quét mã QR" : "Tiền mặt";
+                OrderDAO orderDAO = new OrderDAO();
+                boolean success = orderDAO.createOrder(customerId, customerPhone, this.staffId, paymentMethod,
+                        totalAmount, cartBUS.getCartItems(), status);
+
                 if (success) {
-                    JOptionPane.showMessageDialog(this,
-                            "🎉 " + (choice == 1 ? "Thanh toán QR" : "Thanh toán tiền mặt") + " thành công!");
-                    cartBUS.clearCart();
-                    refreshCartGUI();
+                    String staffName = "Nhân viên #" + this.staffId;
+                    try {
+                        java.util.Map<String, String> profile = new UserDAO().getEmployeeProfile(this.staffId);
+                        if (profile != null && profile.get("fullName") != null && !profile.get("fullName").isEmpty()) {
+                            staffName = profile.get("fullName");
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    InvoicePrinter hdDialog = new InvoicePrinter(parent, maHD, cartBUS.getCartItems(), totalAmount,
+                            staffName, paymentMethod);
+                    hdDialog.setVisible(true);
+                    if (hdDialog.checkPrintSuccess()) {
+                        JOptionPane.showMessageDialog(this, "🎉 Giao dịch và in hóa đơn thành công!");
+                        cartBUS.clearCart();
+                        refreshCartGUI();
+                    } else {
+                        System.out.println("Người dùng đã hủy in.");
+                    }
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -519,7 +551,7 @@ public class POSPanel extends JPanel {
             for (int i = cartBUS.getCartItems().size() - 1; i >= 0; i--) {
                 CartItem item = cartBUS.getCartItems().get(i);
                 if (item.isExpired()) {
-                    System.out.println("⏰ Item hết hạn: " + item.getName() + " | Xóa khỏi giỏ hàng");
+                    System.out.println("Item hết hạn: " + item.getName() + " | Xóa khỏi giỏ hàng");
                     cartBUS.removeItem(i);
                     hasExpired = true;
                 }
@@ -528,7 +560,7 @@ public class POSPanel extends JPanel {
                 javax.swing.SwingUtilities.invokeLater(() -> refreshCartGUI());
             }
         } catch (Exception e) {
-            System.err.println("❌ Lỗi khi check expired items: " + e.getMessage());
+            System.err.println("Lỗi khi check expired items: " + e.getMessage());
         }
     }
 

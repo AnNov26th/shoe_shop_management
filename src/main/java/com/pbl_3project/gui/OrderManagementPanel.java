@@ -11,33 +11,26 @@ import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.SwingUtilities;
+import java.util.List;
+import java.util.ArrayList;
+import java.awt.Window;
 import com.pbl_3project.bus.OrderBUS;
+import com.pbl_3project.dto.CartItem;
 
 public class OrderManagementPanel extends JPanel {
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color WHITE = Color.WHITE;
-    private static final Color ACCENT = new Color(34, 177, 76);
-    private static final Color BTN_BLUE = new Color(56, 189, 248);
-    private static final Color BTN_GRAY = new Color(148, 163, 184);
-    private static final Color BTN_DANGER = new Color(239, 68, 68);
+    private static final Color ACCENT = new Color(34, 197, 94); // Modern Green
+    private static final Color BTN_BLUE = new Color(37, 99, 235); // Modern Blue
+    private static final Color BTN_GRAY = new Color(100, 116, 139); // Modern Slate
+    private static final Color BTN_DANGER = new Color(220, 38, 38); // Modern Red
     private static final Color BORDER = new Color(226, 232, 240);
     private static final Color TEXT_H = new Color(15, 23, 42);
     private static final Color TEXT_S = new Color(100, 116, 139);
@@ -54,22 +47,27 @@ public class OrderManagementPanel extends JPanel {
     private JTable tableDetails;
     private DefaultTableModel detailsModel;
     private JTextField txtSearch;
+    private JTextField txtFromDate;
+    private JTextField txtToDate;
     private JLabel lblDetailTitle;
     private JLabel lblTotalOrders;
     private JComboBox<String> cmbStatus;
+    private JEditorPane previewPane; // For invoice preview
     private final OrderBUS orderBUS = new OrderBUS();
     private final boolean isAdmin;
+    private final boolean isInvoiceMode;
 
     public OrderManagementPanel(boolean isAdmin) {
+        this(isAdmin, false);
+    }
+
+    public OrderManagementPanel(boolean isAdmin, boolean isInvoiceMode) {
         this.isAdmin = isAdmin;
+        this.isInvoiceMode = isInvoiceMode;
         setLayout(new BorderLayout(0, 0));
         setBackground(BG_CONTENT);
         initComponents();
         loadOrders("");
-    }
-
-    public OrderManagementPanel() {
-        this(true);
     }
 
     private void initComponents() {
@@ -80,7 +78,7 @@ public class OrderManagementPanel extends JPanel {
                 new EmptyBorder(16, 24, 16, 24)));
         JPanel leftBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         leftBar.setOpaque(false);
-        JLabel lblTitle = new JLabel("QUẢN LÝ ĐƠN HÀNG");
+        JLabel lblTitle = new JLabel(isInvoiceMode ? "DANH SÁCH HÓA ĐƠN" : "QUẢN LÝ ĐƠN HÀNG ONLINE");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(TEXT_H);
         lblTotalOrders = new JLabel("0 đơn");
@@ -96,22 +94,39 @@ public class OrderManagementPanel extends JPanel {
         JLabel lblSearch = new JLabel("Tìm kiếm:");
         lblSearch.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblSearch.setForeground(TEXT_H);
-        txtSearch = new JTextField(20);
-        txtSearch.setPreferredSize(new Dimension(220, 36));
+        txtSearch = new JTextField(15);
+        txtSearch.setPreferredSize(new Dimension(160, 36));
         txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         txtSearch.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(BORDER, 1, true),
                 new EmptyBorder(0, 12, 0, 12)));
-        txtSearch.setToolTipText("Nhập mã ĐH hoặc số điện thoại");
+        txtSearch.setToolTipText("Mã ĐH / SĐT");
+
+        txtFromDate = new JTextField(8);
+        txtFromDate.setPreferredSize(new Dimension(100, 36));
+        txtFromDate.setToolTipText("Từ ngày (YYYY-MM-DD)");
+        txtFromDate.setBorder(new LineBorder(BORDER, 1, true));
+
+        txtToDate = new JTextField(8);
+        txtToDate.setPreferredSize(new Dimension(100, 36));
+        txtToDate.setToolTipText("Đến ngày (YYYY-MM-DD)");
+        txtToDate.setBorder(new LineBorder(BORDER, 1, true));
+
         JButton btnSearch = createRoundButton("Tìm kiếm", BTN_BLUE);
         JButton btnRefresh = createRoundButton("Làm mới", BTN_GRAY);
+
         rightBar.add(lblSearch);
         rightBar.add(txtSearch);
+        rightBar.add(new JLabel(" Từ:"));
+        rightBar.add(txtFromDate);
+        rightBar.add(new JLabel(" Đến:"));
+        rightBar.add(txtToDate);
         rightBar.add(btnSearch);
         rightBar.add(btnRefresh);
         toolBar.add(leftBar, BorderLayout.WEST);
         toolBar.add(rightBar, BorderLayout.EAST);
-        String[] colsOrders = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Ngày Đặt", "Trạng Thái" };
+        String[] colsOrders = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Hình thức TT", "Nhân Viên",
+                "Ngày Đặt", "Trạng Thái", "Ngày Thanh Toán", "Ngày Giao" };
         ordersModel = new DefaultTableModel(colsOrders, 0) {
             @Override
             public boolean isCellEditable(int r, int c) {
@@ -122,11 +137,18 @@ public class OrderManagementPanel extends JPanel {
         tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(0));
         tableOrders.getColumnModel().getColumn(0).setPreferredWidth(100);
         tableOrders.getColumnModel().getColumn(1).setPreferredWidth(140);
-        tableOrders.getColumnModel().getColumn(2).setPreferredWidth(110);
-        tableOrders.getColumnModel().getColumn(3).setPreferredWidth(130);
-        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(150);
-        tableOrders.getColumnModel().getColumn(5).setPreferredWidth(130);
-        tableOrders.getColumnModel().getColumn(5).setCellRenderer(new StatusRenderer());
+        tableOrders.getColumnModel().getColumn(2).setPreferredWidth(100);
+        tableOrders.getColumnModel().getColumn(3).setPreferredWidth(120);
+        tableOrders.getColumnModel().getColumn(4).setPreferredWidth(120);
+        tableOrders.getColumnModel().getColumn(5).setPreferredWidth(120);
+        tableOrders.getColumnModel().getColumn(6).setPreferredWidth(130);
+        tableOrders.getColumnModel().getColumn(7).setCellRenderer(new StatusRenderer());
+
+        // Ẩn bớt các cột ngày thanh toán và ngày giao nếu muốn (hoặc để hiện thị hết)
+        // tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(9));
+        // // Ngày Thanh Toán
+        // tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(10));
+        // // Ngày Giao
         JScrollPane scrollOrders = buildScrollPane(tableOrders);
         JPanel panelOrders = new JPanel(new BorderLayout());
         panelOrders.setBackground(WHITE);
@@ -152,12 +174,27 @@ public class OrderManagementPanel extends JPanel {
         tableDetails.getColumnModel().getColumn(5).setPreferredWidth(130);
         tableDetails.getColumnModel().getColumn(6).setPreferredWidth(140);
         JScrollPane scrollDetails = buildScrollPane(tableDetails);
+
+        previewPane = new JEditorPane();
+        previewPane.setEditable(false);
+        previewPane.setContentType("text/html");
+        JScrollPane scrollPreview = new JScrollPane(previewPane);
+        scrollPreview.setBorder(null);
+
+        JPanel detailCard = new JPanel(new BorderLayout());
+        detailCard.setBorder(new LineBorder(BORDER, 1, true));
         JPanel detailHeader = new JPanel(new BorderLayout());
         detailHeader.setBackground(HEADER_BG);
         detailHeader.setBorder(new EmptyBorder(10, 16, 10, 16));
         lblDetailTitle = new JLabel("← Chọn một đơn hàng để xem chi tiết & cập nhật trạng thái");
         lblDetailTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblDetailTitle.setForeground(TEXT_S);
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actionPanel.setOpaque(false);
+
+        JButton btnPrintInvoice = createRoundButton("In hóa đơn", BTN_BLUE);
+        btnPrintInvoice.addActionListener(e -> handlePrintInvoice());
+
         JPanel statusBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         statusBar.setOpaque(false);
         JLabel lblChangeStatus = new JLabel("Cập nhật trạng thái:");
@@ -167,23 +204,31 @@ public class OrderManagementPanel extends JPanel {
         cmbStatus.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cmbStatus.setPreferredSize(new Dimension(180, 32));
         JButton btnUpdateStatus = createRoundButton("Lưu", ACCENT);
+
         statusBar.add(lblChangeStatus);
         statusBar.add(cmbStatus);
         statusBar.add(btnUpdateStatus);
+
+        actionPanel.add(btnPrintInvoice);
+        actionPanel.add(statusBar);
+
         if (!isAdmin) {
             statusBar.setVisible(false);
             lblDetailTitle.setText("Chọn một đơn hàng để xem chi tiết");
         }
         detailHeader.add(lblDetailTitle, BorderLayout.WEST);
-        detailHeader.add(statusBar, BorderLayout.EAST);
+        detailHeader.add(actionPanel, BorderLayout.EAST);
         JPanel panelDetails = new JPanel(new BorderLayout());
         panelDetails.setBackground(WHITE);
         panelDetails.setBorder(new EmptyBorder(0, 20, 14, 20));
-        panelDetails.add(buildSectionTitle("Chi tiết đơn hàng"), BorderLayout.NORTH);
-        JPanel detailCard = new JPanel(new BorderLayout());
-        detailCard.setBorder(new LineBorder(BORDER, 1, true));
         detailCard.add(detailHeader, BorderLayout.NORTH);
-        detailCard.add(scrollDetails, BorderLayout.CENTER);
+        if (isInvoiceMode) {
+            detailCard.add(scrollPreview, BorderLayout.CENTER);
+            panelDetails.add(buildSectionTitle("Bản xem trước Hóa đơn"), BorderLayout.NORTH);
+        } else {
+            detailCard.add(scrollDetails, BorderLayout.CENTER);
+            panelDetails.add(buildSectionTitle("Chi tiết sản phẩm"), BorderLayout.NORTH);
+        }
         panelDetails.add(detailCard, BorderLayout.CENTER);
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelOrders, panelDetails);
         split.setDividerLocation(300);
@@ -197,6 +242,8 @@ public class OrderManagementPanel extends JPanel {
         txtSearch.addActionListener(e -> loadOrders(txtSearch.getText()));
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
+            txtFromDate.setText("");
+            txtToDate.setText("");
             loadOrders("");
         });
         tableOrders.getSelectionModel().addListSelectionListener(e -> {
@@ -205,7 +252,7 @@ public class OrderManagementPanel extends JPanel {
                 if (viewRow >= 0) {
                     int modelRow = tableOrders.convertRowIndexToModel(viewRow);
                     int orderId = Integer.parseInt(ordersModel.getValueAt(modelRow, 0).toString());
-                    String status = ordersModel.getValueAt(modelRow, 6).toString();
+                    String status = ordersModel.getValueAt(modelRow, 8).toString();
                     loadOrderDetail(orderId, status);
                 }
             }
@@ -214,8 +261,12 @@ public class OrderManagementPanel extends JPanel {
     }
 
     private void loadOrders(String keyword) {
+        loadOrders(keyword, txtFromDate.getText().trim(), txtToDate.getText().trim());
+    }
+
+    private void loadOrders(String keyword, String fromDate, String toDate) {
         try {
-            DefaultTableModel model = orderBUS.getAllOrders(keyword);
+            DefaultTableModel model = orderBUS.getAllOrders(keyword, fromDate, toDate);
             ordersModel.setRowCount(0);
             for (int i = 0; i < model.getRowCount(); i++) {
                 ordersModel.addRow(new Object[] {
@@ -225,7 +276,11 @@ public class OrderManagementPanel extends JPanel {
                         model.getValueAt(i, 3),
                         model.getValueAt(i, 4),
                         model.getValueAt(i, 5),
-                        model.getValueAt(i, 6)
+                        model.getValueAt(i, 6),
+                        model.getValueAt(i, 7),
+                        model.getValueAt(i, 8),
+                        model.getValueAt(i, 9),
+                        model.getValueAt(i, 10)
                 });
             }
             lblTotalOrders.setText(model.getRowCount() + " đơn");
@@ -257,9 +312,13 @@ public class OrderManagementPanel extends JPanel {
                         model.getValueAt(i, 6)
                 });
             }
-            lblDetailTitle.setText("Chi tiết Đơn hàng #" + orderId);
+            lblDetailTitle.setText("Chi tiết Đơn hàng #" + orderId + " (" + currentStatus + ")");
             lblDetailTitle.setForeground(TEXT_H);
             cmbStatus.setSelectedItem(currentStatus);
+
+            if (isInvoiceMode) {
+                generateInvoicePreview(orderId);
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Lỗi tải chi tiết: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -290,6 +349,71 @@ public class OrderManagementPanel extends JPanel {
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private void handlePrintInvoice() {
+        int viewRow = tableOrders.getSelectedRow();
+        if (viewRow < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn một đơn hàng để in hóa đơn!", "Chưa chọn đơn", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int modelRow = tableOrders.convertRowIndexToModel(viewRow);
+        String orderCode = ordersModel.getValueAt(modelRow, 1).toString();
+
+        // Lấy tổng tiền
+        String totalAmountStr = ordersModel.getValueAt(modelRow, 4).toString();
+        totalAmountStr = totalAmountStr.replace(" VNĐ", "").replace(",", "").replace(".", "").trim();
+        double totalAmount = 0;
+        try {
+            totalAmount = Double.parseDouble(totalAmountStr);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+
+        // Lấy danh sách sản phẩm
+        List<CartItem> cartItems = new ArrayList<>();
+        for (int i = 0; i < detailsModel.getRowCount(); i++) {
+            String name = detailsModel.getValueAt(i, 0).toString();
+            String sku = detailsModel.getValueAt(i, 1).toString();
+            String size = detailsModel.getValueAt(i, 2).toString();
+            String color = detailsModel.getValueAt(i, 3).toString();
+            int quantity = Integer.parseInt(detailsModel.getValueAt(i, 4).toString());
+
+            String priceStr = detailsModel.getValueAt(i, 5).toString();
+            priceStr = priceStr.replace(",", "").replace(".", "").trim();
+            double price = 0;
+            try {
+                price = Double.parseDouble(priceStr);
+            } catch (NumberFormatException e) {
+                price = 0;
+            }
+
+            CartItem item = new CartItem(sku, name, size, color, price, quantity, 0);
+            cartItems.add(item);
+        }
+
+        String paymentMethod = ordersModel.getValueAt(modelRow, 5).toString();
+        String staffName = ordersModel.getValueAt(modelRow, 6).toString();
+
+        java.sql.Timestamp orderAt = null;
+        java.sql.Timestamp paymentAt = null;
+        java.sql.Timestamp deliveredAt = null;
+
+        if (ordersModel.getValueAt(modelRow, 7) instanceof java.sql.Timestamp)
+            orderAt = (java.sql.Timestamp) ordersModel.getValueAt(modelRow, 7);
+        if (ordersModel.getValueAt(modelRow, 9) instanceof java.sql.Timestamp)
+            paymentAt = (java.sql.Timestamp) ordersModel.getValueAt(modelRow, 9);
+        if (ordersModel.getValueAt(modelRow, 10) instanceof java.sql.Timestamp)
+            deliveredAt = (java.sql.Timestamp) ordersModel.getValueAt(modelRow, 10);
+
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window instanceof java.awt.Frame) {
+            InvoicePrinter printer = new InvoicePrinter((java.awt.Frame) window, orderCode, cartItems, totalAmount,
+                    staffName, paymentMethod);
+            printer.setTimestamps(orderAt, paymentAt, deliveredAt);
+            printer.setVisible(true);
         }
     }
 
@@ -349,17 +473,30 @@ public class OrderManagementPanel extends JPanel {
         return p;
     }
 
-    private JButton createRoundButton(String text, Color color) {
+    private JButton createRoundButton(String text, Color baseColor) {
         JButton btn = new JButton(text) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = getModel().isRollover()
-                        ? new GradientPaint(0, 0, color.darker(), getWidth(), 0, color)
-                        : new GradientPaint(0, 0, color, getWidth(), 0, color.brighter());
-                g2.setPaint(gp);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+
+                Color c1 = baseColor;
+                Color c2 = baseColor.darker();
+
+                if (getModel().isPressed()) {
+                    g2.setColor(c2);
+                } else if (getModel().isRollover()) {
+                    g2.setPaint(new GradientPaint(0, 0, c1.brighter(), 0, getHeight(), c1));
+                } else {
+                    g2.setPaint(new GradientPaint(0, 0, c1, 0, getHeight(), c2));
+                }
+
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+
+                // Subtle border
+                g2.setColor(new Color(255, 255, 255, 40));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -370,7 +507,7 @@ public class OrderManagementPanel extends JPanel {
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(8, 16, 8, 16));
+        btn.setPreferredSize(new Dimension(100, 38));
         return btn;
     }
 
@@ -396,6 +533,81 @@ public class OrderManagementPanel extends JPanel {
                 return WARNING;
             default:
                 return TEXT_S;
+        }
+    }
+
+    private void generateInvoicePreview(int orderId) {
+        try {
+            DefaultTableModel orderData = orderBUS.getAllOrders("#" + orderId);
+            if (orderData.getRowCount() == 0)
+                return;
+
+            String customer = orderData.getValueAt(0, 1).toString();
+            String phone = orderData.getValueAt(0, 2).toString();
+            String staff = orderData.getValueAt(0, 3).toString();
+            String method = orderData.getValueAt(0, 4).toString();
+            String createdAt = orderData.getValueAt(0, 5).toString();
+            double total = Double.parseDouble(orderData.getValueAt(0, 7).toString().replace(",", ""));
+
+            StringBuilder itemsHtml = new StringBuilder();
+            for (int i = 0; i < detailsModel.getRowCount(); i++) {
+                itemsHtml.append("<tr>")
+                        .append("<td style='padding:6px; border-bottom:1px solid #eee;'>")
+                        .append(detailsModel.getValueAt(i, 0)).append("</td>")
+                        .append("<td style='text-align:center; padding:6px; border-bottom:1px solid #eee;'>")
+                        .append(detailsModel.getValueAt(i, 4)).append("</td>")
+                        .append("<td style='text-align:right; padding:6px; border-bottom:1px solid #eee;'>")
+                        .append(detailsModel.getValueAt(i, 5)).append(" VNĐ</td>")
+                        .append("<td style='text-align:right; padding:6px; border-bottom:1px solid #eee;'>")
+                        .append(detailsModel.getValueAt(i, 6)).append(" VNĐ</td>")
+                        .append("</tr>");
+            }
+
+            String html = "<html><body style='font-family:Segoe UI, sans-serif; padding:25px; background-color:white; color:#333;'>"
+                    +
+                    "<div style='text-align:center; border-bottom:2px solid #3498db; padding-bottom:15px;'>" +
+                    "<h1 style='color:#3498db; margin:0;'>SHOE SHOP T&T</h1>" +
+                    "<p style='margin:5px 0; color:#7f8c8d;'>99 Tô Hiến Thành, Sơn Trà, Đà Nẵng | ĐT: 0123 456 789</p>"
+                    +
+                    "</div>" +
+                    "<div style='text-align:center; margin-top:20px;'>" +
+                    "<h2 style='margin:0; color:#2c3e50;'>HÓA ĐƠN BÁN HÀNG</h2>" +
+                    "<p style='color:#7f8c8d;'>Mã: <b>ORD" + orderId + "</b></p>" +
+                    "</div>" +
+                    "<table style='width:100%; margin-top:20px; font-size:13px;'>" +
+                    "<tr><td><b>Khách hàng:</b> " + customer + "</td><td style='text-align:right'><b>Ngày:</b> "
+                    + createdAt + "</td></tr>" +
+                    "<tr><td><b>Số điện thoại:</b> " + phone + "</td><td style='text-align:right'><b>Thanh toán:</b> <span style='color:#2980b9; font-weight:bold;'>" + method + "</span></td></tr>" +
+                    "<tr><td><b>Nhân viên:</b> " + staff
+                    + "</td><td style='text-align:right'><b>Tình trạng:</b> <span style='color:#27ae60; font-weight:bold;'>Đã thanh toán</span></td></tr>" +
+                    "</table>" +
+                    "<table style='width:100%; margin-top:20px; border-collapse:collapse; font-size:12px;'>" +
+                    "<tr style='background-color:#f8f9fa; border-bottom:2px solid #dee2e6;'>" +
+                    "<th style='padding:10px; text-align:left;'>Sản phẩm</th>" +
+                    "<th style='padding:10px; text-align:center;'>SL</th>" +
+                    "<th style='padding:10px; text-align:right;'>Đơn giá</th>" +
+                    "<th style='padding:10px; text-align:right;'>Thành tiền</th></tr>" +
+                    itemsHtml.toString() +
+                    "</table>" +
+                    "<div style='margin-top:25px; text-align:right; border-top:2px solid #3498db; padding-top:15px;'>" +
+                    "<span style='font-size:16px; font-weight:normal;'>Tổng cộng: </span>" +
+                    "<span style='font-size:22px; color:#e74c3c; font-weight:bold;'>" + String.format("%,.0f", total)
+                    + " VNĐ</span>" +
+                    "</div>" +
+                    "<div style='margin-top:40px; text-align:center; color:#95a5a6;'>" +
+                    "<p style='font-style:italic; margin:0;'>Cảm ơn quý khách đã mua sắm tại Shoe Shop T&T!</p>" +
+                    "<p style='font-size:10px; margin-top:5px;'>Bản xem trước - "
+                    + java.time.LocalDateTime.now()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                    + "</p>" +
+                    "</div>" +
+                    "</body></html>";
+
+            previewPane.setText(html);
+            previewPane.setCaretPosition(0);
+        } catch (Exception e) {
+            previewPane.setText(
+                    "<html><body><p style='color:red;'>Lỗi hiển thị preview: " + e.getMessage() + "</p></body></html>");
         }
     }
 

@@ -35,23 +35,30 @@ public class AdminAuthDialog extends JDialog {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         JLabel lblEmail = new JLabel("Email Admin:");
         lblEmail.setFont(new Font("Segoe UI", Font.BOLD, 13));
         formPanel.add(lblEmail, gbc);
 
-        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1.0;
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
         txtEmail = new JTextField();
         txtEmail.setPreferredSize(new Dimension(200, 30));
         txtEmail.setBorder(new LineBorder(new Color(203, 213, 225)));
         formPanel.add(txtEmail, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.0;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0.0;
         JLabel lblPassword = new JLabel("Mật khẩu:");
         lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 13));
         formPanel.add(lblPassword, gbc);
 
-        gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1.0;
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
         txtPassword = new JPasswordField();
         txtPassword.setPreferredSize(new Dimension(200, 30));
         txtPassword.setBorder(new LineBorder(new Color(203, 213, 225)));
@@ -63,10 +70,10 @@ public class AdminAuthDialog extends JDialog {
         btnPanel.setOpaque(false);
         JButton btnConfirm = new JButton("Xác nhận");
         btnConfirm.setBackground(new Color(34, 197, 94));
-        btnConfirm.setForeground(Color.WHITE);
+        btnConfirm.setForeground(Color.BLACK);
         btnConfirm.setFocusPainted(false);
         btnConfirm.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        
+
         JButton btnCancel = new JButton("Hủy");
         btnCancel.setBackground(new Color(226, 232, 240));
         btnCancel.setFocusPainted(false);
@@ -98,10 +105,13 @@ public class AdminAuthDialog extends JDialog {
                 authenticated = true;
                 dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "Thông tin xác thực không đúng hoặc tài khoản không có quyền Admin!", "Từ chối truy cập", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Thông tin xác thực không đúng hoặc tài khoản không có quyền Admin!", "Từ chối truy cập",
+                        JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi kết nối cơ sở dữ liệu: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Lỗi kết nối cơ sở dữ liệu: " + ex.getMessage(), "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
