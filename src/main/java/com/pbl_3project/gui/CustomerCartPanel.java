@@ -11,7 +11,10 @@ import java.awt.Frame;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -308,8 +311,8 @@ public class CustomerCartPanel extends JPanel {
         }
 
         JPanel pnlInfo = new JPanel();
-        pnlInfo.setLayout(new BoxLayout(pnlInfo, BoxLayout.Y_AXIS));
-        pnlInfo.setPreferredSize(new Dimension(420, 320));
+        pnlInfo.setLayout(new BorderLayout());
+        pnlInfo.setPreferredSize(new Dimension(520, 480));
         pnlInfo.setBackground(Color.WHITE);
 
         JPanel pnlHeader = new JPanel(new BorderLayout()) {
@@ -322,63 +325,121 @@ public class CustomerCartPanel extends JPanel {
                 g2.dispose();
             }
         };
-        pnlHeader.setPreferredSize(new Dimension(0, 50));
-        pnlHeader.setBorder(new EmptyBorder(0, 20, 0, 20));
-        JLabel lblHeader = new JLabel("Thông Tin Nhận Hàng");
-        lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        pnlHeader.setPreferredSize(new Dimension(0, 65));
+        pnlHeader.setBorder(new EmptyBorder(0, 25, 0, 25));
+        JLabel lblHeader = new JLabel("Xác nhận Đặt hàng");
+        lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblHeader.setForeground(Color.WHITE);
         pnlHeader.add(lblHeader, BorderLayout.WEST);
-        pnlHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel pnlFields = new JPanel();
-        pnlFields.setLayout(new BoxLayout(pnlFields, BoxLayout.Y_AXIS));
-        pnlFields.setBorder(new EmptyBorder(15, 25, 15, 25));
-        pnlFields.setBackground(Color.WHITE);
-        pnlFields.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Main Content
+        JPanel mainContent = new JPanel(new GridBagLayout());
+        mainContent.setBackground(Color.WHITE);
+        mainContent.setBorder(new EmptyBorder(25, 30, 25, 30));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        int gridy = 0;
 
-        JLabel lblPhone = new JLabel("Số điện thoại nhận hàng:");
-        lblPhone.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblPhone.setForeground(new Color(71, 85, 105));
+        // Section: Customer Info
+        JLabel lblInfoTitle = new JLabel("THÔNG TIN GIAO HÀNG");
+        lblInfoTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblInfoTitle.setForeground(new Color(100, 116, 139));
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        mainContent.add(lblInfoTitle, gbc);
+
+        // Fields
+        gbc.insets = new Insets(0, 0, 5, 0);
+        gbc.gridy = gridy++;
+        mainContent.add(new JLabel("Số điện thoại *") {
+            {
+                setFont(new Font("Segoe UI", Font.BOLD, 14));
+                setForeground(new Color(30, 41, 59));
+            }
+        }, gbc);
+
         JTextField txtPhone = new JTextField(defaultPhone);
-        txtPhone.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtPhone.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        txtPhone.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        txtPhone.setPreferredSize(new Dimension(0, 45));
         txtPhone.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
-                new EmptyBorder(0, 10, 0, 10)));
+                new EmptyBorder(0, 15, 0, 15)));
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        mainContent.add(txtPhone, gbc);
 
-        JLabel lblAddress = new JLabel("Địa chỉ giao hàng:");
-        lblAddress.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblAddress.setForeground(new Color(71, 85, 105));
+        gbc.insets = new Insets(0, 0, 5, 0);
+        gbc.gridy = gridy++;
+        mainContent.add(new JLabel("Địa chỉ chi tiết *") {
+            {
+                setFont(new Font("Segoe UI", Font.BOLD, 14));
+                setForeground(new Color(30, 41, 59));
+            }
+        }, gbc);
+
         JTextField txtAddress = new JTextField(defaultAddress);
-        txtAddress.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtAddress.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        txtAddress.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        txtAddress.setPreferredSize(new Dimension(0, 45));
         txtAddress.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
-                new EmptyBorder(0, 10, 0, 10)));
+                new EmptyBorder(0, 15, 0, 15)));
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        mainContent.add(txtAddress, gbc);
 
-        JLabel lblPayment = new JLabel("Phương thức thanh toán:");
-        lblPayment.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblPayment.setForeground(new Color(71, 85, 105));
+        gbc.insets = new Insets(0, 0, 5, 0);
+        gbc.gridy = gridy++;
+        mainContent.add(new JLabel("Phương thức thanh toán") {
+            {
+                setFont(new Font("Segoe UI", Font.BOLD, 14));
+                setForeground(new Color(30, 41, 59));
+            }
+        }, gbc);
+
         String[] paymentMethodsList = { "Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Quét mã QR" };
         javax.swing.JComboBox<String> cbPayment = new javax.swing.JComboBox<>(paymentMethodsList);
-        cbPayment.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        cbPayment.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        cbPayment.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        cbPayment.setPreferredSize(new Dimension(0, 45));
         cbPayment.setBackground(Color.WHITE);
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 25, 0);
+        mainContent.add(cbPayment, gbc);
 
-        pnlFields.add(lblPhone);
-        pnlFields.add(Box.createVerticalStrut(5));
-        pnlFields.add(txtPhone);
-        pnlFields.add(Box.createVerticalStrut(10));
-        pnlFields.add(lblAddress);
-        pnlFields.add(Box.createVerticalStrut(5));
-        pnlFields.add(txtAddress);
-        pnlFields.add(Box.createVerticalStrut(10));
-        pnlFields.add(lblPayment);
-        pnlFields.add(Box.createVerticalStrut(5));
-        pnlFields.add(cbPayment);
+        // Section: Order Summary (Simple)
+        JPanel pnlSummary = new JPanel(new BorderLayout());
+        pnlSummary.setBackground(new Color(248, 250, 252));
+        pnlSummary.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+                new EmptyBorder(15, 20, 15, 20)));
 
-        pnlInfo.add(pnlHeader);
-        pnlInfo.add(pnlFields);
+        double subtotal = cartBUS.calculateTotalAmount();
+        double finalAmount = subtotal - discountAmount;
+        if (finalAmount < 0)
+            finalAmount = 0;
+
+        String summaryHtml = "<html><body style='font-family:Segoe UI; font-size:11px;'>" +
+                "<table width='100%'>" +
+                "<tr><td>Tạm tính:</td><td align='right'>" + String.format("%,.0f VNĐ", subtotal) + "</td></tr>" +
+                (discountAmount > 0
+                        ? "<tr><td style='color:#22c55e;'>Giảm giá:</td><td align='right' style='color:#22c55e;'>-"
+                                + String.format("%,.0f VNĐ", discountAmount) + "</td></tr>"
+                        : "")
+                +
+                "<tr><td style='font-weight:bold; font-size:13px; padding-top:10px;'>TỔNG CỘNG:</td>" +
+                "<td align='right' style='font-weight:bold; font-size:13px; color:#ef4444; padding-top:10px;'>"
+                + String.format("%,.0f VNĐ", finalAmount) + "</td></tr>" +
+                "</table></body></html>";
+
+        JLabel lblSummary = new JLabel(summaryHtml);
+        pnlSummary.add(lblSummary, BorderLayout.CENTER);
+
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        mainContent.add(pnlSummary, gbc);
+
+        pnlInfo.add(pnlHeader, BorderLayout.NORTH);
+        pnlInfo.add(mainContent, BorderLayout.CENTER);
 
         int result = JOptionPane.showConfirmDialog(this, pnlInfo, "Xác nhận đơn hàng", JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE);
@@ -396,10 +457,7 @@ public class CustomerCartPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập địa chỉ nhận hàng!");
             return;
         }
-        double subtotal = cartBUS.calculateTotalAmount();
-        double finalAmount = subtotal - discountAmount;
-        if (finalAmount < 0)
-            finalAmount = 0;
+        // Final total is already calculated in the summary section above
 
         boolean isPaymentConfirmed = false;
         String status = "Chưa thanh toán";
@@ -486,8 +544,9 @@ public class CustomerCartPanel extends JPanel {
     }
 
     private void recalculateDiscount(double total) {
-        if (currentPromoId == -1) return;
-        
+        if (currentPromoId == -1)
+            return;
+
         String type = currentPromoType.toUpperCase();
         if (type.contains("PERCENT") || type.contains("PHẦN TRĂM")) {
             discountAmount = total * (currentPromoValue / 100.0);

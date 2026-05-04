@@ -288,10 +288,10 @@ public class POSPanel extends JPanel {
             try {
                 String paymentMethod = (choice == 1) ? "Chuyển khoản / Quét mã QR" : "Tiền mặt";
                 OrderDAO orderDAO = new OrderDAO();
-                boolean success = orderDAO.createOrder(customerId, customerPhone, this.staffId, paymentMethod,
+                String maHD_Real = orderDAO.createOrder(customerId, customerPhone, this.staffId, paymentMethod,
                         totalAmount, cartBUS.getCartItems(), status);
 
-                if (success) {
+                if (maHD_Real != null) {
                     String staffName = "Nhân viên #" + this.staffId;
                     try {
                         java.util.Map<String, String> profile = new UserDAO().getEmployeeProfile(this.staffId);
@@ -302,7 +302,8 @@ public class POSPanel extends JPanel {
                         ex.printStackTrace();
                     }
 
-                    InvoicePrinter hdDialog = new InvoicePrinter(parent, maHD, cartBUS.getCartItems(), totalAmount,
+                    // POS orders currently don't have discount logic, so subtotal = totalAmount and discount = 0
+                    InvoicePrinter hdDialog = new InvoicePrinter(parent, maHD_Real, cartBUS.getCartItems(), totalAmount, 0, totalAmount,
                             staffName, paymentMethod);
                     hdDialog.setCustomerInfo(infoDialog.getCustomerName(), infoDialog.getCustomerPhone(),
                             infoDialog.getCustomerAddress());

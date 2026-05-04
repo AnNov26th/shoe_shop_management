@@ -93,8 +93,7 @@ public class OrderDAO {
     // DatabaseConnection.closeConnection(conn);
     // }
     // }
-    // }
-    public boolean createOrder(Integer customerId, String customerPhone, Integer staffId, String paymentMethod, double totalAmount, List<CartItem> cartItems, String status)
+    public String createOrder(Integer customerId, String customerPhone, Integer staffId, String paymentMethod, double totalAmount, List<CartItem> cartItems, String status)
             throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtOrder = null;
@@ -175,7 +174,7 @@ public class OrderDAO {
             }
 
             conn.commit();
-            return true;
+            return orderCode;
         } catch (SQLException ex) {
             if (conn != null)
                 conn.rollback();
@@ -335,10 +334,10 @@ public class OrderDAO {
     }
 
     public DefaultTableModel getAllOrders(String keyword, String fromDate, String toDate) throws SQLException {
-        String[] cols = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Thanh Toán", "Nhân Viên", "Ngày Đặt", "Trạng Thái", "Ngày Thanh Toán", "Ngày Giao" };
+        String[] cols = { "ID", "Mã Đơn", "Khách Hàng", "SĐT", "Tổng Tiền", "Thanh Toán", "Nhân Viên", "Ngày Đặt", "Trạng Thái", "Ngày Thanh Toán", "Ngày Giao", "Subtotal", "Discount" };
         DefaultTableModel model = new DefaultTableModel(cols, 0);
         
-        StringBuilder sql = new StringBuilder("SELECT o.id, o.order_code, cp.full_name, o.customer_phone, o.final_amount, o.created_at, o.status, o.payment_method, sp.full_name as staff_name, o.payment_at, o.delivered_at ")
+        StringBuilder sql = new StringBuilder("SELECT o.id, o.order_code, cp.full_name, o.customer_phone, o.final_amount, o.subtotal, o.discount_amount, o.created_at, o.status, o.payment_method, sp.full_name as staff_name, o.payment_at, o.delivered_at ")
                 .append("FROM [Order] o ")
                 .append("LEFT JOIN [Customer_Profile] cp ON o.customer_id = cp.user_id ")
                 .append("LEFT JOIN [User] sp ON o.staff_id = sp.id ")
@@ -380,7 +379,9 @@ public class OrderDAO {
                             rs.getTimestamp("created_at"),
                             rs.getString("status"),
                             rs.getTimestamp("payment_at"),
-                            rs.getTimestamp("delivered_at")
+                            rs.getTimestamp("delivered_at"),
+                            rs.getDouble("subtotal"),
+                            rs.getDouble("discount_amount")
                     });
                 }
             }

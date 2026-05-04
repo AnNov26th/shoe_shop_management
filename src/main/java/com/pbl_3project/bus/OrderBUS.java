@@ -14,7 +14,7 @@ public class OrderBUS {
         if (cartItems == null || cartItems.isEmpty()) {
             throw new SQLException("Giỏ hàng đang trống, không thể thanh toán!");
         }
-        return orderDAO.createOrder(customerId, customerPhone, staffId, paymentMethod, totalAmount, cartItems, status);
+        return orderDAO.createOrder(customerId, customerPhone, staffId, paymentMethod, totalAmount, cartItems, status) != null;
     }
 
     public DefaultTableModel getOrdersByCustomer(int customerId) throws SQLException {

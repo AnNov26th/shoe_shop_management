@@ -19,6 +19,8 @@ public class InvoicePrinter extends JDialog {
     private String maHD;
     private List<CartItem> danhSachSP;
     private double tongTien;
+    private double subtotal;
+    private double discountAmount;
     private String staffName;
     private String paymentMethod;
     private String customerName;
@@ -46,11 +48,13 @@ public class InvoicePrinter extends JDialog {
         repaint();
     }
 
-    public InvoicePrinter(Frame parent, String maHD, List<CartItem> ds, double tong, String staffName,
+    public InvoicePrinter(Frame parent, String maHD, List<CartItem> ds, double subtotal, double discountAmount, double tong, String staffName,
             String paymentMethod) {
         super(parent, "Xuất hóa đơn", true);
         this.maHD = maHD;
         this.danhSachSP = ds;
+        this.subtotal = subtotal;
+        this.discountAmount = discountAmount;
         this.tongTien = tong;
         this.staffName = staffName;
         this.paymentMethod = paymentMethod;
@@ -58,7 +62,7 @@ public class InvoicePrinter extends JDialog {
         this.customerPhone = "";
         this.customerAddress = "";
 
-        setSize(500, 750);
+        setSize(500, 800);
         setLocationRelativeTo(parent);
         initComponents();
     }
@@ -151,8 +155,12 @@ public class InvoicePrinter extends JDialog {
 
         html.append("</table>");
 
-        html.append("<div style='text-align: right; font-size: 18px; margin-bottom: 30px;'>");
-        html.append("<b>TỔNG TIỀN: <span style='color: #e74c3c;'>").append(df.format(tongTien)).append("</span></b>");
+        html.append("<div style='text-align: right; margin-bottom: 30px;'>");
+        if (discountAmount > 0) {
+            html.append("<p style='margin: 5px 0; font-size: 14px;'>Tạm tính: ").append(df.format(subtotal)).append("</p>");
+            html.append("<p style='margin: 5px 0; font-size: 14px; color: #27ae60;'>Giảm giá: -").append(df.format(discountAmount)).append("</p>");
+        }
+        html.append("<p style='margin: 10px 0; font-size: 20px; color: #e74c3c;'><b>TỔNG TIỀN: ").append(df.format(tongTien)).append("</b></p>");
         html.append("</div>");
 
         html.append("<hr style='border: 1px dashed #bdc3c7; margin: 15px 0;'>");

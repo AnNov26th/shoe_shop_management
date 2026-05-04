@@ -27,6 +27,7 @@ public class CustomerInfoDialog extends JDialog {
     private final Color TEXT_S = new Color(100, 116, 139);
     private final Color BG = Color.WHITE;
     private final Color INPUT_BG = new Color(248, 250, 252);
+    private final Color BORDER_COLOR = new Color(226, 232, 240);
 
     public CustomerInfoDialog(Frame parent) {
         super(parent, "Thông tin nhận hàng", true);
@@ -35,11 +36,9 @@ public class CustomerInfoDialog extends JDialog {
 
     private void initComponents() {
         setLayout(new BorderLayout());
-        setSize(480, 650);
+        setSize(550, 750);
         setLocationRelativeTo(getParent());
         getContentPane().setBackground(BG);
-
-        // Header with Icon and Title
         JPanel pnlHeader = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -51,82 +50,102 @@ public class CustomerInfoDialog extends JDialog {
                 g2.dispose();
             }
         };
-        pnlHeader.setPreferredSize(new Dimension(0, 80));
+        pnlHeader.setPreferredSize(new Dimension(0, 90));
         pnlHeader.setBorder(new EmptyBorder(0, 30, 0, 30));
-        
-        JLabel lblTitle = new JLabel("🛒 THÔNG TIN NHẬN HÀNG");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+
+        JLabel lblTitle = new JLabel("THÔNG TIN NHẬN HÀNG");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitle.setForeground(Color.WHITE);
         pnlHeader.add(lblTitle, BorderLayout.WEST);
         add(pnlHeader, BorderLayout.NORTH);
 
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
+        JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setBackground(BG);
+        mainPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(0, 0, 10, 0);
 
+        int gridy = 0;
         JLabel lblSub = new JLabel("Vui lòng cung cấp thông tin để chúng tôi giao hàng sớm nhất");
-        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         lblSub.setForeground(TEXT_S);
-        lblSub.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(lblSub);
-        mainPanel.add(Box.createVerticalStrut(25));
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 25, 0);
+        mainPanel.add(lblSub, gbc);
+        gbc.insets = new Insets(0, 0, 10, 0);
 
-        // Phone Search Row
-        mainPanel.add(createLabel("Số điện thoại liên hệ *"));
-        JPanel phonePanel = new JPanel(new BorderLayout(12, 0));
+        gbc.gridy = gridy++;
+        mainPanel.add(createLabel("Số điện thoại liên hệ *"), gbc);
+
+        JPanel phonePanel = new JPanel(new BorderLayout(10, 0));
         phonePanel.setOpaque(false);
-        phonePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtPhone = createStyledField();
         btnSearch = createStyledButton("Tìm thành viên", PRIMARY);
-        btnSearch.setPreferredSize(new Dimension(130, 42));
+        btnSearch.setPreferredSize(new Dimension(150, 45));
         btnSearch.addActionListener(e -> searchCustomer());
         phonePanel.add(txtPhone, BorderLayout.CENTER);
         phonePanel.add(btnSearch, BorderLayout.EAST);
-        mainPanel.add(phonePanel);
-        mainPanel.add(Box.createVerticalStrut(20));
 
-        // Name
-        mainPanel.add(createLabel("Họ tên người nhận"));
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        mainPanel.add(phonePanel, gbc);
+        gbc.insets = new Insets(0, 0, 10, 0);
+
+        gbc.gridy = gridy++;
+        mainPanel.add(createLabel("Họ tên người nhận"), gbc);
         txtName = createStyledField();
-        mainPanel.add(txtName);
-        mainPanel.add(Box.createVerticalStrut(20));
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        mainPanel.add(txtName, gbc);
+        gbc.insets = new Insets(0, 0, 10, 0);
 
-        // Create Account Checkbox
         chkCreateAccount = new JCheckBox("Đăng ký thành viên để nhận ưu đãi?");
-        chkCreateAccount.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        chkCreateAccount.setFont(new Font("Segoe UI", Font.BOLD, 14));
         chkCreateAccount.setForeground(PRIMARY);
         chkCreateAccount.setOpaque(false);
-        chkCreateAccount.setAlignmentX(Component.LEFT_ALIGNMENT);
+        chkCreateAccount.setCursor(new Cursor(Cursor.HAND_CURSOR));
         chkCreateAccount.addActionListener(e -> txtEmail.setEnabled(chkCreateAccount.isSelected()));
-        mainPanel.add(chkCreateAccount);
-        mainPanel.add(Box.createVerticalStrut(10));
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        mainPanel.add(chkCreateAccount, gbc);
+        gbc.insets = new Insets(0, 0, 10, 0);
 
-        // Email
-        mainPanel.add(createLabel("Email xác nhận đơn hàng"));
+        gbc.gridy = gridy++;
+        mainPanel.add(createLabel("Email xác nhận đơn hàng"), gbc);
         txtEmail = createStyledField();
         txtEmail.setEnabled(false);
-        mainPanel.add(txtEmail);
-        mainPanel.add(Box.createVerticalStrut(20));
-        
-        // Address
-        mainPanel.add(createLabel("Địa chỉ giao hàng chi tiết *"));
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        mainPanel.add(txtEmail, gbc);
+        gbc.insets = new Insets(0, 0, 10, 0);
+
+        gbc.gridy = gridy++;
+        mainPanel.add(createLabel("Địa chỉ giao hàng chi tiết *"), gbc);
         txtAddress = createStyledField();
-        mainPanel.add(txtAddress);
+        gbc.gridy = gridy++;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        mainPanel.add(txtAddress, gbc);
+
+        gbc.gridy = gridy++;
+        gbc.weighty = 1.0;
+        mainPanel.add(Box.createVerticalGlue(), gbc);
 
         JScrollPane scroll = new JScrollPane(mainPanel);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         add(scroll, BorderLayout.CENTER);
 
-        // Buttons Footer
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 20));
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 20));
         footer.setBackground(new Color(248, 250, 252));
-        footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(226, 232, 240)));
-        
+        footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER_COLOR));
+
         btnCancel = createStyledButton("Hủy bỏ", new Color(148, 163, 184));
+        btnCancel.setPreferredSize(new Dimension(120, 45));
+
         btnConfirm = createStyledButton("Xác nhận đặt hàng", ACCENT);
-        btnConfirm.setPreferredSize(new Dimension(200, 48));
+        btnConfirm.setPreferredSize(new Dimension(200, 45));
 
         btnCancel.addActionListener(e -> {
             confirmed = false;
@@ -141,24 +160,20 @@ public class CustomerInfoDialog extends JDialog {
 
     private JLabel createLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lbl.setForeground(TEXT_H);
         lbl.setBorder(new EmptyBorder(0, 2, 5, 0));
-        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
         return lbl;
     }
 
     private JTextField createStyledField() {
         JTextField field = new JTextField();
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        field.setPreferredSize(new Dimension(0, 42));
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        field.setPreferredSize(new Dimension(0, 45));
         field.setBackground(INPUT_BG);
         field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
-            new EmptyBorder(0, 15, 0, 15)
-        ));
-        field.setAlignmentX(Component.LEFT_ALIGNMENT);
+                BorderFactory.createLineBorder(BORDER_COLOR, 1, true),
+                new EmptyBorder(0, 15, 0, 15)));
         return field;
     }
 
@@ -168,21 +183,23 @@ public class CustomerInfoDialog extends JDialog {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                if (getModel().isPressed()) g2.setColor(bg.darker());
-                else if (getModel().isRollover()) g2.setColor(bg.brighter());
-                else g2.setColor(bg);
+                if (getModel().isPressed())
+                    g2.setColor(bg.darker());
+                else if (getModel().isRollover())
+                    g2.setColor(bg.brighter());
+                else
+                    g2.setColor(bg);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btn.setForeground(Color.WHITE);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(150, 42));
         return btn;
     }
 

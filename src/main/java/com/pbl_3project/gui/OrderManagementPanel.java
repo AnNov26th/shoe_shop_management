@@ -149,6 +149,12 @@ public class OrderManagementPanel extends JPanel {
         tableOrders.getColumnModel().getColumn(6).setPreferredWidth(130);
         tableOrders.getColumnModel().getColumn(7).setCellRenderer(new StatusRenderer());
 
+        // Hide Subtotal and Discount columns from view (they are at indices 11 and 12 in the model)
+        // We use a loop to remove all columns beyond the standard 11 columns (0-10)
+        while (tableOrders.getColumnCount() > 10) {
+            tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(tableOrders.getColumnCount() - 1));
+        }
+
         JScrollPane scrollOrders = buildScrollPane(tableOrders);
         JPanel panelOrders = new JPanel(new BorderLayout());
         panelOrders.setBackground(WHITE);
@@ -472,6 +478,15 @@ public class OrderManagementPanel extends JPanel {
 
         String paymentMethod = ordersModel.getValueAt(modelRow, 5).toString();
         String staffName = ordersModel.getValueAt(modelRow, 6).toString();
+        
+        double subtotal = 0;
+        double discountAmount = 0;
+        try {
+            subtotal = Double.parseDouble(ordersModel.getValueAt(modelRow, 11).toString());
+            discountAmount = Double.parseDouble(ordersModel.getValueAt(modelRow, 12).toString());
+        } catch (Exception e) {
+            subtotal = totalAmount; // Fallback
+        }
 
         java.sql.Timestamp orderAt = null;
         java.sql.Timestamp paymentAt = null;
@@ -486,7 +501,7 @@ public class OrderManagementPanel extends JPanel {
 
         Window window = SwingUtilities.getWindowAncestor(this);
         if (window instanceof java.awt.Frame) {
-            InvoicePrinter printer = new InvoicePrinter((java.awt.Frame) window, orderCode, cartItems, totalAmount,
+            InvoicePrinter printer = new InvoicePrinter((java.awt.Frame) window, orderCode, cartItems, subtotal, discountAmount, totalAmount,
                     staffName, paymentMethod);
             printer.setTimestamps(orderAt, paymentAt, deliveredAt);
             printer.setVisible(true);
