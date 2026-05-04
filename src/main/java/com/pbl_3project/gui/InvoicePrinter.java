@@ -12,6 +12,8 @@ import javax.print.PrintServiceLookup;
 import com.pbl_3project.dto.CartItem;
 import javax.print.attribute.*;
 import javax.print.attribute.standard.*;
+import java.awt.Desktop;
+
 
 public class InvoicePrinter extends JDialog {
     private DecimalFormat df = new DecimalFormat("#,### VNĐ");
@@ -201,11 +203,33 @@ public class InvoicePrinter extends JDialog {
                 
                 File outputFile = new File(dir, "HoaDon_" + maHD + ".pdf");
 
+                // Check if file exists
+                if (outputFile.exists()) {
+                    String[] options = {"Mở xem", "In lại (Ghi đè)", "Hủy"};
+                    int choice = JOptionPane.showOptionDialog(this, 
+                        "Hóa đơn " + maHD + " đã tồn tại. Bạn muốn làm gì?", 
+                        "Thông báo", 
+                        JOptionPane.DEFAULT_OPTION, 
+                        JOptionPane.QUESTION_MESSAGE, 
+                        null, options, options[0]);
+                    
+                    if (choice == 0) { // Open
+                        if (Desktop.isDesktopSupported()) {
+                            Desktop.getDesktop().open(outputFile);
+                            this.dispose();
+                        }
+                        return;
+                    } else if (choice == 2 || choice == -1) { // Cancel
+                        return;
+                    }
+                    // If choice is 1 (Overwrite), proceed below
+                }
+
                 // 2. Setup print attributes
                 PrintRequestAttributeSet attributes = new HashPrintRequestAttributeSet();
                 attributes.add(new JobName("HoaDon_" + maHD, null));
                 
-                // Try to set destination (Note: some PDF drivers might still prompt)
+                // Try to set destination
                 attributes.add(new Destination(outputFile.toURI()));
 
                 // 3. Find PDF Printer Service
@@ -222,6 +246,16 @@ public class InvoicePrinter extends JDialog {
                 boolean completed = editorPane.print(null, null, true, pdfService, attributes, true);
                 if (completed) {
                     isPrintSuccess = true;
+                    // Mở file ngay sau khi in thành công
+                    if (Desktop.isDesktopSupported()) {
+                        try {
+                            if (outputFile.exists()) {
+                                Desktop.getDesktop().open(outputFile);
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("Không thể mở file hóa đơn: " + ex.getMessage());
+                        }
+                    }
                     this.dispose();
                 } else {
                     JOptionPane.showMessageDialog(this, "Bạn đã hủy lệnh in hóa đơn.");

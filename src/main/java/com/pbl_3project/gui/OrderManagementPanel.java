@@ -1,6 +1,7 @@
 package com.pbl_3project.gui;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -53,6 +54,10 @@ public class OrderManagementPanel extends JPanel {
     private JLabel lblTotalOrders;
     private JComboBox<String> cmbStatus;
     private JEditorPane previewPane; // For invoice preview
+    private JTextArea txtAreaDetails; // For text view
+    private JScrollPane scrollText;
+    private JButton btnToggleView;
+    private boolean isTextView = false;
     private final OrderBUS orderBUS = new OrderBUS();
     private final boolean isAdmin;
     private final boolean isInvoiceMode;
@@ -181,6 +186,14 @@ public class OrderManagementPanel extends JPanel {
         JScrollPane scrollPreview = new JScrollPane(previewPane);
         scrollPreview.setBorder(null);
 
+        txtAreaDetails = new JTextArea();
+        txtAreaDetails.setEditable(false);
+        txtAreaDetails.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        txtAreaDetails.setBorder(new EmptyBorder(10, 10, 10, 10));
+        scrollText = new JScrollPane(txtAreaDetails);
+        scrollText.setBorder(null);
+        scrollText.setVisible(false);
+
         JPanel detailCard = new JPanel(new BorderLayout());
         detailCard.setBorder(new LineBorder(BORDER, 1, true));
         JPanel detailHeader = new JPanel(new BorderLayout());
@@ -194,6 +207,9 @@ public class OrderManagementPanel extends JPanel {
 
         JButton btnPrintInvoice = createRoundButton("In hóa đơn", BTN_BLUE);
         btnPrintInvoice.addActionListener(e -> handlePrintInvoice());
+
+        btnToggleView = createRoundButton("Xem hóa đơn", BTN_GRAY);
+        btnToggleView.addActionListener(e -> toggleDetailView());
 
         JPanel statusBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         statusBar.setOpaque(false);
@@ -210,6 +226,7 @@ public class OrderManagementPanel extends JPanel {
         statusBar.add(btnUpdateStatus);
 
         actionPanel.add(btnPrintInvoice);
+        actionPanel.add(btnToggleView);
         actionPanel.add(statusBar);
 
         if (!isAdmin) {
@@ -222,13 +239,19 @@ public class OrderManagementPanel extends JPanel {
         panelDetails.setBackground(WHITE);
         panelDetails.setBorder(new EmptyBorder(0, 20, 14, 20));
         detailCard.add(detailHeader, BorderLayout.NORTH);
+        JPanel viewContainer = new JPanel(new CardLayout());
+        viewContainer.setOpaque(false);
+
         if (isInvoiceMode) {
-            detailCard.add(scrollPreview, BorderLayout.CENTER);
+            viewContainer.add(scrollPreview, "GUI");
             panelDetails.add(buildSectionTitle("Bản xem trước Hóa đơn"), BorderLayout.NORTH);
         } else {
-            detailCard.add(scrollDetails, BorderLayout.CENTER);
+            viewContainer.add(scrollDetails, "GUI");
             panelDetails.add(buildSectionTitle("Chi tiết sản phẩm"), BorderLayout.NORTH);
         }
+        viewContainer.add(scrollText, "TEXT");
+        detailCard.add(viewContainer, BorderLayout.CENTER);
+
         panelDetails.add(detailCard, BorderLayout.CENTER);
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelOrders, panelDetails);
         split.setDividerLocation(300);
@@ -319,6 +342,7 @@ public class OrderManagementPanel extends JPanel {
             if (isInvoiceMode) {
                 generateInvoicePreview(orderId);
             }
+            updateDetailsTextView(orderId, currentStatus);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Lỗi tải chi tiết: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -350,6 +374,53 @@ public class OrderManagementPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private void toggleDetailView() {
+        isTextView = !isTextView;
+        JPanel viewContainer = (JPanel) scrollText.getParent();
+        CardLayout cl = (CardLayout) viewContainer.getLayout();
+        if (isTextView) {
+            cl.show(viewContainer, "TEXT");
+            btnToggleView.setText("Xem dạng Bảng");
+        } else {
+            cl.show(viewContainer, "GUI");
+            btnToggleView.setText("Xem hóa đơn");
+        }
+    }
+
+    private void updateDetailsTextView(int orderId, String status) {
+        StringBuilder sb = new StringBuilder();
+        int viewRow = tableOrders.getSelectedRow();
+        if (viewRow < 0)
+            return;
+        int modelRow = tableOrders.convertRowIndexToModel(viewRow);
+
+        sb.append("--- THÔNG TIN ĐƠN HÀNG ---\n");
+        sb.append("Mã đơn hàng: ").append(ordersModel.getValueAt(modelRow, 1)).append("\n");
+        sb.append("Khách hàng: ").append(ordersModel.getValueAt(modelRow, 2)).append("\n");
+        sb.append("Số điện thoại: ").append(ordersModel.getValueAt(modelRow, 3)).append("\n");
+        sb.append("Ngày đặt: ").append(ordersModel.getValueAt(modelRow, 7)).append("\n");
+        sb.append("Trạng thái: ").append(status).append("\n");
+        sb.append("Hình thức TT: ").append(ordersModel.getValueAt(modelRow, 5)).append("\n");
+        sb.append("Nhân viên: ").append(ordersModel.getValueAt(modelRow, 6)).append("\n");
+        sb.append("\n--- CHI TIẾT SẢN PHẨM ---\n");
+        sb.append(String.format("%-30s | %-10s | %-5s | %-10s\n", "Tên SP", "SL", "Size", "Thành tiền"));
+        sb.append("--------------------------------------------------------------\n");
+
+        for (int i = 0; i < detailsModel.getRowCount(); i++) {
+            sb.append(String.format("%-30s | %-10s | %-5s | %-10s\n",
+                    detailsModel.getValueAt(i, 0),
+                    detailsModel.getValueAt(i, 4),
+                    detailsModel.getValueAt(i, 2),
+                    detailsModel.getValueAt(i, 6)));
+        }
+
+        sb.append("--------------------------------------------------------------\n");
+        sb.append("TỔNG CỘNG: ").append(ordersModel.getValueAt(modelRow, 4)).append("\n");
+
+        txtAreaDetails.setText(sb.toString());
+        txtAreaDetails.setCaretPosition(0);
     }
 
     private void handlePrintInvoice() {
@@ -577,9 +648,12 @@ public class OrderManagementPanel extends JPanel {
                     "<table style='width:100%; margin-top:20px; font-size:13px;'>" +
                     "<tr><td><b>Khách hàng:</b> " + customer + "</td><td style='text-align:right'><b>Ngày:</b> "
                     + createdAt + "</td></tr>" +
-                    "<tr><td><b>Số điện thoại:</b> " + phone + "</td><td style='text-align:right'><b>Thanh toán:</b> <span style='color:#2980b9; font-weight:bold;'>" + method + "</span></td></tr>" +
+                    "<tr><td><b>Số điện thoại:</b> " + phone
+                    + "</td><td style='text-align:right'><b>Thanh toán:</b> <span style='color:#2980b9; font-weight:bold;'>"
+                    + method + "</span></td></tr>" +
                     "<tr><td><b>Nhân viên:</b> " + staff
-                    + "</td><td style='text-align:right'><b>Tình trạng:</b> <span style='color:#27ae60; font-weight:bold;'>Đã thanh toán</span></td></tr>" +
+                    + "</td><td style='text-align:right'><b>Tình trạng:</b> <span style='color:#27ae60; font-weight:bold;'>Đã thanh toán</span></td></tr>"
+                    +
                     "</table>" +
                     "<table style='width:100%; margin-top:20px; border-collapse:collapse; font-size:12px;'>" +
                     "<tr style='background-color:#f8f9fa; border-bottom:2px solid #dee2e6;'>" +

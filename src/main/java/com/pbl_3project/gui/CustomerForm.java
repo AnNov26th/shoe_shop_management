@@ -27,6 +27,7 @@ public class CustomerForm extends JFrame {
         setMinimumSize(new Dimension(1000, 650));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout());
         initComponents();
     }

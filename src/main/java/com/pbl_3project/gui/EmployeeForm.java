@@ -26,6 +26,7 @@ public class EmployeeForm extends JFrame {
         setSize(1250, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout());
         getContentPane().setBackground(APP_BACKGROUND);
         initComponents();
