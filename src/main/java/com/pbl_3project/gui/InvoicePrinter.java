@@ -14,7 +14,6 @@ import javax.print.attribute.*;
 import javax.print.attribute.standard.*;
 import java.awt.Desktop;
 
-
 public class InvoicePrinter extends JDialog {
     private DecimalFormat df = new DecimalFormat("#,### VNĐ");
     private String maHD;
@@ -22,6 +21,9 @@ public class InvoicePrinter extends JDialog {
     private double tongTien;
     private String staffName;
     private String paymentMethod;
+    private String customerName;
+    private String customerPhone;
+    private String customerAddress;
     private boolean isPrintSuccess = false;
     private java.sql.Timestamp orderAt;
     private java.sql.Timestamp paymentAt;
@@ -37,7 +39,7 @@ public class InvoicePrinter extends JDialog {
         this.orderAt = orderAt;
         this.paymentAt = paymentAt;
         this.deliveredAt = deliveredAt;
-        // Re-init UI to update HTML content
+
         getContentPane().removeAll();
         initComponents();
         revalidate();
@@ -52,10 +54,24 @@ public class InvoicePrinter extends JDialog {
         this.tongTien = tong;
         this.staffName = staffName;
         this.paymentMethod = paymentMethod;
+        this.customerName = "Khách vãng lai";
+        this.customerPhone = "";
+        this.customerAddress = "";
 
-        setSize(500, 700);
+        setSize(500, 750);
         setLocationRelativeTo(parent);
         initComponents();
+    }
+
+    public void setCustomerInfo(String name, String phone, String address) {
+        this.customerName = name;
+        this.customerPhone = phone;
+        this.customerAddress = address;
+
+        getContentPane().removeAll();
+        initComponents();
+        revalidate();
+        repaint();
     }
 
     private void initComponents() {
@@ -97,6 +113,16 @@ public class InvoicePrinter extends JDialog {
 
         if (staffName != null && !staffName.isEmpty()) {
             html.append("<b>Nhân viên:</b> ").append(staffName).append("<br>");
+        }
+
+        html.append("<hr style='border: 1px dashed #ecf0f1; margin: 10px 0;'>");
+        html.append("<b>Khách hàng:</b> ").append(customerName != null ? customerName : "Khách vãng lai")
+                .append("<br>");
+        if (customerPhone != null && !customerPhone.isEmpty()) {
+            html.append("<b>SĐT:</b> ").append(customerPhone).append("<br>");
+        }
+        if (customerAddress != null && !customerAddress.isEmpty()) {
+            html.append("<b>Địa chỉ nhận hàng:</b> ").append(customerAddress).append("<br>");
         }
         html.append("</div>");
 
@@ -197,42 +223,36 @@ public class InvoicePrinter extends JDialog {
 
         btnPrint.addActionListener(e -> {
             try {
-                // 1. Create "Hóa đơn" directory in resources if not exists
                 File dir = new File("src/main/resources/Hóa đơn");
-                if (!dir.exists()) dir.mkdirs();
-                
+                if (!dir.exists())
+                    dir.mkdirs();
+
                 File outputFile = new File(dir, "HoaDon_" + maHD + ".pdf");
 
-                // Check if file exists
                 if (outputFile.exists()) {
-                    String[] options = {"Mở xem", "In lại (Ghi đè)", "Hủy"};
-                    int choice = JOptionPane.showOptionDialog(this, 
-                        "Hóa đơn " + maHD + " đã tồn tại. Bạn muốn làm gì?", 
-                        "Thông báo", 
-                        JOptionPane.DEFAULT_OPTION, 
-                        JOptionPane.QUESTION_MESSAGE, 
-                        null, options, options[0]);
-                    
-                    if (choice == 0) { // Open
+                    String[] options = { "Mở xem", "In lại (Ghi đè)", "Hủy" };
+                    int choice = JOptionPane.showOptionDialog(this,
+                            "Hóa đơn " + maHD + " đã tồn tại. Bạn muốn làm gì?",
+                            "Thông báo",
+                            JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null, options, options[0]);
+
+                    if (choice == 0) {
                         if (Desktop.isDesktopSupported()) {
                             Desktop.getDesktop().open(outputFile);
                             this.dispose();
                         }
                         return;
-                    } else if (choice == 2 || choice == -1) { // Cancel
+                    } else if (choice == 2 || choice == -1) {
                         return;
                     }
-                    // If choice is 1 (Overwrite), proceed below
                 }
-
-                // 2. Setup print attributes
                 PrintRequestAttributeSet attributes = new HashPrintRequestAttributeSet();
                 attributes.add(new JobName("HoaDon_" + maHD, null));
-                
-                // Try to set destination
+
                 attributes.add(new Destination(outputFile.toURI()));
 
-                // 3. Find PDF Printer Service
                 PrintService pdfService = null;
                 PrintService[] services = PrintServiceLookup.lookupPrintServices(null, null);
                 for (PrintService service : services) {
@@ -242,11 +262,9 @@ public class InvoicePrinter extends JDialog {
                     }
                 }
 
-                // 4. Print
                 boolean completed = editorPane.print(null, null, true, pdfService, attributes, true);
                 if (completed) {
                     isPrintSuccess = true;
-                    // Mở file ngay sau khi in thành công
                     if (Desktop.isDesktopSupported()) {
                         try {
                             if (outputFile.exists()) {

@@ -181,7 +181,7 @@ public class POSPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color c1 = new Color(34, 197, 94); // Modern Success
+                Color c1 = new Color(34, 197, 94);
                 Color c2 = new Color(21, 128, 61);
                 if (getModel().isPressed()) {
                     g2.setColor(c2);
@@ -208,7 +208,7 @@ public class POSPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color c1 = new Color(239, 68, 68); // Modern Danger
+                Color c1 = new Color(239, 68, 68);
                 Color c2 = new Color(185, 28, 28);
                 if (getModel().isPressed()) {
                     g2.setColor(c2);
@@ -247,10 +247,8 @@ public class POSPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Giỏ hàng đang trống!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        Frame parent = (Frame) SwingUtilities.getWindowAncestor(this); // Khai báo biến parent ở đây
+        Frame parent = (Frame) SwingUtilities.getWindowAncestor(this);
         CustomerInfoDialog infoDialog = new CustomerInfoDialog(parent);
-        // CustomerInfoDialog infoDialog = new CustomerInfoDialog(
-        // (Frame) SwingUtilities.getWindowAncestor(this));
         infoDialog.setVisible(true);
         if (!infoDialog.isConfirmed())
             return;
@@ -260,9 +258,7 @@ public class POSPanel extends JPanel {
             customerPhone = "Khách vãng lai";
         }
         double totalAmount = cartBUS.calculateTotalAmount();
-        // mahd
         String maHD = "ORD" + System.currentTimeMillis();
-        //
         String[] options = { "Tiền mặt (Hoàn thành ngay)", "Chuyển khoản / Quét mã QR" };
         int choice = JOptionPane.showOptionDialog(this,
                 "Chọn phương thức thanh toán:", "Thanh toán",
@@ -308,6 +304,8 @@ public class POSPanel extends JPanel {
 
                     InvoicePrinter hdDialog = new InvoicePrinter(parent, maHD, cartBUS.getCartItems(), totalAmount,
                             staffName, paymentMethod);
+                    hdDialog.setCustomerInfo(infoDialog.getCustomerName(), infoDialog.getCustomerPhone(),
+                            infoDialog.getCustomerAddress());
                     hdDialog.setVisible(true);
                     if (hdDialog.checkPrintSuccess()) {
                         JOptionPane.showMessageDialog(this, "🎉 Giao dịch và in hóa đơn thành công!");
@@ -427,16 +425,10 @@ public class POSPanel extends JPanel {
 
         JLabel lblImg = new JLabel("", SwingConstants.CENTER);
         try {
-            boolean imageLoaded = false;
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(imageUrl);
-                if (icon.getIconWidth() > 0) {
-                    java.awt.Image img = icon.getImage().getScaledInstance(130, 130, java.awt.Image.SCALE_SMOOTH);
-                    lblImg.setIcon(new javax.swing.ImageIcon(img));
-                    imageLoaded = true;
-                }
-            }
-            if (!imageLoaded) {
+            javax.swing.ImageIcon productIcon = com.pbl_3project.util.IconUtils.findProductImage(name, 130, 130);
+            if (productIcon != null) {
+                lblImg.setIcon(productIcon);
+            } else {
                 javax.swing.Icon defaultIcon = com.pbl_3project.util.IconUtils
                         .loadLargeIcon(com.pbl_3project.util.IconUtils.IconType.SHOE);
                 if (defaultIcon != null) {

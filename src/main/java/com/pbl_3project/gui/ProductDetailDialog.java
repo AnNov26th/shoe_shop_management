@@ -108,6 +108,7 @@ public class ProductDetailDialog extends JDialog {
         scrollVariants.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
         scrollVariants.getViewport().setBackground(Color.WHITE);
         tableCard.add(scrollVariants, BorderLayout.CENTER);
+
         detailsContainer.add(tableCard, BorderLayout.CENTER);
 
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
@@ -350,8 +351,28 @@ public class ProductDetailDialog extends JDialog {
 
     private void loadVariants() {
         try {
+            boolean isAdmin = "ADMIN".equals(userRole);
             DefaultTableModel model = productDAO.getVariantsByProductId(productId);
-            tableVariants.setModel(model);
+            tableVariants.setModel(new DefaultTableModel() {
+                {
+                    for (int i = 0; i < model.getColumnCount(); i++) {
+                        addColumn(model.getColumnName(i));
+                    }
+                    for (int i = 0; i < model.getRowCount(); i++) {
+                        Object[] rowData = new Object[model.getColumnCount()];
+                        for (int j = 0; j < model.getColumnCount(); j++) {
+                            rowData[j] = model.getValueAt(i, j);
+                        }
+                        addRow(rowData);
+                    }
+                }
+
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return isAdmin;
+                }
+            });
+
             DefaultTableCellRenderer center = new DefaultTableCellRenderer();
             center.setHorizontalAlignment(JLabel.CENTER);
             for (int i = 0; i < tableVariants.getColumnCount(); i++) {

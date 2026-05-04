@@ -476,8 +476,9 @@ public class UserDAO {
         ResultSet rs = null;
         try {
             conn = DatabaseConnection.getConnection();
-            String sql = "SELECT u.id, cp.full_name, u.email FROM [User] u " +
+            String sql = "SELECT u.id, cp.full_name, u.email, ab.full_address FROM [User] u " +
                     "JOIN Customer_Profile cp ON u.id = cp.user_id " +
+                    "LEFT JOIN Address_Book ab ON u.id = ab.user_id AND ab.is_default = 1 " +
                     "WHERE u.phone = ? AND u.role_id = 4";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, phone);
@@ -487,6 +488,7 @@ public class UserDAO {
                 customer.put("id", String.valueOf(rs.getInt("id")));
                 customer.put("name", rs.getString("full_name"));
                 customer.put("email", rs.getString("email"));
+                customer.put("address", rs.getString("full_address"));
             }
         } finally {
             if (rs != null)
@@ -498,7 +500,7 @@ public class UserDAO {
         return customer;
     }
 
-    public int createQuickCustomer(String name, String phone, String email, String password) throws SQLException {
+    public int createQuickCustomer(String name, String phone, String email, String password, String address) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmtUser = null;
         PreparedStatement pstmtProfile = null;
@@ -524,6 +526,17 @@ public class UserDAO {
                     pstmtProfile.setInt(1, newUserId);
                     pstmtProfile.setNString(2, name);
                     pstmtProfile.executeUpdate();
+
+                    if (address != null && !address.trim().isEmpty()) {
+                        String sqlAddress = "INSERT INTO Address_Book (user_id, full_address, receiver_name, phone, is_default) VALUES (?, ?, ?, ?, 1)";
+                        try (PreparedStatement pstmtAddr = conn.prepareStatement(sqlAddress)) {
+                            pstmtAddr.setInt(1, newUserId);
+                            pstmtAddr.setNString(2, address);
+                            pstmtAddr.setNString(3, name);
+                            pstmtAddr.setString(4, phone);
+                            pstmtAddr.executeUpdate();
+                        }
+                    }
                 }
                 conn.commit();
             }

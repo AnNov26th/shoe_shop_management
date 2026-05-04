@@ -47,8 +47,10 @@ public class ProductManagementPanel extends JPanel {
     private JPanel productGrid;
     private ProductBUS productBUS = new ProductBUS();
     private JTextField txtSearch;
+    private String userRole;
 
-    public ProductManagementPanel() {
+    public ProductManagementPanel(String userRole) {
+        this.userRole = userRole != null ? userRole.toUpperCase() : "ADMIN";
         setLayout(new BorderLayout(0, 0));
         setBackground(BG_CONTENT);
         initComponents();
@@ -81,6 +83,9 @@ public class ProductManagementPanel extends JPanel {
         JPanel rightTools = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightTools.setOpaque(false);
         JButton btnAdd = createButton("Thêm SP mới", BTN_SUCCESS, Color.WHITE);
+        if (!"ADMIN".equals(userRole)) {
+            btnAdd.setVisible(false);
+        }
         rightTools.add(btnAdd);
         toolBarWrapper.add(leftTools, BorderLayout.WEST);
         toolBarWrapper.add(rightTools, BorderLayout.EAST);
@@ -189,19 +194,10 @@ public class ProductManagementPanel extends JPanel {
         imgPanel.setOpaque(false);
         imgPanel.setPreferredSize(new Dimension(0, 170));
         JLabel lblImage = new JLabel("", SwingConstants.CENTER);
-        String colorEn = "";
-        if (sampleColor != null && sampleColor.contains("(") && sampleColor.contains(")")) {
-            colorEn = sampleColor.substring(sampleColor.lastIndexOf("(") + 1, sampleColor.lastIndexOf(")")).trim();
-        }
         try {
-            String fileName = name + " - " + colorEn + ".png";
-            File file = new File("F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images\\" + fileName);
-            if (file.exists()) {
-                BufferedImage originalImg = ImageIO.read(file);
-                if (originalImg != null) {
-                    Image img = originalImg.getScaledInstance(160, 160, Image.SCALE_SMOOTH);
-                    lblImage.setIcon(new ImageIcon(img));
-                }
+            javax.swing.ImageIcon productIcon = com.pbl_3project.util.IconUtils.findProductImage(name, 160, 160);
+            if (productIcon != null) {
+                lblImage.setIcon(productIcon);
             } else {
                 lblImage.setText("👟");
                 lblImage.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 40));
@@ -270,9 +266,12 @@ public class ProductManagementPanel extends JPanel {
         btnDelete.setBorderPainted(false);
         btnDelete.setFocusPainted(false);
         btnDelete.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        if (!"ADMIN".equals(userRole)) {
+            btnDelete.setVisible(false);
+        }
         btnView.addActionListener(e -> {
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            ProductDetailDialog detailDialog = new ProductDetailDialog(parentFrame, productId, name, price, "ADMIN",
+            ProductDetailDialog detailDialog = new ProductDetailDialog(parentFrame, productId, name, price, userRole,
                     null, null, null);
             detailDialog.setVisible(true);
         });

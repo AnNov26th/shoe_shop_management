@@ -110,15 +110,10 @@ public class InventoryLookupPanel extends JPanel {
         imgPanel.setOpaque(false);
         imgPanel.setPreferredSize(new Dimension(0, 160));
         JLabel lblImg = new JLabel("", SwingConstants.CENTER);
-        String colorEn = (color != null && color.contains("("))
-                ? color.substring(color.lastIndexOf("(") + 1, color.lastIndexOf(")")).trim()
-                : color;
         try {
-            File file = new File(
-                    "F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images\\" + name + " - " + colorEn + ".png");
-            if (file.exists()) {
-                BufferedImage originalImg = ImageIO.read(file);
-                lblImg.setIcon(new ImageIcon(originalImg.getScaledInstance(140, 140, Image.SCALE_SMOOTH)));
+            javax.swing.ImageIcon productIcon = com.pbl_3project.util.IconUtils.findProductImage(name, 140, 140);
+            if (productIcon != null) {
+                lblImg.setIcon(productIcon);
             } else {
                 lblImg.setText("👟");
                 lblImg.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 40));

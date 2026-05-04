@@ -11,6 +11,7 @@ import java.awt.Frame;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -257,8 +258,39 @@ public class CustomerCartPanel extends JPanel {
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String phone = JOptionPane.showInputDialog(this, "Vui lòng nhập Số điện thoại nhận hàng:");
-        if (phone == null || phone.trim().isEmpty()) {
+        String defaultPhone = "";
+        String defaultAddress = "";
+        try {
+            java.util.Map<String, String> profile = new com.pbl_3project.dao.UserDAO()
+                    .getCustomerProfile(this.customerId);
+            if (profile != null) {
+                defaultPhone = profile.get("phone");
+                defaultAddress = profile.get("address");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        JPanel pnlInfo = new JPanel(new GridLayout(0, 1, 5, 5));
+        pnlInfo.add(new JLabel("Số điện thoại nhận hàng:"));
+        JTextField txtPhone = new JTextField(defaultPhone);
+        pnlInfo.add(txtPhone);
+        pnlInfo.add(new JLabel("Địa chỉ nhận hàng:"));
+        JTextField txtAddress = new JTextField(defaultAddress);
+        pnlInfo.add(txtAddress);
+
+        int result = JOptionPane.showConfirmDialog(this, pnlInfo, "Thông tin giao hàng", JOptionPane.OK_CANCEL_OPTION);
+        if (result != JOptionPane.OK_OPTION)
+            return;
+
+        String phone = txtPhone.getText().trim();
+        String address = txtAddress.getText().trim();
+        if (phone.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại nhận hàng!");
+            return;
+        }
+        if (address.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập địa chỉ nhận hàng!");
             return;
         }
         double subtotal = cartBUS.calculateTotalAmount();
@@ -299,7 +331,8 @@ public class CustomerCartPanel extends JPanel {
         if (isPaymentConfirmed) {
             try {
                 OrderDAO orderDAO = new OrderDAO();
-                String paymentMethod = (methodChoice == 1) ? "Chuyển khoản / Quét mã QR" : "Thanh toán khi nhận hàng (COD)";
+                String paymentMethod = (methodChoice == 1) ? "Chuyển khoản / Quét mã QR"
+                        : "Thanh toán khi nhận hàng (COD)";
                 boolean success = orderDAO.createOrderOnline(
                         this.customerId,
                         phone,

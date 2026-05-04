@@ -216,11 +216,9 @@ public class CustomerShopPanel extends JPanel {
         imgPanel.setPreferredSize(new Dimension(0, 180));
         JLabel lblImg = new JLabel("", SwingConstants.CENTER);
         try {
-            java.io.File f = new java.io.File("F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images\\" + name
-                    + " - " + extractEnglishColor(sampleColor) + ".png");
-            if (f.exists()) {
-                BufferedImage img = javax.imageio.ImageIO.read(f);
-                lblImg.setIcon(new ImageIcon(img.getScaledInstance(160, 160, Image.SCALE_SMOOTH)));
+            javax.swing.ImageIcon productIcon = com.pbl_3project.util.IconUtils.findProductImage(name, 160, 160);
+            if (productIcon != null) {
+                lblImg.setIcon(productIcon);
             } else {
                 lblImg.setText("👟");
                 lblImg.setFont(new Font("Segoe UI", Font.PLAIN, 56));

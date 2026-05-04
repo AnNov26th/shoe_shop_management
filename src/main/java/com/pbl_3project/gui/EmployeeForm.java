@@ -81,7 +81,7 @@ public class EmployeeForm extends JFrame {
         mainContentPanel.add(new OrderManagementPanel(false, false), "DonOnline");
         mainContentPanel.add(new OrderManagementPanel(false, true), "HoaDon");
         mainContentPanel.add(new InventoryLookupPanel(this.currentStaffId), "TonKho");
-        mainContentPanel.add(new ReturnManagementPanel(), "DoiTra");
+        mainContentPanel.add(new ReturnManagementPanel(false), "DoiTra");
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(APP_BACKGROUND);
         wrapper.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -135,19 +135,18 @@ public class EmployeeForm extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 if (text.equals("Đăng xuất") && getModel().isRollover())
                     g2.setColor(new Color(239, 68, 68));
                 else
                     g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                
-                // Active indicator
+
                 if (equals(selectedMenuButton)) {
                     g2.setColor(TEXT_ACTIVE);
                     g2.fillRoundRect(6, 14, 4, getHeight() - 28, 2, 2);
                 }
-                
+
                 g2.dispose();
                 super.paintComponent(g);
             }

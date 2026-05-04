@@ -8,13 +8,14 @@ import java.util.Map;
 import com.pbl_3project.dao.UserDAO;
 
 public class CustomerInfoDialog extends JDialog {
-    private JTextField txtPhone, txtName, txtEmail;
+    private JTextField txtPhone, txtName, txtEmail, txtAddress;
     private JCheckBox chkCreateAccount;
     private JButton btnSearch, btnConfirm, btnCancel;
     private boolean confirmed = false;
     private int customerId = -1;
     private String customerPhone = "";
     private String customerName = "Khách vãng lai";
+    private String customerAddress = "";
     private UserDAO userDAO = new UserDAO();
 
     public CustomerInfoDialog(Frame parent) {
@@ -24,7 +25,7 @@ public class CustomerInfoDialog extends JDialog {
 
     private void initComponents() {
         setLayout(new BorderLayout());
-        setSize(400, 450);
+        setSize(400, 500);
         setLocationRelativeTo(getParent());
         JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -66,6 +67,15 @@ public class CustomerInfoDialog extends JDialog {
         txtEmail.setPreferredSize(new Dimension(200, 35));
         gbc.gridx = 1;
         mainPanel.add(txtEmail, gbc);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        mainPanel.add(new JLabel("Địa chỉ:"), gbc);
+        txtAddress = new JTextField();
+        txtAddress.setPreferredSize(new Dimension(200, 35));
+        gbc.gridx = 1;
+        mainPanel.add(txtAddress, gbc);
+
         add(mainPanel, BorderLayout.CENTER);
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnPanel.setBackground(new Color(245, 245, 245));
@@ -93,6 +103,7 @@ public class CustomerInfoDialog extends JDialog {
                 customerId = Integer.parseInt(customer.get("id"));
                 txtName.setText(customer.get("name"));
                 txtEmail.setText(customer.get("email"));
+                txtAddress.setText(customer.get("address"));
                 txtEmail.setEnabled(false);
                 chkCreateAccount.setSelected(true);
                 chkCreateAccount.setEnabled(false);
@@ -101,6 +112,7 @@ public class CustomerInfoDialog extends JDialog {
                 JOptionPane.showMessageDialog(this, "Khách hàng mới.");
                 txtName.setText("");
                 txtEmail.setText("");
+                txtAddress.setText("");
                 txtEmail.setEnabled(chkCreateAccount.isSelected());
                 chkCreateAccount.setEnabled(true);
                 customerId = -1;
@@ -113,6 +125,7 @@ public class CustomerInfoDialog extends JDialog {
     private void handleConfirm() {
         customerPhone = txtPhone.getText().trim();
         customerName = txtName.getText().trim();
+        customerAddress = txtAddress.getText().trim();
         if (customerPhone.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!");
             return;
@@ -124,7 +137,7 @@ public class CustomerInfoDialog extends JDialog {
                 return;
             }
             try {
-                customerId = userDAO.createQuickCustomer(customerName, customerPhone, email, "123456");
+                customerId = userDAO.createQuickCustomer(customerName, customerPhone, email, "123456", customerAddress);
                 JOptionPane.showMessageDialog(this, "Đã tạo tài khoản thành viên thành công!");
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Lỗi tạo tài khoản: " + e.getMessage());
@@ -149,5 +162,9 @@ public class CustomerInfoDialog extends JDialog {
 
     public String getCustomerName() {
         return customerName;
+    }
+
+    public String getCustomerAddress() {
+        return customerAddress;
     }
 }

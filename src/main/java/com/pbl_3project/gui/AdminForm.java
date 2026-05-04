@@ -79,6 +79,7 @@ public class AdminForm extends JFrame {
         JButton btnNhanVien = createMenuButton("Quản lý Nhân sự");
         JButton btnDuyetYeuCau = createMenuButton("Duyệt Yêu cầu NV");
         JButton btnKhachHang = createMenuButton("Quản lý Khách hàng");
+        JButton btnDoiTra = createMenuButton("Xử lý Đổi/Trả");
         JButton btnLogout = createMenuButton("Đăng xuất");
         btnLogout.setForeground(Color.RED);
         menuPanel.add(btnThongKe);
@@ -96,6 +97,8 @@ public class AdminForm extends JFrame {
         menuPanel.add(btnDuyetYeuCau);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnKhachHang);
+        menuPanel.add(Box.createVerticalStrut(5));
+        menuPanel.add(btnDoiTra);
         menuPanel.add(Box.createVerticalGlue());
         menuPanel.add(btnLogout);
         sidebarPanel.add(menuPanel, BorderLayout.CENTER);
@@ -113,7 +116,8 @@ public class AdminForm extends JFrame {
         };
         mainContentPanel.setOpaque(false);
         mainContentPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        mainContentPanel.add(new ProductManagementPanel(), "SanPham");
+        String roleStr = (this.roleId == 1) ? "ADMIN" : "MANAGER";
+        mainContentPanel.add(new ProductManagementPanel(roleStr), "SanPham");
         mainContentPanel.add(new DashboardPanel(), "ThongKe");
         mainContentPanel.add(new EmployeeManagementPanel(), "NhanVien");
         mainContentPanel.add(new EmployeeRequestPanel(), "DuyetYeuCau");
@@ -121,6 +125,7 @@ public class AdminForm extends JFrame {
         mainContentPanel.add(new OrderManagementPanel(true, false), "DonHang");
         mainContentPanel.add(new OrderManagementPanel(true, true), "HoaDon");
         mainContentPanel.add(new PromotionManagementPanel(), "KhuyenMai");
+        mainContentPanel.add(new ReturnManagementPanel(true), "DoiTra");
         JPanel contentWrapper = new JPanel(new BorderLayout());
         contentWrapper.setBackground(APP_BACKGROUND);
         contentWrapper.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -159,6 +164,10 @@ public class AdminForm extends JFrame {
             selectMenuButton(btnKhachHang);
             cardLayout.show(mainContentPanel, "KhachHang");
         });
+        btnDoiTra.addActionListener(e -> {
+            selectMenuButton(btnDoiTra);
+            cardLayout.show(mainContentPanel, "DoiTra");
+        });
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn đăng xuất?", "Xác nhận",
                     JOptionPane.YES_NO_OPTION);
@@ -191,17 +200,15 @@ public class AdminForm extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Background
+
                 g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-                
-                // Active indicator
+
                 if (equals(selectedMenuButton)) {
                     g2.setColor(Color.WHITE);
                     g2.fillRoundRect(8, 12, 4, getHeight() - 24, 2, 2);
                 }
-                
+
                 g2.dispose();
                 super.paintComponent(g);
             }

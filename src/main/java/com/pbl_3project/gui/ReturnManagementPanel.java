@@ -28,8 +28,10 @@ public class ReturnManagementPanel extends JPanel {
     private DefaultTableModel modelDetails;
     private JLabel lblDetailTitle;
     private final OrderBUS orderBUS = new OrderBUS();
+    private boolean isAdmin;
 
-    public ReturnManagementPanel() {
+    public ReturnManagementPanel(boolean isAdmin) {
+        this.isAdmin = isAdmin;
         setLayout(new BorderLayout(0, 0));
         setBackground(BG_CONTENT);
         initComponents();
@@ -111,6 +113,12 @@ public class ReturnManagementPanel extends JPanel {
         actionBar.add(btnExchangeSelect);
         actionBar.add(btnReject);
         actionBar.add(btnAccept);
+        
+        if (!isAdmin) {
+            actionBar.setVisible(false);
+            lblDetailTitle.setText("← Xem chi tiết yêu cầu (Chế độ chỉ đọc)");
+        }
+        
         detailHeader.add(headerLeft, BorderLayout.WEST);
         detailHeader.add(actionBar, BorderLayout.EAST);
 
