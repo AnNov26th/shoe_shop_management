@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -40,6 +41,8 @@ public class CustomerCartPanel extends JPanel {
     private JTable tableCart;
     private DefaultTableModel cartModel;
     private JLabel lblTotalAmount;
+    private JLabel lblSubtotalInfo;
+    private JLabel lblDiscountInfo;
     private CartBUS cartBUS;
     private Runnable updateCartBadge;
     private boolean isUpdatingTable = false;
@@ -47,6 +50,9 @@ public class CustomerCartPanel extends JPanel {
     private JTextField txtCoupon;
     private int currentPromoId = -1;
     private double discountAmount = 0;
+    private String currentPromoType = "";
+    private double currentPromoValue = 0;
+    private double currentPromoMaxDiscount = 0;
     private com.pbl_3project.bus.DiscountBUS discountBUS = new com.pbl_3project.bus.DiscountBUS();
     private static final Color BG = new Color(248, 250, 252);
     private static final Color WHITE = Color.WHITE;
@@ -170,13 +176,14 @@ public class CustomerCartPanel extends JPanel {
         };
         footer.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER),
-                new EmptyBorder(20, 32, 24, 32)));
+                new EmptyBorder(25, 32, 30, 32)));
+        footer.setPreferredSize(new Dimension(0, 220));
         footer.setOpaque(false);
         JPanel totalRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         totalRow.setOpaque(false);
         JPanel couponPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         couponPanel.setOpaque(false);
-        JLabel lblC = new JLabel("🎟️ Mã giảm giá:");
+        JLabel lblC = new JLabel("Mã giảm giá:");
         lblC.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblC.setForeground(TEXT_H);
         txtCoupon = new JTextField(12);
@@ -207,14 +214,43 @@ public class CustomerCartPanel extends JPanel {
         couponPanel.add(txtCoupon);
         couponPanel.add(btnApply);
         footer.add(couponPanel, BorderLayout.WEST);
+
+        JPanel pnlPriceInfo = new JPanel();
+        pnlPriceInfo.setLayout(new BoxLayout(pnlPriceInfo, BoxLayout.Y_AXIS));
+        pnlPriceInfo.setOpaque(false);
+
+        lblSubtotalInfo = new JLabel("Tạm tính: 0 VNĐ");
+        lblSubtotalInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lblSubtotalInfo.setForeground(TEXT_S);
+        lblSubtotalInfo.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        lblDiscountInfo = new JLabel("");
+        lblDiscountInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lblDiscountInfo.setForeground(new Color(34, 197, 94));
+        lblDiscountInfo.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        JPanel pnlFinal = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        pnlFinal.setOpaque(false);
         JLabel lblTxt = new JLabel("TỔNG THANH TOÁN:");
         lblTxt.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblTxt.setForeground(TEXT_S);
+
         lblTotalAmount = new JLabel("0 VNĐ");
         lblTotalAmount.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTotalAmount.setForeground(ACCENT2);
-        totalRow.add(lblTxt);
-        totalRow.add(lblTotalAmount);
+
+        pnlFinal.add(lblTxt);
+        pnlFinal.add(lblTotalAmount);
+        pnlFinal.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        pnlPriceInfo.add(lblSubtotalInfo);
+        pnlPriceInfo.add(Box.createVerticalStrut(5));
+        pnlPriceInfo.add(lblDiscountInfo);
+        pnlPriceInfo.add(Box.createVerticalStrut(5));
+        pnlPriceInfo.add(pnlFinal);
+
+        totalRow.add(pnlPriceInfo);
+
         JButton btnCheckout = new JButton("ĐẶT HÀNG NGAY  →") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -271,20 +307,87 @@ public class CustomerCartPanel extends JPanel {
             e.printStackTrace();
         }
 
-        JPanel pnlInfo = new JPanel(new GridLayout(0, 1, 5, 5));
-        pnlInfo.add(new JLabel("Số điện thoại nhận hàng:"));
-        JTextField txtPhone = new JTextField(defaultPhone);
-        pnlInfo.add(txtPhone);
-        pnlInfo.add(new JLabel("Địa chỉ nhận hàng:"));
-        JTextField txtAddress = new JTextField(defaultAddress);
-        pnlInfo.add(txtAddress);
+        JPanel pnlInfo = new JPanel();
+        pnlInfo.setLayout(new BoxLayout(pnlInfo, BoxLayout.Y_AXIS));
+        pnlInfo.setPreferredSize(new Dimension(420, 320));
+        pnlInfo.setBackground(Color.WHITE);
 
-        int result = JOptionPane.showConfirmDialog(this, pnlInfo, "Thông tin giao hàng", JOptionPane.OK_CANCEL_OPTION);
+        JPanel pnlHeader = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(59, 130, 246));
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
+            }
+        };
+        pnlHeader.setPreferredSize(new Dimension(0, 50));
+        pnlHeader.setBorder(new EmptyBorder(0, 20, 0, 20));
+        JLabel lblHeader = new JLabel("Thông Tin Nhận Hàng");
+        lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblHeader.setForeground(Color.WHITE);
+        pnlHeader.add(lblHeader, BorderLayout.WEST);
+        pnlHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel pnlFields = new JPanel();
+        pnlFields.setLayout(new BoxLayout(pnlFields, BoxLayout.Y_AXIS));
+        pnlFields.setBorder(new EmptyBorder(15, 25, 15, 25));
+        pnlFields.setBackground(Color.WHITE);
+        pnlFields.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblPhone = new JLabel("Số điện thoại nhận hàng:");
+        lblPhone.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblPhone.setForeground(new Color(71, 85, 105));
+        JTextField txtPhone = new JTextField(defaultPhone);
+        txtPhone.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPhone.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        txtPhone.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+                new EmptyBorder(0, 10, 0, 10)));
+
+        JLabel lblAddress = new JLabel("Địa chỉ giao hàng:");
+        lblAddress.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblAddress.setForeground(new Color(71, 85, 105));
+        JTextField txtAddress = new JTextField(defaultAddress);
+        txtAddress.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtAddress.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        txtAddress.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+                new EmptyBorder(0, 10, 0, 10)));
+
+        JLabel lblPayment = new JLabel("Phương thức thanh toán:");
+        lblPayment.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblPayment.setForeground(new Color(71, 85, 105));
+        String[] paymentMethodsList = { "Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Quét mã QR" };
+        javax.swing.JComboBox<String> cbPayment = new javax.swing.JComboBox<>(paymentMethodsList);
+        cbPayment.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cbPayment.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        cbPayment.setBackground(Color.WHITE);
+
+        pnlFields.add(lblPhone);
+        pnlFields.add(Box.createVerticalStrut(5));
+        pnlFields.add(txtPhone);
+        pnlFields.add(Box.createVerticalStrut(10));
+        pnlFields.add(lblAddress);
+        pnlFields.add(Box.createVerticalStrut(5));
+        pnlFields.add(txtAddress);
+        pnlFields.add(Box.createVerticalStrut(10));
+        pnlFields.add(lblPayment);
+        pnlFields.add(Box.createVerticalStrut(5));
+        pnlFields.add(cbPayment);
+
+        pnlInfo.add(pnlHeader);
+        pnlInfo.add(pnlFields);
+
+        int result = JOptionPane.showConfirmDialog(this, pnlInfo, "Xác nhận đơn hàng", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
         if (result != JOptionPane.OK_OPTION)
             return;
 
         String phone = txtPhone.getText().trim();
         String address = txtAddress.getText().trim();
+        int methodChoice = cbPayment.getSelectedIndex();
         if (phone.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại nhận hàng!");
             return;
@@ -297,14 +400,7 @@ public class CustomerCartPanel extends JPanel {
         double finalAmount = subtotal - discountAmount;
         if (finalAmount < 0)
             finalAmount = 0;
-        String[] paymentMethods = { "Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Quét mã QR" };
-        int methodChoice = JOptionPane.showOptionDialog(this,
-                "Chọn phương thức thanh toán cho đơn hàng của bạn:",
-                "Phương thức thanh toán",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
-                null, paymentMethods, paymentMethods[0]);
-        if (methodChoice == -1)
-            return;
+
         boolean isPaymentConfirmed = false;
         String status = "Chưa thanh toán";
         if (methodChoice == 1) {
@@ -373,25 +469,41 @@ public class CustomerCartPanel extends JPanel {
             double total = cartBUS.calculateTotalAmount();
             Object[] promo = discountBUS.validateCoupon(code, total);
             currentPromoId = (int) promo[0];
-            String type = (String) promo[1];
-            double val = (double) promo[2];
-            double maxD = (double) promo[4];
-            if (type.equalsIgnoreCase("Percentage")) {
-                discountAmount = total * (val / 100.0);
-                if (maxD > 0 && discountAmount > maxD)
-                    discountAmount = maxD;
-            } else {
-                discountAmount = val;
-            }
+            currentPromoType = (String) promo[1];
+            currentPromoValue = (double) promo[2];
+            currentPromoMaxDiscount = (double) promo[4];
+
+            recalculateDiscount(total);
+
             JOptionPane.showMessageDialog(this,
                     "✅ Đã áp dụng mã giảm giá: -" + String.format("%,.0f", discountAmount) + " VNĐ");
             refreshCartGUI();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi mã giảm giá", JOptionPane.WARNING_MESSAGE);
-            currentPromoId = -1;
-            discountAmount = 0;
+            clearPromo();
             refreshCartGUI();
         }
+    }
+
+    private void recalculateDiscount(double total) {
+        if (currentPromoId == -1) return;
+        
+        String type = currentPromoType.toUpperCase();
+        if (type.contains("PERCENT") || type.contains("PHẦN TRĂM")) {
+            discountAmount = total * (currentPromoValue / 100.0);
+            if (currentPromoMaxDiscount > 0 && discountAmount > currentPromoMaxDiscount)
+                discountAmount = currentPromoMaxDiscount;
+        } else {
+            discountAmount = currentPromoValue;
+        }
+    }
+
+    private void clearPromo() {
+        currentPromoId = -1;
+        currentPromoType = "";
+        currentPromoValue = 0;
+        currentPromoMaxDiscount = 0;
+        discountAmount = 0;
     }
 
     private void handleQuantityChange(int rowIndex, int newQty) {
@@ -423,16 +535,22 @@ public class CustomerCartPanel extends JPanel {
             });
         }
         double total = cartBUS.calculateTotalAmount();
+        recalculateDiscount(total);
         double finalTotal = total - discountAmount;
         if (finalTotal < 0)
             finalTotal = 0;
+
+        lblSubtotalInfo.setText("Tạm tính: " + String.format("%,.0f VNĐ", total));
+
         if (discountAmount > 0) {
-            lblTotalAmount.setText("<html><body style='text-align:right'><font size='4' color='gray'><s>" +
-                    String.format("%,.0f", total) + "</s></font><br>" +
-                    String.format("%,.0f VNĐ", finalTotal) + "</body></html>");
+            lblDiscountInfo.setText("Đã giảm: -" + String.format("%,.0f VNĐ", discountAmount));
+            lblDiscountInfo.setVisible(true);
         } else {
-            lblTotalAmount.setText(String.format("%,.0f VNĐ", total));
+            lblDiscountInfo.setVisible(false);
         }
+
+        lblTotalAmount.setText(String.format("%,.0f VNĐ", finalTotal));
+
         isUpdatingTable = false;
         if (updateCartBadge != null)
             updateCartBadge.run();

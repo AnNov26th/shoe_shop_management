@@ -28,10 +28,10 @@ import com.pbl_3project.dto.CartItem;
 public class OrderManagementPanel extends JPanel {
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color WHITE = Color.WHITE;
-    private static final Color ACCENT = new Color(34, 197, 94); // Modern Green
-    private static final Color BTN_BLUE = new Color(37, 99, 235); // Modern Blue
-    private static final Color BTN_GRAY = new Color(100, 116, 139); // Modern Slate
-    private static final Color BTN_DANGER = new Color(220, 38, 38); // Modern Red
+    private static final Color ACCENT = new Color(34, 197, 94);
+    private static final Color BTN_BLUE = new Color(37, 99, 235);
+    private static final Color BTN_GRAY = new Color(100, 116, 139);
+    private static final Color BTN_DANGER = new Color(220, 38, 38);
     private static final Color BORDER = new Color(226, 232, 240);
     private static final Color TEXT_H = new Color(15, 23, 42);
     private static final Color TEXT_S = new Color(100, 116, 139);
@@ -53,8 +53,8 @@ public class OrderManagementPanel extends JPanel {
     private JLabel lblDetailTitle;
     private JLabel lblTotalOrders;
     private JComboBox<String> cmbStatus;
-    private JEditorPane previewPane; // For invoice preview
-    private JTextArea txtAreaDetails; // For text view
+    private JEditorPane previewPane;
+    private JTextArea txtAreaDetails;
     private JScrollPane scrollText;
     private JButton btnToggleView;
     private boolean isTextView = false;
@@ -149,11 +149,6 @@ public class OrderManagementPanel extends JPanel {
         tableOrders.getColumnModel().getColumn(6).setPreferredWidth(130);
         tableOrders.getColumnModel().getColumn(7).setCellRenderer(new StatusRenderer());
 
-        // Ẩn bớt các cột ngày thanh toán và ngày giao nếu muốn (hoặc để hiện thị hết)
-        // tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(9));
-        // // Ngày Thanh Toán
-        // tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(10));
-        // // Ngày Giao
         JScrollPane scrollOrders = buildScrollPane(tableOrders);
         JPanel panelOrders = new JPanel(new BorderLayout());
         panelOrders.setBackground(WHITE);
@@ -359,6 +354,18 @@ public class OrderManagementPanel extends JPanel {
         int modelRow = tableOrders.convertRowIndexToModel(viewRow);
         int orderId = Integer.parseInt(ordersModel.getValueAt(modelRow, 0).toString());
         String newStatus = (String) cmbStatus.getSelectedItem();
+        String paymentMethod = ordersModel.getValueAt(modelRow, 5).toString();
+        String currentStatus = ordersModel.getValueAt(modelRow, 8).toString();
+
+        if (paymentMethod.contains("COD") || paymentMethod.toLowerCase().contains("nhận hàng")) {
+            if (newStatus.equals("Đã thanh toán") && !currentStatus.equals("Hoàn thành")) {
+                JOptionPane.showMessageDialog(this,
+                        "Đối với đơn hàng COD, trạng thái chỉ có thể chuyển sang \"Đã thanh toán\" khi đơn hàng đã \"Hoàn thành\"!",
+                        "Thông báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Cập nhật trạng thái Đơn #" + orderId + " → \"" + newStatus + "\"?",
                 "Xác nhận", JOptionPane.YES_NO_OPTION);
@@ -433,7 +440,6 @@ public class OrderManagementPanel extends JPanel {
         int modelRow = tableOrders.convertRowIndexToModel(viewRow);
         String orderCode = ordersModel.getValueAt(modelRow, 1).toString();
 
-        // Lấy tổng tiền
         String totalAmountStr = ordersModel.getValueAt(modelRow, 4).toString();
         totalAmountStr = totalAmountStr.replace(" VNĐ", "").replace(",", "").replace(".", "").trim();
         double totalAmount = 0;
@@ -443,7 +449,6 @@ public class OrderManagementPanel extends JPanel {
             e.printStackTrace();
         }
 
-        // Lấy danh sách sản phẩm
         List<CartItem> cartItems = new ArrayList<>();
         for (int i = 0; i < detailsModel.getRowCount(); i++) {
             String name = detailsModel.getValueAt(i, 0).toString();
@@ -564,7 +569,6 @@ public class OrderManagementPanel extends JPanel {
 
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
 
-                // Subtle border
                 g2.setColor(new Color(255, 255, 255, 40));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
 
