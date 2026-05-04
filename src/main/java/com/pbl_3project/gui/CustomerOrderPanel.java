@@ -80,7 +80,8 @@ public class CustomerOrderPanel extends JPanel {
         header.add(lblTitle, BorderLayout.WEST);
         header.add(btnRefresh, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
-        String[] colsOrders = { "ID", "Mã ĐH", "Số điện thoại", "Tổng tiền (VNĐ)", "Hình thức TT", "Ngày đặt", "Trạng thái", "Ngày Thanh Toán", "Ngày Giao" };
+        String[] colsOrders = { "ID", "Mã ĐH", "Số điện thoại", "Tổng tiền (VNĐ)", "Hình thức TT", "Ngày đặt",
+                "Trạng thái", "Ngày Thanh Toán", "Ngày Giao" };
         ordersModel = new DefaultTableModel(colsOrders, 0) {
             @Override
             public boolean isCellEditable(int r, int c) {
@@ -172,8 +173,9 @@ public class CustomerOrderPanel extends JPanel {
                 if (viewRow >= 0) {
                     int modelRow = tableOrders.convertRowIndexToModel(viewRow);
                     int orderId = Integer.parseInt(ordersModel.getValueAt(modelRow, 0).toString());
+                    String paymentMethod = ordersModel.getValueAt(modelRow, 4).toString();
                     String status = ordersModel.getValueAt(modelRow, 6).toString();
-                    loadOrderDetail(orderId, status);
+                    loadOrderDetail(orderId, status, paymentMethod);
                 }
             }
         });
@@ -215,7 +217,7 @@ public class CustomerOrderPanel extends JPanel {
     private JButton btnReturnRequest;
     private JButton btnReview;
 
-    private void loadOrderDetail(int orderId, String status) {
+    private void loadOrderDetail(int orderId, String status, String paymentMethod) {
         try {
             DefaultTableModel model = orderBUS.getOrderDetails(orderId);
             detailsModel.setRowCount(0);
@@ -260,13 +262,31 @@ public class CustomerOrderPanel extends JPanel {
             }
             btnReview.setVisible(false);
 
+            boolean isCOD = paymentMethod.contains("COD") || paymentMethod.toLowerCase().contains("nhận hàng");
+
             if (status.equals("Chưa thanh toán")) {
                 btnCancel.setVisible(true);
-                btnPay.setVisible(true);
+                if (!isCOD) {
+                    btnPay.setVisible(true);
+                }
             } else if (status.equals("Đã thanh toán")) {
                 btnCancel.setVisible(true);
             } else if (status.equals("Đang giao")) {
+                // Đang giao: Chưa cho xác nhận đã nhận
+            } else if (status.equals("Đã giao")) {
+                // Đã giao: Hiện nút xác nhận đã nhận, và nếu là COD thì hiện nút thanh toán
                 btnConfirmReceipt.setVisible(true);
+                if (isCOD) {
+                    btnPay.setVisible(true);
+                }
+            } else if (status.equals("Đã nhận")) {
+                // Đã nhận: Đợi thanh toán nếu là COD
+                if (isCOD) {
+                    btnPay.setVisible(true);
+                }
+                btnReturnRequest.setVisible(true);
+            } else if (status.equals("Thanh toán")) {
+                // Đã thanh toán (COD): Cho phép đổi trả hoặc admin chuyển sang Hoàn thành
                 btnReturnRequest.setVisible(true);
             } else if (status.startsWith("Hoàn thành")) {
                 btnReview.setVisible(true);
@@ -364,15 +384,23 @@ public class CustomerOrderPanel extends JPanel {
             return;
         int modelRow = tableOrders.convertRowIndexToModel(row);
         int orderId = (int) ordersModel.getValueAt(modelRow, 0);
+        String paymentMethod = ordersModel.getValueAt(modelRow, 4).toString();
         String totalStr = (String) ordersModel.getValueAt(modelRow, 3);
         double total = Double.parseDouble(totalStr.replaceAll("[^0-9]", ""));
-        String[] options = { "Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Ví điện tử" };
+        boolean isCODOrder = (paymentMethod != null && (paymentMethod.contains("COD") || paymentMethod.toLowerCase().contains("nhận hàng")));
+        String[] options;
+        if (isCODOrder) {
+            options = new String[]{ "Thanh toán bằng tiền mặt", "Thanh toán bằng chuyển khoản" };
+        } else {
+            options = new String[]{ "Thanh toán trực tuyến (Chuyển khoản / Quét mã QR)" };
+        }
+
         String method = (String) JOptionPane.showInputDialog(this,
                 "Chọn phương thức thanh toán cho đơn #" + orderId + ":",
                 "Thanh toán", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
         if (method != null) {
             boolean canProceed = true;
-            if (method.equals("Chuyển khoản / Ví điện tử")) {
+            if (method.equals("Thanh toán bằng chuyển khoản") || method.contains("Chuyển khoản")) {
                 PaymentQRDialog qrDialog = new PaymentQRDialog((Frame) SwingUtilities.getWindowAncestor(this), total,
                         "PAY_" + orderId + "_" + System.currentTimeMillis() % 1000);
                 qrDialog.setVisible(true);
@@ -386,6 +414,12 @@ public class CustomerOrderPanel extends JPanel {
                         JOptionPane.showMessageDialog(this,
                                 "✅ " + (method.contains("COD") ? "Đã chọn phương thức COD" : "Thanh toán thành công")
                                         + " cho đơn #" + orderId);
+
+                        // Nếu là COD, cập nhật trạng thái thành "Thanh toán"
+                        if (method.contains("COD")) {
+                            orderBUS.updateOrderStatus(orderId, "Thanh toán");
+                        }
+
                         loadOrders();
                     }
                 } catch (Exception ex) {

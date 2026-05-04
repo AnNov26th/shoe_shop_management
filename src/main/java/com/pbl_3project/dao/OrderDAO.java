@@ -443,24 +443,29 @@ public class OrderDAO {
             pstmt.setString(1, newStatus);
             pstmt.setInt(2, orderId);
             
-            // Cập nhật timestamp nếu trạng thái đổi thành Đã thanh toán hoặc Hoàn thành
-            if (newStatus.equals("Đã thanh toán")) {
-                String sqlPay = "UPDATE [Order] SET payment_at = GETDATE() WHERE id = ?";
+            // Cập nhật timestamp nếu trạng thái đổi thành Đã thanh toán hoặc Hoàn thành hoặc Thanh toán
+            if (newStatus.equals("Đã thanh toán") || newStatus.equals("Thanh toán")) {
+                String sqlPay = "UPDATE [Order] SET payment_at = GETDATE() WHERE id = ? AND payment_at IS NULL";
                 try (PreparedStatement psP = conn.prepareStatement(sqlPay)) {
                     psP.setInt(1, orderId);
                     psP.executeUpdate();
                 }
-            } else if (newStatus.equals("Hoàn thành")) {
-                String sqlDel = "UPDATE [Order] SET delivered_at = GETDATE() WHERE id = ?";
+            }
+            
+            if (newStatus.equals("Đã giao")) {
+                String sqlDel = "UPDATE [Order] SET delivered_at = GETDATE() WHERE id = ? AND delivered_at IS NULL";
                 try (PreparedStatement psD = conn.prepareStatement(sqlDel)) {
                     psD.setInt(1, orderId);
                     psD.executeUpdate();
                 }
-                // Nếu hoàn thành mà chưa có ngày thanh toán (thanh toán khi nhận hàng), set luôn
-                String sqlPayCheck = "UPDATE [Order] SET payment_at = GETDATE() WHERE id = ? AND payment_at IS NULL";
-                try (PreparedStatement psP = conn.prepareStatement(sqlPayCheck)) {
-                    psP.setInt(1, orderId);
-                    psP.executeUpdate();
+            }
+
+            if (newStatus.equals("Hoàn thành")) {
+                // Đảm bảo có ngày giao và ngày thanh toán
+                String sqlTs = "UPDATE [Order] SET delivered_at = ISNULL(delivered_at, GETDATE()), payment_at = ISNULL(payment_at, GETDATE()) WHERE id = ?";
+                try (PreparedStatement psTs = conn.prepareStatement(sqlTs)) {
+                    psTs.setInt(1, orderId);
+                    psTs.executeUpdate();
                 }
             }
             return pstmt.executeUpdate() > 0;
@@ -558,7 +563,7 @@ public class OrderDAO {
     }
 
     public boolean confirmReceipt(int orderId) throws SQLException {
-        return updateOrderStatus(orderId, "Hoàn thành");
+        return updateOrderStatus(orderId, "Đã nhận");
     }
 
     public boolean requestReturn(int orderId, String reason, String type, String details) throws SQLException {

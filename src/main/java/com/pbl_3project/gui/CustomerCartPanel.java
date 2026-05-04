@@ -397,7 +397,8 @@ public class CustomerCartPanel extends JPanel {
             }
         }, gbc);
 
-        String[] paymentMethodsList = { "Thanh toán khi nhận hàng (COD)", "Chuyển khoản / Quét mã QR" };
+        String[] paymentMethodsList = { "Thanh toán khi nhận hàng (COD)",
+                "Thanh toán trực tuyến (Chuyển khoản / Quét mã QR)" };
         javax.swing.JComboBox<String> cbPayment = new javax.swing.JComboBox<>(paymentMethodsList);
         cbPayment.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         cbPayment.setPreferredSize(new Dimension(0, 45));
@@ -457,7 +458,6 @@ public class CustomerCartPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập địa chỉ nhận hàng!");
             return;
         }
-        // Final total is already calculated in the summary section above
 
         boolean isPaymentConfirmed = false;
         String status = "Chưa thanh toán";

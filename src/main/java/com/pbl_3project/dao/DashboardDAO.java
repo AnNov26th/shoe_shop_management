@@ -121,4 +121,45 @@ public class DashboardDAO {
         }
         return model;
     }
+    public Map<String, Integer> getOrderStatusDistribution() throws SQLException {
+        Map<String, Integer> stats = new HashMap<>();
+        String sql = "SELECT status, COUNT(*) as count FROM [Order] GROUP BY status";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                stats.put(rs.getString("status"), rs.getInt("count"));
+            }
+        }
+        return stats;
+    }
+
+    public Map<String, Integer> getCategoryDistribution() throws SQLException {
+        Map<String, Integer> stats = new HashMap<>();
+        String sql = "SELECT b.name, COUNT(p.id) as count FROM Brand b " +
+                     "LEFT JOIN Product p ON b.id = p.brand_id " +
+                     "GROUP BY b.name";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                stats.put(rs.getString("name"), rs.getInt("count"));
+            }
+        }
+        return stats;
+    }
+
+    public Map<Integer, Integer> getRatingDistribution() throws SQLException {
+        Map<Integer, Integer> stats = new HashMap<>();
+        for(int i=1; i<=5; i++) stats.put(i, 0);
+        String sql = "SELECT rating, COUNT(*) as count FROM Product_Review GROUP BY rating";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                stats.put(rs.getInt("rating"), rs.getInt("count"));
+            }
+        }
+        return stats;
+    }
 }

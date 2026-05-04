@@ -40,7 +40,7 @@ public class OrderManagementPanel extends JPanel {
     private static final Color DANGER_CLR = new Color(239, 68, 68);
     private static final Color WARNING = new Color(245, 158, 11);
     private static final String[] STATUSES = {
-            "Chưa thanh toán", "Đã thanh toán", "Đang giao", "Hoàn thành", "Đã hủy", "Yêu cầu Đổi/Trả", "Đã đổi/trả",
+            "Chưa thanh toán", "Đang giao", "Đã giao", "Đã nhận", "Thanh toán", "Hoàn thành", "Đã thanh toán", "Đã hủy", "Yêu cầu Đổi/Trả", "Đã đổi/trả",
             "Từ chối đổi/trả"
     };
     private JTable tableOrders;
@@ -364,9 +364,15 @@ public class OrderManagementPanel extends JPanel {
         String currentStatus = ordersModel.getValueAt(modelRow, 8).toString();
 
         if (paymentMethod.contains("COD") || paymentMethod.toLowerCase().contains("nhận hàng")) {
-            if (newStatus.equals("Đã thanh toán") && !currentStatus.equals("Hoàn thành")) {
+            if (newStatus.equals("Thanh toán") && !currentStatus.equals("Đã nhận")) {
                 JOptionPane.showMessageDialog(this,
-                        "Đối với đơn hàng COD, trạng thái chỉ có thể chuyển sang \"Đã thanh toán\" khi đơn hàng đã \"Hoàn thành\"!",
+                        "Đối với đơn hàng COD, trạng thái chỉ có thể chuyển sang \"Thanh toán\" sau khi khách hàng \"Đã nhận\"!",
+                        "Thông báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (newStatus.equals("Hoàn thành") && !currentStatus.equals("Thanh toán")) {
+                JOptionPane.showMessageDialog(this,
+                        "Trạng thái \"Hoàn thành\" chỉ có thể được thiết lập sau khi đơn hàng đã \"Thanh toán\"!",
                         "Thông báo", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -606,9 +612,14 @@ public class OrderManagementPanel extends JPanel {
             return TEXT_S;
         switch (status.trim()) {
             case "Đã thanh toán":
+            case "Thanh toán":
                 return SUCCESS;
             case "Đang giao":
                 return BTN_BLUE;
+            case "Đã giao":
+                return new Color(14, 165, 233);
+            case "Đã nhận":
+                return new Color(139, 92, 246);
             case "Hoàn thành":
                 return new Color(16, 185, 129);
             case "Đã hủy":

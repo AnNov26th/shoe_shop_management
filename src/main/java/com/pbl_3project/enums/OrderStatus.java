@@ -5,7 +5,10 @@ public enum OrderStatus {
     CONFIRMED("Đã xác nhận"),
     PACKING("Đang đóng gói"),
     SHIPPING("Đang giao"),
-    COMPLETED("Thành công"),
+    DELIVERED("Đã giao"),
+    RECEIVED("Đã nhận"),
+    PAID_COD("Thanh toán"),
+    COMPLETED("Hoàn thành"),
     CANCELLED("Đã hủy");
 
     private final String description;
