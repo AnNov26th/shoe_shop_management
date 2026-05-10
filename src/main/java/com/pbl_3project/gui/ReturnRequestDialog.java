@@ -28,7 +28,6 @@ public class ReturnRequestDialog extends JDialog {
         setLayout(new BorderLayout());
         getContentPane().setBackground(BG_LIGHT);
 
-        // --- HEADER ---
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.WHITE);
         header.setBorder(new EmptyBorder(20, 25, 20, 25));
@@ -38,13 +37,10 @@ public class ReturnRequestDialog extends JDialog {
         header.add(lblTitle, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // --- CONTENT ---
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBackground(BG_LIGHT);
         mainPanel.setBorder(new EmptyBorder(20, 25, 20, 25));
-
-        // Section 1: Lý do
         mainPanel.add(createSectionHeader("Lý do đổi / trả"));
         JPanel pnlReason = createCardPanel();
         pnlReason.setLayout(new BorderLayout(0, 10));
@@ -76,7 +72,6 @@ public class ReturnRequestDialog extends JDialog {
         mainPanel.add(pnlReason);
         mainPanel.add(Box.createVerticalStrut(20));
 
-        // Section 2: Hình thức
         mainPanel.add(createSectionHeader("Hình thức mong muốn"));
         JPanel pnlType = createCardPanel();
         pnlType.setLayout(new GridLayout(2, 1, 0, 10));
@@ -94,7 +89,6 @@ public class ReturnRequestDialog extends JDialog {
         mainPanel.add(pnlType);
         mainPanel.add(Box.createVerticalStrut(20));
 
-        // Section 3: Chi tiết
         mainPanel.add(createSectionHeader("Mô tả chi tiết & Sản phẩm muốn đổi"));
         JPanel pnlDetails = createCardPanel();
         pnlDetails.setLayout(new BorderLayout());
@@ -110,7 +104,6 @@ public class ReturnRequestDialog extends JDialog {
 
         add(new JScrollPane(mainPanel), BorderLayout.CENTER);
 
-        // --- FOOTER ---
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 15));
         footer.setBackground(Color.WHITE);
         footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER_COLOR));

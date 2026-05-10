@@ -302,8 +302,8 @@ public class POSPanel extends JPanel {
                         ex.printStackTrace();
                     }
 
-                    // POS orders currently don't have discount logic, so subtotal = totalAmount and discount = 0
-                    InvoicePrinter hdDialog = new InvoicePrinter(parent, maHD_Real, cartBUS.getCartItems(), totalAmount, 0, totalAmount,
+                    InvoicePrinter hdDialog = new InvoicePrinter(parent, maHD_Real, cartBUS.getCartItems(), totalAmount,
+                            0, totalAmount,
                             staffName, paymentMethod);
                     hdDialog.setCustomerInfo(infoDialog.getCustomerName(), infoDialog.getCustomerPhone(),
                             infoDialog.getCustomerAddress());

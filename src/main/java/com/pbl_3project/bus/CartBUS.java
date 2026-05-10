@@ -3,6 +3,7 @@ package com.pbl_3project.bus;
 import java.util.ArrayList;
 import java.util.List;
 import com.pbl_3project.dto.CartItem;
+import com.pbl_3project.dao.CartDAO;
 
 public class CartBUS {
     private List<CartItem> cartItems;
@@ -13,6 +14,15 @@ public class CartBUS {
 
     public List<CartItem> getCartItems() {
         return cartItems;
+    }
+
+    public void loadCart(int userId) {
+        try {
+            CartDAO dao = new CartDAO();
+            cartItems = dao.getCartItemsByUserId(userId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void addItem(CartItem newItem) throws Exception {
@@ -53,7 +63,9 @@ public class CartBUS {
     public double calculateTotalAmount() {
         double total = 0;
         for (CartItem item : cartItems) {
-            total += item.getTotalPrice();
+            if (item.isSelected()) {
+                total += item.getTotalPrice();
+            }
         }
         return total;
     }

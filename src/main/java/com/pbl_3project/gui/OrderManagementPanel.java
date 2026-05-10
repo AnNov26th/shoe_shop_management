@@ -40,7 +40,8 @@ public class OrderManagementPanel extends JPanel {
     private static final Color DANGER_CLR = new Color(239, 68, 68);
     private static final Color WARNING = new Color(245, 158, 11);
     private static final String[] STATUSES = {
-            "Chưa thanh toán", "Đang giao", "Đã giao", "Đã nhận", "Thanh toán", "Hoàn thành", "Đã thanh toán", "Đã hủy", "Yêu cầu Đổi/Trả", "Đã đổi/trả",
+            "Chưa thanh toán", "Đang giao", "Đã giao", "Đã nhận", "Thanh toán", "Hoàn thành", "Đã thanh toán", "Đã hủy",
+            "Yêu cầu Đổi/Trả", "Đã đổi/trả",
             "Từ chối đổi/trả"
     };
     private JTable tableOrders;
@@ -149,10 +150,9 @@ public class OrderManagementPanel extends JPanel {
         tableOrders.getColumnModel().getColumn(6).setPreferredWidth(130);
         tableOrders.getColumnModel().getColumn(7).setCellRenderer(new StatusRenderer());
 
-        // Hide Subtotal and Discount columns from view (they are at indices 11 and 12 in the model)
-        // We use a loop to remove all columns beyond the standard 11 columns (0-10)
         while (tableOrders.getColumnCount() > 10) {
-            tableOrders.getColumnModel().removeColumn(tableOrders.getColumnModel().getColumn(tableOrders.getColumnCount() - 1));
+            tableOrders.getColumnModel()
+                    .removeColumn(tableOrders.getColumnModel().getColumn(tableOrders.getColumnCount() - 1));
         }
 
         JScrollPane scrollOrders = buildScrollPane(tableOrders);
@@ -484,14 +484,14 @@ public class OrderManagementPanel extends JPanel {
 
         String paymentMethod = ordersModel.getValueAt(modelRow, 5).toString();
         String staffName = ordersModel.getValueAt(modelRow, 6).toString();
-        
+
         double subtotal = 0;
         double discountAmount = 0;
         try {
             subtotal = Double.parseDouble(ordersModel.getValueAt(modelRow, 11).toString());
             discountAmount = Double.parseDouble(ordersModel.getValueAt(modelRow, 12).toString());
         } catch (Exception e) {
-            subtotal = totalAmount; // Fallback
+            subtotal = totalAmount;
         }
 
         java.sql.Timestamp orderAt = null;
@@ -507,7 +507,8 @@ public class OrderManagementPanel extends JPanel {
 
         Window window = SwingUtilities.getWindowAncestor(this);
         if (window instanceof java.awt.Frame) {
-            InvoicePrinter printer = new InvoicePrinter((java.awt.Frame) window, orderCode, cartItems, subtotal, discountAmount, totalAmount,
+            InvoicePrinter printer = new InvoicePrinter((java.awt.Frame) window, orderCode, cartItems, subtotal,
+                    discountAmount, totalAmount,
                     staffName, paymentMethod);
             printer.setTimestamps(orderAt, paymentAt, deliveredAt);
             printer.setVisible(true);

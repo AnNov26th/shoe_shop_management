@@ -11,6 +11,7 @@ public class CartItem {
     private int stock;
     private String color;
     private LocalDateTime expiresAt;
+    private boolean selected;
 
     public CartItem(String sku, String name, String size, String color, double price, int quantity, int stock) {
         this.sku = sku;
@@ -21,6 +22,7 @@ public class CartItem {
         this.quantity = quantity;
         this.stock = stock;
         this.expiresAt = null;
+        this.selected = true;
     }
 
     public CartItem(String sku, String name, String size, String color, double price, int quantity, int stock,
@@ -84,5 +86,13 @@ public class CartItem {
 
     public double getTotalPrice() {
         return price * quantity;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }

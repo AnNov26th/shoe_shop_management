@@ -306,7 +306,7 @@ public class UserDAO {
         ResultSet rs = null;
         try {
             conn = DatabaseConnection.getConnection();
-            String sql = "SELECT u.email, u.password_hash, u.phone, cp.full_name, cp.dob, cp.shoe_size_preference, ab.full_address "
+            String sql = "SELECT u.email, u.password_hash, u.phone, cp.full_name, cp.dob, cp.shoe_size_preference, cp.reward_points, ab.full_address "
                     +
                     "FROM [User] u " +
                     "LEFT JOIN Customer_Profile cp ON u.id = cp.user_id " +
@@ -337,6 +337,7 @@ public class UserDAO {
                 profile.put("dob", dob != null ? dob.toString() : "");
                 java.math.BigDecimal shoeSize = rs.getBigDecimal("shoe_size_preference");
                 profile.put("shoeSize", shoeSize != null ? shoeSize.toString() : "");
+                profile.put("reward_points", String.valueOf(rs.getInt("reward_points")));
                 profile.put("address", rs.getString("full_address"));
             }
         } finally {

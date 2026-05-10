@@ -272,25 +272,17 @@ public class CustomerOrderPanel extends JPanel {
             } else if (status.equals("Đã thanh toán")) {
                 btnCancel.setVisible(true);
             } else if (status.equals("Đang giao")) {
-                // Đang giao: Chưa cho xác nhận đã nhận
             } else if (status.equals("Đã giao")) {
-                // Đã giao: Hiện nút xác nhận đã nhận, và nếu là COD thì hiện nút thanh toán
                 btnConfirmReceipt.setVisible(true);
                 if (isCOD) {
                     btnPay.setVisible(true);
                 }
-            } else if (status.equals("Đã nhận")) {
-                // Đã nhận: Đợi thanh toán nếu là COD
-                if (isCOD) {
+            } else if (status.equals("Đã nhận") || status.equals("Thanh toán") || status.startsWith("Hoàn thành")) {
+                if (status.equals("Đã nhận") && isCOD) {
                     btnPay.setVisible(true);
                 }
                 btnReturnRequest.setVisible(true);
-            } else if (status.equals("Thanh toán")) {
-                // Đã thanh toán (COD): Cho phép đổi trả hoặc admin chuyển sang Hoàn thành
-                btnReturnRequest.setVisible(true);
-            } else if (status.startsWith("Hoàn thành")) {
                 btnReview.setVisible(true);
-                btnReturnRequest.setVisible(true);
                 try {
                     if (reviewDAO.isOrderReviewed(orderId)) {
                         btnReview.setEnabled(false);
@@ -387,12 +379,13 @@ public class CustomerOrderPanel extends JPanel {
         String paymentMethod = ordersModel.getValueAt(modelRow, 4).toString();
         String totalStr = (String) ordersModel.getValueAt(modelRow, 3);
         double total = Double.parseDouble(totalStr.replaceAll("[^0-9]", ""));
-        boolean isCODOrder = (paymentMethod != null && (paymentMethod.contains("COD") || paymentMethod.toLowerCase().contains("nhận hàng")));
+        boolean isCODOrder = (paymentMethod != null
+                && (paymentMethod.contains("COD") || paymentMethod.toLowerCase().contains("nhận hàng")));
         String[] options;
         if (isCODOrder) {
-            options = new String[]{ "Thanh toán bằng tiền mặt", "Thanh toán bằng chuyển khoản" };
+            options = new String[] { "Thanh toán bằng tiền mặt", "Thanh toán bằng chuyển khoản" };
         } else {
-            options = new String[]{ "Thanh toán trực tuyến (Chuyển khoản / Quét mã QR)" };
+            options = new String[] { "Thanh toán trực tuyến (Chuyển khoản / Quét mã QR)" };
         }
 
         String method = (String) JOptionPane.showInputDialog(this,
@@ -414,10 +407,8 @@ public class CustomerOrderPanel extends JPanel {
                         JOptionPane.showMessageDialog(this,
                                 "✅ " + (method.contains("COD") ? "Đã chọn phương thức COD" : "Thanh toán thành công")
                                         + " cho đơn #" + orderId);
-
-                        // Nếu là COD, cập nhật trạng thái thành "Thanh toán"
-                        if (method.contains("COD")) {
-                            orderBUS.updateOrderStatus(orderId, "Thanh toán");
+                        if (isCODOrder) {
+                            orderBUS.updateOrderStatus(orderId, "Hoàn thành");
                         }
 
                         loadOrders();

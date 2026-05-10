@@ -22,6 +22,7 @@ public class CustomerForm extends JFrame {
     public CustomerForm(int customerId) {
         this.customerId = customerId;
         this.cartBUS = new CartBUS();
+        this.cartBUS.loadCart(customerId);
         setTitle("Cửa hàng Giày dép T&T - Trải nghiệm mua sắm");
         setSize(1280, 800);
         setMinimumSize(new Dimension(1000, 650));

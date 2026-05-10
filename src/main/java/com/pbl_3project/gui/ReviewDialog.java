@@ -101,24 +101,62 @@ public class ReviewDialog extends JDialog {
         btnPanel.setBackground(Color.WHITE);
         btnPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(226, 232, 240)));
 
-        JButton btnSubmit = new JButton("Gửi đánh giá");
+        JButton btnSubmit = new JButton("Gửi đánh giá") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         btnSubmit.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnSubmit.setBackground(new Color(238, 77, 45));
-        btnSubmit.setForeground(Color.BLACK);
+        btnSubmit.setForeground(Color.WHITE);
         btnSubmit.setFocusPainted(false);
-        btnSubmit.setBorder(new EmptyBorder(10, 25, 10, 25));
+        btnSubmit.setContentAreaFilled(false);
+        btnSubmit.setBorder(new EmptyBorder(10, 30, 10, 30));
         btnSubmit.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnSubmit.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btnSubmit.setBackground(new Color(255, 87, 34));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btnSubmit.setBackground(new Color(238, 77, 45));
+            }
+        });
         btnSubmit.addActionListener(e -> handleSubmit());
 
-        JButton btnCancel = new JButton("Trở lại");
-        btnCancel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JButton btnCancel = new JButton("Trở lại") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2.setColor(new Color(203, 213, 225));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnCancel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnCancel.setBackground(Color.WHITE);
         btnCancel.setForeground(new Color(100, 116, 139));
         btnCancel.setFocusPainted(false);
-        btnCancel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(203, 213, 225)),
-                new EmptyBorder(9, 20, 9, 20)));
+        btnCancel.setContentAreaFilled(false);
+        btnCancel.setBorder(new EmptyBorder(10, 25, 10, 25));
         btnCancel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCancel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btnCancel.setBackground(new Color(241, 245, 249));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btnCancel.setBackground(Color.WHITE);
+            }
+        });
         btnCancel.addActionListener(e -> dispose());
 
         btnPanel.add(btnCancel);
@@ -240,18 +278,32 @@ public class ReviewDialog extends JDialog {
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(241, 245, 249));
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                    g2.setColor(getBackground());
+                    g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+                    g2.setColor(new Color(148, 163, 184));
+                    Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{4}, 0);
+                    g2.setStroke(dashed);
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
                     g2.dispose();
                     super.paintComponent(g);
                 }
             };
+            btnUpload.setBackground(new Color(248, 250, 252));
+            btnUpload.setForeground(new Color(71, 85, 105));
             btnUpload.setFocusPainted(false);
             btnUpload.setContentAreaFilled(false);
             btnUpload.setBorderPainted(false);
-            btnUpload.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            btnUpload.setFont(new Font("Segoe UI", Font.BOLD, 13));
             btnUpload.setBorder(new EmptyBorder(8, 15, 8, 15));
             btnUpload.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btnUpload.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    btnUpload.setBackground(new Color(226, 232, 240));
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    btnUpload.setBackground(new Color(248, 250, 252));
+                }
+            });
 
             lblImagePreview = new JLabel("");
             lblImagePreview.setPreferredSize(new Dimension(80, 80));

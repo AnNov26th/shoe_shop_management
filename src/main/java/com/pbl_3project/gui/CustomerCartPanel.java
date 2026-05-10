@@ -50,7 +50,7 @@ public class CustomerCartPanel extends JPanel {
     private Runnable updateCartBadge;
     private boolean isUpdatingTable = false;
     private int customerId;
-    private JTextField txtCoupon;
+    private javax.swing.JComboBox<String> cbCoupon;
     private int currentPromoId = -1;
     private double discountAmount = 0;
     private String currentPromoType = "";
@@ -84,19 +84,31 @@ public class CustomerCartPanel extends JPanel {
         lblTitle.setForeground(TEXT_H);
         header.add(lblTitle, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
-        String[] cols = { "Sản phẩm", "Size", "Màu sắc", " − ", "SL", " + ", "Đơn giá", "Thành tiền" };
+        String[] cols = { "Chọn", "Sản phẩm", "Size", "Màu sắc", " − ", "SL", " + ", "Đơn giá", "Thành tiền" };
         cartModel = new DefaultTableModel(cols, 0) {
             @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 0) return Boolean.class;
+                return super.getColumnClass(columnIndex);
+            }
+            @Override
             public boolean isCellEditable(int r, int c) {
-                return c == 4;
+                return c == 0 || c == 5;
             }
         };
         tableCart = new JTable(cartModel) {
             @Override
             public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
                 Component c = super.prepareRenderer(renderer, row, col);
-                if (!isRowSelected(row)) {
+                CartItem item = cartBUS.getCartItems().get(row);
+                if (item.getStock() == 0) {
+                    c.setBackground(new Color(241, 245, 249)); // Grey bg
+                    c.setForeground(new Color(148, 163, 184)); // Grey text
+                } else if (!isRowSelected(row)) {
                     c.setBackground(row % 2 == 0 ? WHITE : new Color(248, 250, 252));
+                    c.setForeground(TEXT_H);
+                } else {
+                    c.setForeground(TEXT_H);
                 }
                 return c;
             }
@@ -117,19 +129,20 @@ public class CustomerCartPanel extends JPanel {
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(JLabel.CENTER);
         ButtonRenderer btnRenderer = new ButtonRenderer();
-        tableCart.getColumnModel().getColumn(0).setPreferredWidth(220);
-        tableCart.getColumnModel().getColumn(1).setPreferredWidth(60);
-        tableCart.getColumnModel().getColumn(2).setPreferredWidth(130);
-        tableCart.getColumnModel().getColumn(3).setPreferredWidth(44);
-        tableCart.getColumnModel().getColumn(3).setCellRenderer(btnRenderer);
-        tableCart.getColumnModel().getColumn(4).setPreferredWidth(60);
-        tableCart.getColumnModel().getColumn(4).setCellRenderer(center);
-        tableCart.getColumnModel().getColumn(5).setPreferredWidth(44);
-        tableCart.getColumnModel().getColumn(5).setCellRenderer(btnRenderer);
-        tableCart.getColumnModel().getColumn(6).setPreferredWidth(120);
-        tableCart.getColumnModel().getColumn(6).setCellRenderer(center);
-        tableCart.getColumnModel().getColumn(7).setPreferredWidth(130);
+        tableCart.getColumnModel().getColumn(0).setPreferredWidth(50);
+        tableCart.getColumnModel().getColumn(1).setPreferredWidth(200);
+        tableCart.getColumnModel().getColumn(2).setPreferredWidth(60);
+        tableCart.getColumnModel().getColumn(3).setPreferredWidth(100);
+        tableCart.getColumnModel().getColumn(4).setPreferredWidth(44);
+        tableCart.getColumnModel().getColumn(4).setCellRenderer(btnRenderer);
+        tableCart.getColumnModel().getColumn(5).setPreferredWidth(60);
+        tableCart.getColumnModel().getColumn(5).setCellRenderer(center);
+        tableCart.getColumnModel().getColumn(6).setPreferredWidth(44);
+        tableCart.getColumnModel().getColumn(6).setCellRenderer(btnRenderer);
+        tableCart.getColumnModel().getColumn(7).setPreferredWidth(100);
         tableCart.getColumnModel().getColumn(7).setCellRenderer(center);
+        tableCart.getColumnModel().getColumn(8).setPreferredWidth(120);
+        tableCart.getColumnModel().getColumn(8).setCellRenderer(center);
         tableCart.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -138,24 +151,31 @@ public class CustomerCartPanel extends JPanel {
                 if (row >= 0) {
                     if (tableCart.isEditing())
                         tableCart.getCellEditor().stopCellEditing();
-                    int qty = cartBUS.getCartItems().get(row).getQuantity();
-                    if (col == 3)
-                        handleQuantityChange(row, qty - 1);
-                    else if (col == 5)
-                        handleQuantityChange(row, qty + 1);
+                    CartItem item = cartBUS.getCartItems().get(row);
+                    if (item.getStock() > 0) {
+                        int qty = item.getQuantity();
+                        if (col == 4)
+                            handleQuantityChange(row, qty - 1);
+                        else if (col == 6)
+                            handleQuantityChange(row, qty + 1);
+                    }
                 }
             }
         });
         cartModel.addTableModelListener(e -> {
-            if (!isUpdatingTable
-                    && e.getType() == javax.swing.event.TableModelEvent.UPDATE
-                    && e.getColumn() == 4) {
+            if (!isUpdatingTable && e.getType() == javax.swing.event.TableModelEvent.UPDATE) {
                 int row = e.getFirstRow();
-                try {
-                    int newQty = Integer.parseInt(cartModel.getValueAt(row, 4).toString());
-                    handleQuantityChange(row, newQty);
-                } catch (NumberFormatException ex) {
+                if (e.getColumn() == 0) {
+                    boolean isSelected = (Boolean) cartModel.getValueAt(row, 0);
+                    cartBUS.getCartItems().get(row).setSelected(isSelected);
                     refreshCartGUI();
+                } else if (e.getColumn() == 5) {
+                    try {
+                        int newQty = Integer.parseInt(cartModel.getValueAt(row, 5).toString());
+                        handleQuantityChange(row, newQty);
+                    } catch (NumberFormatException ex) {
+                        refreshCartGUI();
+                    }
                 }
             }
         });
@@ -189,11 +209,13 @@ public class CustomerCartPanel extends JPanel {
         JLabel lblC = new JLabel("Mã giảm giá:");
         lblC.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblC.setForeground(TEXT_H);
-        txtCoupon = new JTextField(12);
-        txtCoupon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtCoupon.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BORDER, 1, true),
-                new EmptyBorder(8, 12, 8, 12)));
+        
+        cbCoupon = new javax.swing.JComboBox<>();
+        cbCoupon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cbCoupon.setBackground(WHITE);
+        cbCoupon.setPreferredSize(new Dimension(200, 38));
+        refreshCouponList();
+
         JButton btnApply = new JButton("Áp dụng") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -212,10 +234,41 @@ public class CustomerCartPanel extends JPanel {
         btnApply.setFocusPainted(false);
         btnApply.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnApply.setPreferredSize(new Dimension(100, 38));
-        btnApply.addActionListener(e -> handleApplyCoupon());
+        btnApply.addActionListener(e -> {
+            if (cbCoupon.getSelectedIndex() <= 0) {
+                clearPromo();
+                refreshCartGUI();
+                return;
+            }
+            String selected = (String) cbCoupon.getSelectedItem();
+            String code = selected.split(" - ")[0];
+            handleApplyCoupon(code);
+        });
+
+        JButton btnExchange = new JButton("Đổi mã") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(245, 158, 11)); // Amber color
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnExchange.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnExchange.setForeground(WHITE);
+        btnExchange.setContentAreaFilled(false);
+        btnExchange.setBorderPainted(false);
+        btnExchange.setFocusPainted(false);
+        btnExchange.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnExchange.setPreferredSize(new Dimension(90, 38));
+        btnExchange.addActionListener(e -> handleExchangeVoucher());
+
         couponPanel.add(lblC);
-        couponPanel.add(txtCoupon);
+        couponPanel.add(cbCoupon);
         couponPanel.add(btnApply);
+        couponPanel.add(btnExchange);
         footer.add(couponPanel, BorderLayout.WEST);
 
         JPanel pnlPriceInfo = new JPanel();
@@ -292,8 +345,19 @@ public class CustomerCartPanel extends JPanel {
     }
 
     private void handleCheckout() {
-        if (cartBUS.getCartItems().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Giỏ hàng của bạn đang trống!", "Thông báo",
+        java.util.List<CartItem> selectedItems = new java.util.ArrayList<>();
+        for (CartItem item : cartBUS.getCartItems()) {
+            if (item.isSelected()) {
+                if (item.getStock() == 0) {
+                    JOptionPane.showMessageDialog(this, "Sản phẩm '" + item.getName() + "' đã hết hàng. Vui lòng bỏ chọn!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                selectedItems.add(item);
+            }
+        }
+        
+        if (selectedItems.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Bạn chưa chọn sản phẩm nào để thanh toán!", "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -332,7 +396,6 @@ public class CustomerCartPanel extends JPanel {
         lblHeader.setForeground(Color.WHITE);
         pnlHeader.add(lblHeader, BorderLayout.WEST);
 
-        // Main Content
         JPanel mainContent = new JPanel(new GridBagLayout());
         mainContent.setBackground(Color.WHITE);
         mainContent.setBorder(new EmptyBorder(25, 30, 25, 30));
@@ -341,7 +404,6 @@ public class CustomerCartPanel extends JPanel {
         gbc.weightx = 1.0;
         int gridy = 0;
 
-        // Section: Customer Info
         JLabel lblInfoTitle = new JLabel("THÔNG TIN GIAO HÀNG");
         lblInfoTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblInfoTitle.setForeground(new Color(100, 116, 139));
@@ -349,7 +411,6 @@ public class CustomerCartPanel extends JPanel {
         gbc.insets = new Insets(0, 0, 15, 0);
         mainContent.add(lblInfoTitle, gbc);
 
-        // Fields
         gbc.insets = new Insets(0, 0, 5, 0);
         gbc.gridy = gridy++;
         mainContent.add(new JLabel("Số điện thoại *") {
@@ -407,7 +468,6 @@ public class CustomerCartPanel extends JPanel {
         gbc.insets = new Insets(0, 0, 25, 0);
         mainContent.add(cbPayment, gbc);
 
-        // Section: Order Summary (Simple)
         JPanel pnlSummary = new JPanel(new BorderLayout());
         pnlSummary.setBackground(new Color(248, 250, 252));
         pnlSummary.setBorder(BorderFactory.createCompoundBorder(
@@ -495,15 +555,18 @@ public class CustomerCartPanel extends JPanel {
                         discountAmount,
                         finalAmount,
                         (currentPromoId > 0 ? currentPromoId : null),
-                        cartBUS.getCartItems(),
+                        selectedItems,
                         status);
                 if (success) {
                     if (methodChoice == 1) {
                     }
                     JOptionPane.showMessageDialog(this,
                             "🎉 " + (methodChoice == 1 ? "Thanh toán và đặt hàng" : "Đặt hàng") + " thành công!");
-                    new CartDAO().clearCartByUserId(this.customerId);
-                    cartBUS.clearCart();
+                    CartDAO cDao = new CartDAO();
+                    for(CartItem sel : selectedItems) {
+                        cDao.removeFromCart(this.customerId, sel.getSku());
+                        cartBUS.getCartItems().remove(sel);
+                    }
                     currentPromoId = -1;
                     discountAmount = 0;
                     refreshCartGUI();
@@ -515,9 +578,8 @@ public class CustomerCartPanel extends JPanel {
         }
     }
 
-    private void handleApplyCoupon() {
-        String code = txtCoupon.getText().trim();
-        if (code.isEmpty()) {
+    private void handleApplyCoupon(String code) {
+        if (code == null || code.isEmpty()) {
             currentPromoId = -1;
             discountAmount = 0;
             refreshCartGUI();
@@ -567,13 +629,18 @@ public class CustomerCartPanel extends JPanel {
 
     private void handleQuantityChange(int rowIndex, int newQty) {
         try {
+            CartItem item = cartBUS.getCartItems().get(rowIndex);
+            CartDAO cartDAO = new CartDAO();
             if (newQty <= 0) {
                 int ok = JOptionPane.showConfirmDialog(this,
                         "Xóa sản phẩm này khỏi giỏ?", "Xác nhận", JOptionPane.YES_NO_OPTION);
-                if (ok == JOptionPane.YES_OPTION)
+                if (ok == JOptionPane.YES_OPTION) {
+                    cartDAO.removeFromCart(this.customerId, item.getSku());
                     cartBUS.removeItem(rowIndex);
+                }
             } else {
                 cartBUS.updateQuantity(rowIndex, newQty);
+                cartDAO.updateCartItemQuantity(this.customerId, item.getSku(), newQty);
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Cảnh báo kho", JOptionPane.WARNING_MESSAGE);
@@ -586,8 +653,11 @@ public class CustomerCartPanel extends JPanel {
         isUpdatingTable = true;
         cartModel.setRowCount(0);
         for (CartItem item : cartBUS.getCartItems()) {
+            String nameDisplay = item.getName();
+            if (item.getStock() == 0) nameDisplay += " (Hết hàng)";
             cartModel.addRow(new Object[] {
-                    item.getName(), item.getSize(), item.getColor(),
+                    item.isSelected() && item.getStock() > 0,
+                    nameDisplay, item.getSize(), item.getColor(),
                     "−", item.getQuantity(), "+",
                     String.format("%,.0f", item.getPrice()),
                     String.format("%,.0f", item.getTotalPrice())
@@ -630,5 +700,47 @@ public class CustomerCartPanel extends JPanel {
             setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
             return this;
         }
+    }
+
+    private void refreshCouponList() {
+        cbCoupon.removeAllItems();
+        cbCoupon.addItem("-- Chọn mã giảm giá --");
+        String sql = "SELECT cv.promo_code, p.discount_value, p.type FROM Customer_Voucher cv " +
+                     "JOIN [Promotion] p ON cv.promo_code = p.code " +
+                     "WHERE cv.customer_id = ? AND cv.is_used = 0 AND p.end_date >= GETDATE()";
+        try (java.sql.Connection conn = com.pbl_3project.util.DatabaseConnection.getConnection();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, customerId);
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String code = rs.getString("promo_code");
+                    String type = rs.getString("type");
+                    double val = rs.getDouble("discount_value");
+                    String display = code + " - Giảm " + ("Fixed".equals(type) ? String.format("%,.0fđ", val) : String.format("%,.0f%%", val));
+                    cbCoupon.addItem(display);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleExchangeVoucher() {
+        int currentPoints = 0;
+        String name = "";
+        try {
+            java.util.Map<String, String> profile = new com.pbl_3project.dao.UserDAO().getCustomerProfile(customerId);
+            if (profile != null) {
+                if (profile.containsKey("reward_points")) {
+                    currentPoints = Integer.parseInt(profile.get("reward_points"));
+                }
+                name = profile.getOrDefault("firstName", "") + " " + profile.getOrDefault("lastName", "");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        VoucherExchangeDialog dialog = new VoucherExchangeDialog((Frame) SwingUtilities.getWindowAncestor(this), customerId, name, currentPoints);
+        dialog.setVisible(true);
+        refreshCouponList();
     }
 }

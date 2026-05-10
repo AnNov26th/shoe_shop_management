@@ -12,6 +12,7 @@ public class CustomerProfilePanel extends JPanel {
     private int customerId;
     private JTextField txtFirstName, txtLastName, txtDob, txtPhone, txtEmail, txtAddress;
     private JPasswordField txtPassword;
+    private JLabel lblPoints;
     private UserDAO userDAO;
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color CARD_BG = Color.WHITE;
@@ -35,17 +36,38 @@ public class CustomerProfilePanel extends JPanel {
         card.setLayout(new BorderLayout(0, 20));
         card.setBorder(new EmptyBorder(30, 40, 30, 40));
         card.setPreferredSize(new Dimension(800, 550));
-        JPanel headerPanel = new JPanel(new GridLayout(2, 1, 0, 5));
-        headerPanel.setOpaque(false);
-        JLabel lblTitle = new JLabel("Hồ Sơ Của Tôi", SwingConstants.CENTER);
+        JPanel topHeaderPanel = new JPanel(new BorderLayout());
+        topHeaderPanel.setOpaque(false);
+        
+        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 5));
+        titlePanel.setOpaque(false);
+        JLabel lblTitle = new JLabel("Hồ Sơ Của Tôi", SwingConstants.LEFT);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTitle.setForeground(TEXT_MAIN);
-        JLabel lblSub = new JLabel("Quản lý thông tin liên hệ và tài khoản", SwingConstants.CENTER);
+        JLabel lblSub = new JLabel("Quản lý thông tin liên hệ và tài khoản", SwingConstants.LEFT);
         lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         lblSub.setForeground(TEXT_SUB);
-        headerPanel.add(lblTitle);
-        headerPanel.add(lblSub);
-        card.add(headerPanel, BorderLayout.NORTH);
+        titlePanel.add(lblTitle);
+        titlePanel.add(lblSub);
+        topHeaderPanel.add(titlePanel, BorderLayout.WEST);
+
+        JPanel pointsPanel = new JPanel(new GridLayout(2, 1, 0, 5));
+        pointsPanel.setOpaque(false);
+        lblPoints = new JLabel("Điểm tích lũy: 0");
+        lblPoints.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblPoints.setForeground(new Color(239, 68, 68));
+        lblPoints.setHorizontalAlignment(SwingConstants.RIGHT);
+        
+        JButton btnExchange = createButton("Đổi Voucher");
+        btnExchange.setPreferredSize(new Dimension(150, 35));
+        btnExchange.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnExchange.addActionListener(e -> handleExchangeVoucher());
+        
+        pointsPanel.add(lblPoints);
+        pointsPanel.add(btnExchange);
+        
+        topHeaderPanel.add(pointsPanel, BorderLayout.EAST);
+        card.add(topHeaderPanel, BorderLayout.NORTH);
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -177,6 +199,9 @@ public class CustomerProfilePanel extends JPanel {
                 txtDob.setText(profile.getOrDefault("dob", ""));
                 txtPassword.setText(profile.getOrDefault("password", ""));
                 txtAddress.setText(profile.getOrDefault("address", ""));
+                if (lblPoints != null) {
+                    lblPoints.setText("Điểm tích lũy: " + profile.getOrDefault("reward_points", "0"));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -211,6 +236,21 @@ public class CustomerProfilePanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Lỗi khi lưu thông tin: " + e.getMessage(), "Lỗi",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void handleExchangeVoucher() {
+        int currentPoints = 0;
+        try {
+            Map<String, String> profile = userDAO.getCustomerProfile(customerId);
+            if (profile != null && profile.containsKey("reward_points")) {
+                currentPoints = Integer.parseInt(profile.get("reward_points"));
+            }
+        } catch (Exception e) {}
+        
+        String name = txtFirstName.getText() + " " + txtLastName.getText();
+        VoucherExchangeDialog dialog = new VoucherExchangeDialog((java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(this), customerId, name, currentPoints);
+        dialog.setVisible(true);
+        loadProfileData();
     }
 
     class RoundedPanel extends JPanel {

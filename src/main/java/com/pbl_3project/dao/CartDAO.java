@@ -6,6 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import com.pbl_3project.util.DatabaseConnection;
+import com.pbl_3project.dto.CartItem;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CartDAO {
     public int getOrCreateCart(int userId) throws SQLException {
@@ -215,6 +218,64 @@ public class CartDAO {
             String sql = "DELETE FROM Cart_Item WHERE cart_id = (SELECT id FROM Cart WHERE user_id = ?)";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, userId);
+            return pstmt.executeUpdate() > 0;
+        } finally {
+            if (pstmt != null)
+                pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    public List<CartItem> getCartItemsByUserId(int userId) throws SQLException {
+        List<CartItem> list = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT ci.quantity, pv.sku_code, pv.size, pv.color, pv.stock_quantity, p.name, p.base_price "
+                    +
+                    "FROM Cart_Item ci " +
+                    "JOIN Cart c ON ci.cart_id = c.id " +
+                    "JOIN Product_Variant pv ON ci.variant_id = pv.id " +
+                    "JOIN Product p ON pv.product_id = p.id " +
+                    "WHERE c.user_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                int quantity = rs.getInt("quantity");
+                String sku = rs.getString("sku_code");
+                String size = rs.getString("size");
+                String color = rs.getString("color");
+                int stock = rs.getInt("stock_quantity");
+                String name = rs.getString("name");
+                double price = rs.getDouble("base_price");
+                CartItem item = new CartItem(sku, name, size, color, price, quantity, stock);
+                list.add(item);
+            }
+        } finally {
+            if (rs != null)
+                rs.close();
+            if (pstmt != null)
+                pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return list;
+    }
+
+    public boolean updateCartItemQuantity(int userId, String skuCode, int newQty) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "UPDATE Cart_Item SET quantity = ? " +
+                    "WHERE cart_id = (SELECT id FROM Cart WHERE user_id = ?) " +
+                    "AND variant_id = (SELECT id FROM Product_Variant WHERE sku_code = ?)";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, newQty);
+            pstmt.setInt(2, userId);
+            pstmt.setString(3, skuCode);
             return pstmt.executeUpdate() > 0;
         } finally {
             if (pstmt != null)

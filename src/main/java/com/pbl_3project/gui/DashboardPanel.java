@@ -66,7 +66,7 @@ public class DashboardPanel extends JPanel {
 
         javax.swing.JTabbedPane tabbedPane = new javax.swing.JTabbedPane();
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        
+
         tableBrandStats = createStyledTable();
         tableMonthlyStats = createStyledTable();
         tabbedPane.addTab("Doanh thu theo Tháng", createTableScrollPane(tableMonthlyStats));
@@ -110,7 +110,6 @@ public class DashboardPanel extends JPanel {
         contentPanel.add(topCardsPanel);
         contentPanel.add(javax.swing.Box.createVerticalStrut(30));
 
-        // 2. Brand Performance Section (Table + Pie Chart)
         JPanel brandSection = new JPanel(new BorderLayout(25, 0));
         brandSection.setOpaque(false);
         brandSection.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -127,8 +126,7 @@ public class DashboardPanel extends JPanel {
         contentPanel.add(brandSection);
         contentPanel.add(javax.swing.Box.createVerticalStrut(40));
 
-        // 3. Other Charts Section
-        JPanel otherChartsSection = new JPanel(new GridLayout(0, 3, 25, 25)); // 3 charts per row
+        JPanel otherChartsSection = new JPanel(new GridLayout(0, 3, 25, 25));
         otherChartsSection.setOpaque(false);
         otherChartsSection.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -143,7 +141,6 @@ public class DashboardPanel extends JPanel {
         contentPanel.add(otherChartsSection);
         contentPanel.add(javax.swing.Box.createVerticalStrut(40));
 
-        // 4. Detailed Tables (Remaining)
         centerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         centerPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 500));
         contentPanel.add(centerPanel);
