@@ -306,7 +306,7 @@ public class UserDAO {
         ResultSet rs = null;
         try {
             conn = DatabaseConnection.getConnection();
-            String sql = "SELECT u.email, u.password_hash, u.phone, cp.full_name, cp.dob, cp.shoe_size_preference, cp.reward_points, ab.full_address "
+            String sql = "SELECT u.email, u.password_hash, u.phone, u.avatar_url, cp.full_name, cp.dob, cp.shoe_size_preference, cp.reward_points, ab.full_address "
                     +
                     "FROM [User] u " +
                     "LEFT JOIN Customer_Profile cp ON u.id = cp.user_id " +
@@ -339,6 +339,7 @@ public class UserDAO {
                 profile.put("shoeSize", shoeSize != null ? shoeSize.toString() : "");
                 profile.put("reward_points", String.valueOf(rs.getInt("reward_points")));
                 profile.put("address", rs.getString("full_address"));
+                profile.put("avatar_url", rs.getString("avatar_url"));
             }
         } finally {
             if (rs != null)
@@ -566,7 +567,7 @@ public class UserDAO {
         ResultSet rs = null;
         try {
             conn = DatabaseConnection.getConnection();
-            String sql = "SELECT full_name, email, phone, password_hash FROM [User] WHERE id = ?";
+            String sql = "SELECT full_name, email, phone, password_hash, avatar_url FROM [User] WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, userId);
             rs = pstmt.executeQuery();
@@ -575,6 +576,7 @@ public class UserDAO {
                 profile.put("email", rs.getString("email"));
                 profile.put("phone", rs.getString("phone") == null ? "" : rs.getString("phone"));
                 profile.put("password", rs.getString("password_hash"));
+                profile.put("avatar_url", rs.getString("avatar_url"));
             }
         } finally {
             if (rs != null)
@@ -599,6 +601,23 @@ public class UserDAO {
             pstmt.setString(3, phone);
             pstmt.setString(4, password);
             pstmt.setInt(5, userId);
+            return pstmt.executeUpdate() > 0;
+        } finally {
+            if (pstmt != null)
+                pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
+    public boolean updateAvatar(int userId, String avatarUrl) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "UPDATE [User] SET avatar_url = ? WHERE id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, avatarUrl);
+            pstmt.setInt(2, userId);
             return pstmt.executeUpdate() > 0;
         } finally {
             if (pstmt != null)

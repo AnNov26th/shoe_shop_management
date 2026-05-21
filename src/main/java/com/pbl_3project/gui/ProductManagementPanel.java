@@ -222,7 +222,7 @@ public class ProductManagementPanel extends JPanel {
         lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblPrice.setForeground(new Color(239, 68, 68));
         lblPrice.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JPanel btnPanel = new JPanel(new GridLayout(1, 2, 8, 0));
+        JPanel btnPanel = new JPanel(new GridLayout(1, 3, 8, 0));
         btnPanel.setOpaque(false);
         JButton btnView = new JButton("Chi tiết") {
             @Override
@@ -266,8 +266,32 @@ public class ProductManagementPanel extends JPanel {
         btnDelete.setBorderPainted(false);
         btnDelete.setFocusPainted(false);
         btnDelete.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JButton btnEdit = new JButton("Cập nhật") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isRollover()) {
+                    g2.setColor(new Color(245, 158, 11).darker());
+                } else {
+                    g2.setColor(new Color(245, 158, 11));
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnEdit.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnEdit.setForeground(Color.WHITE);
+        btnEdit.setContentAreaFilled(false);
+        btnEdit.setBorderPainted(false);
+        btnEdit.setFocusPainted(false);
+        btnEdit.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         if (!"ADMIN".equals(userRole)) {
             btnDelete.setVisible(false);
+            btnEdit.setVisible(false);
         }
         btnView.addActionListener(e -> {
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
@@ -293,7 +317,13 @@ public class ProductManagementPanel extends JPanel {
                 }
             }
         });
+        btnEdit.addActionListener(e -> {
+            JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            EditProductDialog editDialog = new EditProductDialog(parentFrame, productId, () -> loadProducts(txtSearch.getText()));
+            editDialog.setVisible(true);
+        });
         btnPanel.add(btnView);
+        btnPanel.add(btnEdit);
         btnPanel.add(btnDelete);
         infoPanel.add(lblName);
         infoPanel.add(Box.createVerticalStrut(4));

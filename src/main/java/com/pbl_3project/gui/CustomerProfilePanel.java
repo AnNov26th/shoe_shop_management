@@ -13,6 +13,8 @@ public class CustomerProfilePanel extends JPanel {
     private JTextField txtFirstName, txtLastName, txtDob, txtPhone, txtEmail, txtAddress;
     private JPasswordField txtPassword;
     private JLabel lblPoints;
+    private JLabel lblAvatar;
+    private String currentAvatarUrl = "";
     private UserDAO userDAO;
     private static final Color BG_CONTENT = new Color(248, 250, 252);
     private static final Color CARD_BG = Color.WHITE;
@@ -68,6 +70,33 @@ public class CustomerProfilePanel extends JPanel {
         
         topHeaderPanel.add(pointsPanel, BorderLayout.EAST);
         card.add(topHeaderPanel, BorderLayout.NORTH);
+
+        JPanel avatarContainer = new JPanel(new BorderLayout());
+        avatarContainer.setOpaque(false);
+        
+        JPanel avatarPanel = new JPanel();
+        avatarPanel.setLayout(new BoxLayout(avatarPanel, BoxLayout.Y_AXIS));
+        avatarPanel.setOpaque(false);
+        
+        lblAvatar = new JLabel();
+        lblAvatar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblAvatar.setPreferredSize(new Dimension(100, 100));
+        lblAvatar.setMinimumSize(new Dimension(100, 100));
+        lblAvatar.setMaximumSize(new Dimension(100, 100));
+        lblAvatar.setBorder(new RoundedBorder(50));
+        updateAvatarImage(null);
+        
+        JButton btnUploadAvatar = createButton("Đổi ảnh");
+        btnUploadAvatar.setPreferredSize(new Dimension(100, 30));
+        btnUploadAvatar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        btnUploadAvatar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnUploadAvatar.addActionListener(e -> handleUploadAvatar());
+        
+        avatarPanel.add(lblAvatar);
+        avatarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        avatarPanel.add(btnUploadAvatar);
+        avatarContainer.add(avatarPanel, BorderLayout.CENTER);
+
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -121,7 +150,13 @@ public class CustomerProfilePanel extends JPanel {
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        card.add(scrollPane, BorderLayout.CENTER);
+        
+        JPanel centerPanel = new JPanel(new BorderLayout(0, 15));
+        centerPanel.setOpaque(false);
+        centerPanel.add(avatarContainer, BorderLayout.NORTH);
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        card.add(centerPanel, BorderLayout.CENTER);
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         footerPanel.setOpaque(false);
         footerPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
@@ -199,6 +234,8 @@ public class CustomerProfilePanel extends JPanel {
                 txtDob.setText(profile.getOrDefault("dob", ""));
                 txtPassword.setText(profile.getOrDefault("password", ""));
                 txtAddress.setText(profile.getOrDefault("address", ""));
+                currentAvatarUrl = profile.getOrDefault("avatar_url", "");
+                updateAvatarImage(currentAvatarUrl);
                 if (lblPoints != null) {
                     lblPoints.setText("Điểm tích lũy: " + profile.getOrDefault("reward_points", "0"));
                 }
@@ -275,6 +312,82 @@ public class CustomerProfilePanel extends JPanel {
             g2.drawRoundRect(0, 0, getWidth() - 2, getHeight() - 2, radius, radius);
             g2.dispose();
             super.paintComponent(g);
+        }
+    }
+
+    private void handleUploadAvatar() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Image files", "jpg", "jpeg", "png"));
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            java.io.File file = fileChooser.getSelectedFile();
+            try {
+                String ext = file.getName().substring(file.getName().lastIndexOf("."));
+                String newFileName = "avatar_cus_" + customerId + "_" + System.currentTimeMillis() + ext;
+                java.nio.file.Path targetPath = java.nio.file.Paths.get("src", "main", "resources", "images", "avatars", newFileName);
+                java.nio.file.Files.copy(file.toPath(), targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                
+                String dbUrl = "images/avatars/" + newFileName;
+                if (userDAO.updateAvatar(customerId, dbUrl)) {
+                    currentAvatarUrl = dbUrl;
+                    updateAvatarImage(currentAvatarUrl);
+                    JOptionPane.showMessageDialog(this, "Cập nhật ảnh đại diện thành công!");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi khi tải ảnh: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void updateAvatarImage(String avatarUrl) {
+        try {
+            java.awt.image.BufferedImage img = null;
+            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                java.io.File f = new java.io.File("src/main/resources/" + avatarUrl);
+                if (f.exists()) img = javax.imageio.ImageIO.read(f);
+            }
+            if (img == null) {
+                java.io.File defaultF = new java.io.File("src/main/resources/icons/icon_avatar.png");
+                if (defaultF.exists()) img = javax.imageio.ImageIO.read(defaultF);
+            }
+            
+            if (img != null) {
+                Image scaled = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                lblAvatar.setIcon(new ImageIcon(getCircularImage(scaled, 100)));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Image getCircularImage(Image img, int size) {
+        java.awt.image.BufferedImage circleBuffer = new java.awt.image.BufferedImage(size, size, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = circleBuffer.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.fillOval(0, 0, size, size);
+        g2.setComposite(AlphaComposite.SrcIn);
+        g2.drawImage(img, 0, 0, size, size, null);
+        g2.dispose();
+        return circleBuffer;
+    }
+
+    class RoundedBorder implements javax.swing.border.Border {
+        private int radius;
+        RoundedBorder(int radius) {
+            this.radius = radius;
+        }
+        public Insets getBorderInsets(Component c) {
+            return new Insets(this.radius+1, this.radius+1, this.radius+2, this.radius);
+        }
+        public boolean isBorderOpaque() {
+            return true;
+        }
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2 = (Graphics2D)g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(BORDER_COLOR);
+            g2.drawOval(x, y, width-1, height-1);
+            g2.dispose();
         }
     }
 }

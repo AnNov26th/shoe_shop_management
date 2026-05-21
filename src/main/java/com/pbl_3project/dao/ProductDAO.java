@@ -322,6 +322,56 @@ public class ProductDAO {
         }
     }
 
+    public Object[] getProductDetails(int productId) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT brand_id, category_id, name, base_price, gender, description, status FROM Product WHERE id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, productId);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return new Object[] {
+                    rs.getInt("brand_id"),
+                    rs.getInt("category_id"),
+                    rs.getString("name"),
+                    rs.getDouble("base_price"),
+                    rs.getString("gender"),
+                    rs.getString("description"),
+                    rs.getString("status")
+                };
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+        return null;
+    }
+
+    public boolean updateProduct(int productId, int brandId, int categoryId, String name, double basePrice, String gender, String description) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "UPDATE Product SET brand_id=?, category_id=?, name=?, base_price=?, gender=?, description=? WHERE id=?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, brandId);
+            pstmt.setInt(2, categoryId);
+            pstmt.setString(3, name);
+            pstmt.setDouble(4, basePrice);
+            pstmt.setString(5, gender);
+            pstmt.setString(6, description);
+            pstmt.setInt(7, productId);
+            return pstmt.executeUpdate() > 0;
+        } finally {
+            if (pstmt != null) pstmt.close();
+            DatabaseConnection.closeConnection(conn);
+        }
+    }
+
     public DefaultTableModel lookupInventory(String keyword) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;

@@ -177,8 +177,18 @@ public class EmployeeManagementPanel extends JPanel {
         scrollPane.getViewport().setBackground(Color.WHITE);
         bottomPanel.add(toolBar, BorderLayout.NORTH);
         bottomPanel.add(scrollPane, BorderLayout.CENTER);
-        add(topPanel, BorderLayout.NORTH);
-        add(bottomPanel, BorderLayout.CENTER);
+        JPanel mainContent = new JPanel(new BorderLayout(20, 20));
+        mainContent.setBackground(BG_COLOR);
+        mainContent.add(topPanel, BorderLayout.NORTH);
+        mainContent.add(bottomPanel, BorderLayout.CENTER);
+
+        javax.swing.JTabbedPane tabbedPane = new javax.swing.JTabbedPane();
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        
+        tabbedPane.addTab("Danh Sách Nhân Sự", mainContent);
+        tabbedPane.addTab("Duyệt Yêu Cầu", new EmployeeRequestPanel());
+
+        add(tabbedPane, BorderLayout.CENTER);
         btnSearch.addActionListener(e -> loadTableData(txtSearch.getText()));
         btnReload.addActionListener(e -> {
             txtSearch.setText("");

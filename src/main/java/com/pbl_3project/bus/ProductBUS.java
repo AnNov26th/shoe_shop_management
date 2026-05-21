@@ -57,4 +57,23 @@ public class ProductBUS {
         }
         return productDAO.addProduct(brandId, categoryId, name, price, gender, desc);
     }
+
+    public Object[] getProductDetails(int productId) throws SQLException {
+        return productDAO.getProductDetails(productId);
+    }
+
+    public boolean capNhatSanPham(int productId, int brandId, int categoryId, String name, String priceStr, String gender, String desc) throws Exception {
+        if (name.isEmpty() || priceStr.isEmpty()) {
+            throw new Exception("Tên sản phẩm và Giá không được để trống!");
+        }
+        double price;
+        try {
+            price = Double.parseDouble(priceStr.replaceAll("[^\\d.]", ""));
+            if (price <= 0)
+                throw new Exception();
+        } catch (Exception e) {
+            throw new Exception("Giá sản phẩm phải là con số hợp lệ và lớn hơn 0!");
+        }
+        return productDAO.updateProduct(productId, brandId, categoryId, name, price, gender, desc);
+    }
 }

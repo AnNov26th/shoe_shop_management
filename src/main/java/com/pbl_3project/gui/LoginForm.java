@@ -48,7 +48,7 @@ public class LoginForm extends JFrame {
             if (imgURL != null)
                 tempImage = new ImageIcon(imgURL).getImage();
             else
-                tempImage = new ImageIcon("F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images\\Shoe Shop.png")
+                tempImage = new ImageIcon("src/main/resources/images/Shoe Shop.png")
                         .getImage();
         } catch (Exception e) {
         }

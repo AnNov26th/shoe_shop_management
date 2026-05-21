@@ -273,7 +273,16 @@ public class ProductDetailDialog extends JDialog {
         }
         try {
             String fileName = productName + " - " + colorEn + ".png";
-            File file = new File("F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images\\" + fileName);
+            File file = new File("src/main/resources/images/" + fileName);
+            if (!file.exists() && productName.contains("-")) {
+                // Sometimes productName has color, try without
+                 fileName = productName + ".png";
+                 file = new File("src/main/resources/images/" + fileName);
+            }
+            if (!file.exists()) {
+                 fileName = productName + ".jpg";
+                 file = new File("src/main/resources/images/" + fileName);
+            }
             if (file.exists()) {
                 BufferedImage img = ImageIO.read(file);
                 Image scaled = img.getScaledInstance(lblLargeImage.getWidth() - 40, -1, Image.SCALE_SMOOTH);

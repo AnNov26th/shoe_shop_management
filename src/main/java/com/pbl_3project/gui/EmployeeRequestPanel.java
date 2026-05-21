@@ -31,10 +31,7 @@ public class EmployeeRequestPanel extends JPanel {
         lblTitle.setForeground(new Color(15, 23, 42));
         headerPanel.add(lblTitle, BorderLayout.WEST);
 
-        JButton btnRefresh = new JButton("Làm mới");
-        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnRefresh.setBackground(new Color(226, 232, 240));
-        btnRefresh.setFocusPainted(false);
+        JButton btnRefresh = createStyledButton("Làm mới", new Color(226, 232, 240), new Color(15, 23, 42));
         btnRefresh.addActionListener(e -> loadData());
         headerPanel.add(btnRefresh, BorderLayout.EAST);
 
@@ -62,17 +59,8 @@ public class EmployeeRequestPanel extends JPanel {
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         actionPanel.setOpaque(false);
 
-        JButton btnReject = new JButton("Từ chối");
-        btnReject.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnReject.setBackground(new Color(239, 68, 68));
-        btnReject.setForeground(Color.BLACK);
-        btnReject.setFocusPainted(false);
-
-        JButton btnApprove = new JButton("Phê duyệt");
-        btnApprove.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnApprove.setBackground(new Color(34, 197, 94));
-        btnApprove.setForeground(Color.BLACK);
-        btnApprove.setFocusPainted(false);
+        JButton btnReject = createStyledButton("Từ chối", new Color(239, 68, 68), Color.WHITE);
+        JButton btnApprove = createStyledButton("Phê duyệt", new Color(34, 197, 94), Color.WHITE);
 
         btnReject.addActionListener(e -> handleAction("Rejected"));
         btnApprove.addActionListener(e -> handleAction("Approved"));
@@ -120,5 +108,35 @@ public class EmployeeRequestPanel extends JPanel {
                         JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private JButton createStyledButton(String text, Color bg, Color fg) {
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? bg.darker() : bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                
+                g2.setColor(fg);
+                g2.setFont(getFont());
+                FontMetrics fm = g2.getFontMetrics();
+                int textWidth = fm.stringWidth(getText());
+                int textHeight = fm.getAscent();
+                g2.drawString(getText(), (getWidth() - textWidth) / 2, (getHeight() + textHeight) / 2 - 2);
+                
+                g2.dispose();
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setForeground(fg);
+        btn.setPreferredSize(new Dimension(130, 40));
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setOpaque(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
     }
 }

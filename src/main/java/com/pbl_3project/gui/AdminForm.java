@@ -11,6 +11,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,8 +24,6 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import com.pbl_3project.util.TimeDisplayPanel;
-import com.pbl_3project.gui.HeaderPanel;
 
 public class AdminForm extends JFrame {
     private CardLayout cardLayout;
@@ -77,7 +76,6 @@ public class AdminForm extends JFrame {
         JButton btnHoaDon = createMenuButton("Lịch sử Hóa đơn");
         JButton btnKhuyenMai = createMenuButton("Quản lý Khuyến mãi");
         JButton btnNhanVien = createMenuButton("Quản lý Nhân sự");
-        JButton btnDuyetYeuCau = createMenuButton("Duyệt Yêu cầu NV");
         JButton btnKhachHang = createMenuButton("Quản lý Khách hàng");
         JButton btnDoiTra = createMenuButton("Xử lý Đổi/Trả");
         JButton btnLogout = createMenuButton("Đăng xuất");
@@ -93,8 +91,6 @@ public class AdminForm extends JFrame {
         menuPanel.add(btnKhuyenMai);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnNhanVien);
-        menuPanel.add(Box.createVerticalStrut(5));
-        menuPanel.add(btnDuyetYeuCau);
         menuPanel.add(Box.createVerticalStrut(5));
         menuPanel.add(btnKhachHang);
         menuPanel.add(Box.createVerticalStrut(5));
@@ -120,7 +116,6 @@ public class AdminForm extends JFrame {
         mainContentPanel.add(new ProductManagementPanel(roleStr), "SanPham");
         mainContentPanel.add(new DashboardPanel(), "ThongKe");
         mainContentPanel.add(new EmployeeManagementPanel(), "NhanVien");
-        mainContentPanel.add(new EmployeeRequestPanel(), "DuyetYeuCau");
         mainContentPanel.add(new CustomerManagementPanel(), "KhachHang");
         mainContentPanel.add(new OrderManagementPanel(true, false), "DonHang");
         mainContentPanel.add(new OrderManagementPanel(true, true), "HoaDon");
@@ -155,10 +150,6 @@ public class AdminForm extends JFrame {
         btnNhanVien.addActionListener(e -> {
             selectMenuButton(btnNhanVien);
             cardLayout.show(mainContentPanel, "NhanVien");
-        });
-        btnDuyetYeuCau.addActionListener(e -> {
-            selectMenuButton(btnDuyetYeuCau);
-            cardLayout.show(mainContentPanel, "DuyetYeuCau");
         });
         btnKhachHang.addActionListener(e -> {
             selectMenuButton(btnKhachHang);

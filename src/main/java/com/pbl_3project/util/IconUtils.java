@@ -58,7 +58,7 @@ public class IconUtils {
             java.io.File dir = new java.io.File("src/main/resources/images");
             if (!dir.exists()) {
                 // Fallback to absolute path from workspace if needed
-                dir = new java.io.File("F:\\CNTT\\shoe_shop_management\\src\\main\\resources\\images");
+                dir = new java.io.File("f:\\CNTT\\Shoe Shop Management\\src\\main\\resources\\images");
             }
             
             if (dir.exists()) {
