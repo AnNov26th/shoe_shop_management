@@ -5,36 +5,39 @@
 Database `ShopGiayDB` được thiết kế theo 5 nhóm chính:
 
 ### 1. **Nhóm Người Dùng & Phân Quyền**
-- `Role` - Các vai trò (Admin, Manager, Staff, Customer)
-- `[User]` - Tài khoản người dùng
-- `Customer_Profile` - Hồ sơ chi tiết khách hàng
-- `Address_Book` - Danh bạ địa chỉ giao hàng
+- `Role`: Các vai trò trong hệ thống
+- `User`: Tài khoản người dùng cơ bản
+- `Customer_Profile`: Hồ sơ chi tiết của khách hàng
+- `Address_Book`: Danh bạ địa chỉ giao hàng của người dùng
+- `Profile_Update_Request`: Yêu cầu cập nhật hồ sơ từ người dùng
 
 ### 2. **Nhóm Danh Mục & Sản Phẩm**
-- `Brand` - Thương hiệu giày
-- `Category` - Danh mục sản phẩm (hỗ trợ phân cấp)
-- `Product` - Sản phẩm
-- `Product_Image` - Hình ảnh sản phẩm
-- `Product_Variant` - Các biến thể sản phẩm (size, color)
+- `Brand`: Thương hiệu sản phẩm
+- `Category`: Danh mục sản phẩm 
+- `Product`: Thông tin sản phẩm chính
+- `Product_Image`: Hình ảnh chi tiết của sản phẩm
+- `Product_Variant`: Các biến thể của sản phẩm (Kích cỡ, màu sắc)
 
 ### 3. **Nhóm Quản Lý Kho**
-- `Supplier` - Nhà cung cấp
-- `Purchase_Order` - Đơn mua hàng
-- `Purchase_Order_Item` - Chi tiết đơn mua
-- `Inventory_Transaction` - Nhật ký giao dịch kho
+- `Supplier`: Nhà cung cấp hàng hóa
+- `Purchase_Order`: Đơn nhập hàng từ nhà cung cấp
+- `Purchase_Order_Item`: Chi tiết các sản phẩm trong đơn nhập
+- `Inventory_Transaction`: Lịch sử giao dịch, biến động kho
 
 ### 4. **Nhóm Giỏ Hàng & Khuyến Mãi**
-- `Cart` - Giỏ hàng
-- `Cart_Item` - Sản phẩm trong giỏ
-- `Promotion` - Khuyến mãi/Giảm giá
+- `Cart`: Giỏ hàng của khách
+- `Cart_Item`: Chi tiết từng sản phẩm trong giỏ
+- `Promotion`: Chương trình khuyến mãi áp dụng
 
 ### 5. **Nhóm Đơn Hàng & Hậu Mãi**
-- `[Order]` - Đơn hàng
-- `Order_Detail` - Chi tiết đơn hàng
-- `Payment` - Thanh toán
-- `Shipping` - Vận chuyển
-- `Return_Request` - Yêu cầu đổi trả
-- `Review` - Đánh giá sản phẩm
+- `Order`: Đơn hàng do khách đặt
+- `Order_Detail`: Chi tiết từng sản phẩm trong đơn hàng
+- `Payment`: Giao dịch thanh toán
+- `Shipping`: Thông tin vận chuyển
+- `Return_Request`: Yêu cầu đổi trả hàng hóa
+- `Review`: Đánh giá chung
+- `Product_Review`: Đánh giá chi tiết sản phẩm
+- `Shipping_Review`: Đánh giá dịch vụ vận chuyển
 
 ---
 
@@ -42,268 +45,83 @@ Database `ShopGiayDB` được thiết kế theo 5 nhóm chính:
 
 ### **Bước 1: Chuẩn Bị**
 
-✔️ Yêu cầu:
-- SQL Server Express (hoặc phiên bản cao hơn)
-- SQL Server Management Studio
-- Maven 3.8+
-- Java JDK 21
+- Cài đặt SQL Server Express (hoặc phiên bản cao cấp hơn)
+- Cài đặt SQL Server Management Studio (SSMS)
+- Môi trường Java JDK 21 và Maven 3.8+
 
 ### **Bước 2: Tạo Database**
 
-**Cách 1: Chạy script SQL (Khuyến nghị)**
+Mở SQL Server Management Studio và mở file script khởi tạo database tại `database/ShopGiayDB_script_4-5-2026.sql`. Sau đó Execute toàn bộ file script này để tạo các bảng dữ liệu.
 
-```sql
--- Mở SQL Server Management Studio
--- File > Open > database/init_database.sql
--- Ctrl + A chọn tất cả
--- F5 hoặc Execute
-```
-
-**Cách 2: Dùng sqlcmd**
+Hoặc sử dụng sqlcmd:
 
 ```powershell
-sqlcmd -S localhost\SQLEXPRESS -U sa -P 123456 -i database/init_database.sql
+sqlcmd -S localhost\SQLEXPRESS -U sa -P 123456 -i "database/ShopGiayDB_script_4-5-2026.sql"
 ```
 
 ### **Bước 3: Verify Database**
 
+Kiểm tra database trong SSMS:
+
 ```sql
--- Chạy trong SQL Server Management Studio
 USE ShopGiayDB;
 GO
 
--- Xem tất cả tables
 SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo';
-
--- Xem dữ liệu mẫu
-SELECT COUNT(*) FROM Role;
-SELECT COUNT(*) FROM Brand;
-SELECT COUNT(*) FROM Category;
-SELECT COUNT(*) FROM Supplier;
-```
-
-Kết quả mong đợi:
-- Role: 4 record
-- Brand: 4 record
-- Category: 6 record
-- Supplier: 3 record
-
----
-
-## 🗂️ Các DAO Classes
-
-### **UserDAO** - Quản lý người dùng
-```java
-// Xác thực người dùng
-User user = userDAO.authenticateUser("email@gmail.com", "password");
-
-// Đăng ký tài khoản mới
-userDAO.registerUser("newemail@gmail.com", "password", "0912345678", Role.CUSTOMER);
-
-// Lấy người dùng theo ID hoặc Email
-User user = userDAO.findById(1);
-User user = userDAO.findByEmail("email@gmail.com");
-
-// Cập nhật mật khẩu
-userDAO.updatePassword(userId, "newPassword");
-
-// Lấy danh sách tất cả người dùng
-List<User> users = userDAO.findAll();
-```
-
-### **CategoryDAO** - Quản lý danh mục
-```java
-// Lấy tất cả danh mục
-List<Category> categories = categoryDAO.findAll();
-
-// Lấy danh mục cha (PARENT)
-List<Category> parentCategories = categoryDAO.findParentCategories();
-
-// Lấy danh mục con
-List<Category> subcategories = categoryDAO.findSubcategoriesByParentId(parentId);
-
-// Tìm theo slug
-Category cat = categoryDAO.findBySlug("giay-nam");
-
-// Thêm danh mục mới
-int catId = categoryDAO.save(newCategory);
-```
-
-### **ProductDAO** - Quản lý sản phẩm
-```java
-// Lấy tất cả sản phẩm
-List<Product> products = productDAO.findAll();
-
-// Lấy sản phẩm theo danh mục
-List<Product> products = productDAO.findByCategory(categoryId);
-
-// Tìm kiếm sản phẩm
-List<Product> results = productDAO.searchByName("Nike");
-
-// Lấy các biến thể (size, color) của sản phẩm
-List<ProductVariant> variants = productDAO.findVariantsByProductId(productId);
-
-// Kiểm tra tồn kho
-int stock = productDAO.getVariantStock(variantId);
-
-// Cập nhật tồn kho
-productDAO.updateVariantStock(variantId, newQuantity);
-
-// Thêm biến thể sản phẩm
-int variantId = productDAO.saveVariant(newVariant);
-```
-
-### **OrderDAO** - Quản lý đơn hàng
-```java
-// Lấy tất cả đơn hàng
-List<Order> orders = orderDAO.findAll();
-
-// Lấy đơn hàng theo khách hàng
-List<Order> orders = orderDAO.findByCustomer(customerId);
-
-// Lấy đơn hàng theo trạng thái
-List<Order> orders = orderDAO.findByStatus(OrderStatus.PENDING);
-
-// Tìm theomã đơn hàng
-Order order = orderDAO.findByOrderCode("ORD20260401000001");
-
-// Tạo đơn hàng mới
-int orderId = orderDAO.save(newOrder);
-
-// Thêm sản phẩm vào đơn hàng
-orderDAO.addOrderItem(orderId, variantId, quantity, unitPrice);
-
-// Cập nhật trạng thái đơn hàng
-orderDAO.updateOrderStatus(orderId, OrderStatus.CONFIRMED);
-
-// Xóa sản phẩm khỏi đơn hàng
-orderDAO.removeOrderItem(orderItemId);
-```
-
-### **DiscountDAO** - Quản lý giảm giá
-```java
-// Lấy tất cả giảm giá đang hoạt động
-List<Discount> discounts = discountDAO.findAll();
-
-// Lấy tất cả giảm giá (kể cả hết hạn)
-List<Discount> allDiscounts = discountDAO.findAllIncludeExpired();
-
-// Tìm giảm giá theo mã
-Discount discount = discountDAO.findByCode("SUMMER2024");
-
-// Kiểm tra giảm giá còn hiệu lực
-boolean isValid = discountDAO.isDiscountValid("SUMMER2024");
-
-// Tăng lượt sử dụng
-discountDAO.incrementUsage(discountId);
-
-// Thêm giảm giá mới
-int discountId = discountDAO.save(newDiscount);
-
-// Cập nhật giảm giá
-discountDAO.update(discount);
-
-// Xóa giảm giá
-discountDAO.delete(discountId);
 ```
 
 ---
 
-## 🧪 Chạy DAO Test
+## 🗂️ Hướng Dẫn Sử Dụng Các DAO Classes
 
-### **Phương pháp 1: PowerShell Script**
+Tầng DAO chịu trách nhiệm giao tiếp trực tiếp với database thông qua JDBC. Dưới đây là cách sử dụng cơ bản.
 
-```powershell
-cd f:\CNTT\shoe_shop_management
-powershell -ExecutionPolicy Bypass -File setup_database.ps1
-```
+### **UserDAO**
+Dùng để quản lý các nghiệp vụ liên quan đến người dùng:
+- Xác thực người dùng qua Email và Password.
+- Đăng ký tài khoản người dùng mới.
+- Tìm kiếm người dùng dựa vào ID hoặc Email.
+- Cập nhật thông tin mật khẩu.
+- Lấy danh sách toàn bộ người dùng.
 
-### **Phương pháp 2: Maven**
+### **CategoryDAO**
+Dùng để quản lý phân loại sản phẩm:
+- Lấy toàn bộ danh sách các danh mục.
+- Lọc danh mục theo danh mục cha hoặc danh mục con.
+- Tìm danh mục dựa trên Slug.
+- Thêm mới danh mục vào cơ sở dữ liệu.
 
-```bash
-mvn clean compile
+### **ProductDAO**
+Dùng để thao tác với sản phẩm:
+- Truy xuất danh sách sản phẩm đầy đủ hoặc theo danh mục.
+- Tìm kiếm sản phẩm theo tên.
+- Lấy chi tiết các biến thể (size, color) của một sản phẩm.
+- Kiểm tra số lượng tồn kho của một biến thể cụ thể.
+- Cập nhật số lượng tồn kho.
+- Thêm biến thể mới cho sản phẩm.
 
-# Chạy DAOTest
-mvn exec:java -Dexec.mainClass="com.pbl_3project.DAOTest"
-```
+### **OrderDAO**
+Dùng để quản lý đơn hàng:
+- Xem toàn bộ đơn hàng trong hệ thống.
+- Lấy danh sách đơn hàng theo khách hàng hoặc theo trạng thái hiện tại.
+- Tìm kiếm đơn hàng qua mã đơn.
+- Tạo đơn hàng mới và thêm chi tiết sản phẩm vào đơn.
+- Cập nhật trạng thái xử lý của đơn.
+- Xóa sản phẩm khỏi đơn hàng khi cần thiết.
 
-### **Phương pháp 3: IDE (VS Code/IntelliJ)**
-
-1. Mở file `DAOTest.java`
-2. Nhấn Ctrl+F5 hoặc Run > Run
-
----
-
-## 🔍 Kết Quả Test Mong Đợi
-
-```
-========== DATABASE DAO TEST ==========
-
-🔗 TEST 1: Database Connection
-✓ Database connected successfully!
-
-👤 TEST 2: User DAO
-✓ User registered: SUCCESS
-✓ User found: testuser@gmail.com (Role: CUSTOMER)
-✓ User authenticated successfully!
-✓ Total users in database: 5
-
-📂 TEST 3: Category DAO
-✓ Total categories: 6
-✓ Parent categories: 3
-✓ Subcategories of 'Giày Nam': 2
-
-🛍️  TEST 4: Product DAO
-✓ Total products: 0
-✓ Search 'Nike': 0 results
-
-🎟️  TEST 5: Discount DAO
-✓ Total active discounts: 0
-✓ Total discounts (all): 0
-✓ New discount created: ID 1 (TEST1234567890)
-✓ Discount found: TEST1234567890 (PERCENT)
-✓ Discount valid: YES
-
-========== ALL TESTS COMPLETED ==========
-```
+### **DiscountDAO**
+Dùng để quản lý mã giảm giá:
+- Lấy danh sách các mã đang còn hiệu lực hoặc danh sách toàn bộ mã.
+- Tìm chi tiết thông tin của một mã cụ thể.
+- Kiểm tra tính hợp lệ của mã trước khi áp dụng.
+- Tăng số lượt đã sử dụng của mã.
+- Thêm mới, cập nhật hoặc xóa mã giảm giá.
 
 ---
 
-## ⚡ Xử Lý Sự Cố
+## 📋 Cấu Hình Database Connection String
 
-### **Vấn đề: "Connection refused"**
-```
-✗ java.sql.DriverManager.getConnection() - Connection refused
-```
-
-**Giải pháp:**
-- Kiểm tra SQL Server đang chạy
-- Kiểm tra tên server: `localhost\SQLEXPRESS`
-- Kiểm tra user/password: `sa` / `123456`
-
-### **Vấn đề: "Database does not exist"**
-```
-✗ [DBNETLIB][ConnectionOpen (Connect())].
-```
-
-**Giải pháp:**
-- Chạy lại script `init_database.sql`
-
-### **Vấn đề: "Cannot allocate memory"**
-```
-java.lang.OutOfMemoryError
-```
-
-**Giải pháp:**
-```bash
-# Tăng heap size
-set MAVEN_OPTS=-Xmx2048m
-mvn exec:java -Dexec.mainClass="com.pbl_3project.DAOTest"
-```
-
----
-
-## 📋 Database Connection String
+Chuỗi kết nối chuẩn trong project:
 
 ```
 JDBC URL: jdbc:sqlserver://localhost;instanceName=SQLEXPRESS;databaseName=ShopGiayDB;encrypt=true;trustServerCertificate=true;
@@ -311,10 +129,4 @@ Username: sa
 Password: 123456
 ```
 
----
-
-## 🚀 Bước Tiếp
-
-✅ Database khởi tạo xong  
-✅ DAOs đã implement  
-⏭️ Tiếp theo: Tạo Service layer để xử lý business logic
+Thay đổi thông tin này trong class cấu hình connection của hệ thống (như `DatabaseInitializer` hoặc file properties) cho phù hợp với môi trường thực tế.
