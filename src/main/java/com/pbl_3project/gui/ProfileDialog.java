@@ -289,7 +289,7 @@ public class ProfileDialog extends JDialog {
             this.radius = radius;
         }
         public Insets getBorderInsets(Component c) {
-            return new Insets(this.radius+1, this.radius+1, this.radius+2, this.radius);
+            return new Insets(0, 0, 0, 0);
         }
         public boolean isBorderOpaque() {
             return true;

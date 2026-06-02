@@ -47,10 +47,10 @@ public class EmployeeForm extends JFrame {
         sidebarPanel.add(lblEmployee);
         sidebarPanel.add(Box.createVerticalStrut(40));
         JButton btnPOS = createMenuButton("Bán hàng tại quầy (POS)", com.pbl_3project.util.IconUtils.IconType.TROLLEY);
-        JButton btnDonOnline = createMenuButton("Đơn hàng Online", com.pbl_3project.util.IconUtils.IconType.TAG);
-        JButton btnHoaDon = createMenuButton("Lịch sử Hóa đơn", com.pbl_3project.util.IconUtils.IconType.TROLLEY);
+        JButton btnDonOnline = createMenuButton("Đơn hàng Online", com.pbl_3project.util.IconUtils.IconType.SHOE);
+        JButton btnHoaDon = createMenuButton("Lịch sử Hóa đơn", com.pbl_3project.util.IconUtils.IconType.TAG);
         JButton btnTonKho = createMenuButton("Tra cứu tồn kho", com.pbl_3project.util.IconUtils.IconType.WAREHOUSE);
-        JButton btnDoiTra = createMenuButton("Yêu cầu Đổi/Trả", com.pbl_3project.util.IconUtils.IconType.USER);
+        JButton btnDoiTra = createMenuButton("Yêu cầu Đổi/Trả", com.pbl_3project.util.IconUtils.IconType.DASHBOARD);
         JButton btnLogout = createMenuButton("Đăng xuất", com.pbl_3project.util.IconUtils.IconType.LOGOUT);
         sidebarPanel.add(btnPOS);
         sidebarPanel.add(Box.createVerticalStrut(8));
